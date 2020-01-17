@@ -88,6 +88,9 @@ object DefaultConnectionFactory extends CassandraConnectionFactory {
         .withDuration(DseDriverOption.CONTINUOUS_PAGING_TIMEOUT_OTHER_PAGES, Duration.ofMillis(conf.readTimeoutMillis))
     }
 
+    def jmxProperties(b: PDCLB): PDCLB =
+      if (!conf.jmxEnabled) b.withString(METRICS_FACTORY_CLASS, "NoopMetricsFactory") else b
+
     // compression option cannot be set to NONE (default)
     def compressionProperties(b: PDCLB): PDCLB =
       Option(conf.compression)
@@ -124,7 +127,7 @@ object DefaultConnectionFactory extends CassandraConnectionFactory {
     }
 
     val universalProperties: Seq[PDCLB => PDCLB] =
-      Seq( basicProperties, compressionProperties, localDCProperty)
+      Seq( basicProperties, compressionProperties, localDCProperty, jmxProperties)
 
     val appliedProperties: Seq[PDCLB => PDCLB] = conf.contactInfo match {
       case ipConf: IpBasedContactInfo => universalProperties :+ ipBasedConnectionProperties(ipConf)

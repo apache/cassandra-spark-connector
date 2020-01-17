@@ -20,11 +20,13 @@ package com.datastax.spark.connector.cql
 
 import java.io.IOException
 
-import org.apache.spark.SparkEnv
+import com.datastax.oss.driver.api.core.config.{DefaultDriverOption, DriverConfigLoader}
+import org.apache.spark.{SparkConf, SparkEnv}
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
 
 class DefaultConnectionFactoryTest extends FlatSpec with MockitoSugar {
@@ -53,6 +55,18 @@ class DefaultConnectionFactoryTest extends FlatSpec with MockitoSugar {
     intercept[IOException] {
       DefaultConnectionFactory.maybeGetLocalFile("hdfs:///secure-bundle.zip")
     }
+  }
+
+  it should "use NoopMetricsFactory when JMX reporting is disabled" in {
+    val sparkConf = new SparkConf(loadDefaults = false)
+      .set(CassandraConnectorConf.JmxEnabledParam.name, "false")
+    val conf = CassandraConnectorConf(sparkConf)
+    val profile = DefaultConnectionFactory
+      .connectorConfigBuilder(conf, DriverConfigLoader.programmaticBuilder())
+      .build()
+      .getInitialConfig
+      .getDefaultProfile
+    profile.getString(DefaultDriverOption.METRICS_FACTORY_CLASS) shouldBe "NoopMetricsFactory"
   }
 
 }

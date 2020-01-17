@@ -80,7 +80,8 @@ case class CassandraConnectorConf(
   connectionFactory: CassandraConnectionFactory = DefaultConnectionFactory,
   quietPeriodBeforeCloseMillis: Int = CassandraConnectorConf.QuietPeriodBeforeCloseParam.default,
   timeoutBeforeCloseMillis: Int = CassandraConnectorConf.TimeoutBeforeCloseParam.default,
-  resolveContactPoints: Boolean = CassandraConnectorConf.ResolveContactPoints.default
+  resolveContactPoints: Boolean = CassandraConnectorConf.ResolveContactPoints.default,
+  jmxEnabled: Boolean = CassandraConnectorConf.JmxEnabledParam.default
 ) {
 
   override def hashCode: Int = HashCodeBuilder.reflectionHashCode(this, false)
@@ -120,6 +121,12 @@ object CassandraConnectorConf extends Logging {
     section = ReferenceSection,
     default = 9042,
     description = """Cassandra native connection port, will be set to all hosts if no individual ports are given""")
+
+  val JmxEnabledParam = ConfigParameter[Boolean](
+    name = "spark.cassandra.connection.jmxEnabled",
+    section = ReferenceSection,
+    default = true,
+    description = """Cassandra JMX Reporting""")
 
   val ConnectionHostParam = ConfigParameter[String](
     name = "spark.cassandra.connection.host",
@@ -442,6 +449,7 @@ object CassandraConnectorConf extends Logging {
     val quietPeriodBeforeClose = conf.getInt(QuietPeriodBeforeCloseParam.name, QuietPeriodBeforeCloseParam.default)
     val timeoutBeforeClose = conf.getInt(TimeoutBeforeCloseParam.name, TimeoutBeforeCloseParam.default)
     val resolveContactPoints = conf.getBoolean(ResolveContactPoints.name, ResolveContactPoints.default)
+    val jmxEnabled = conf.getBoolean(JmxEnabledParam.name, JmxEnabledParam.default)
 
     val compression = conf.getOption(CompressionParam.name).getOrElse(CompressionParam.default)
 
@@ -462,7 +470,8 @@ object CassandraConnectorConf extends Logging {
       connectionFactory = connectionFactory,
       quietPeriodBeforeCloseMillis = quietPeriodBeforeClose,
       timeoutBeforeCloseMillis = timeoutBeforeClose,
-      resolveContactPoints = resolveContactPoints
+      resolveContactPoints = resolveContactPoints,
+      jmxEnabled = jmxEnabled
     )
   }
 

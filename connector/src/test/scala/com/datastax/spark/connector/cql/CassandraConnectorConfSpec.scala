@@ -141,6 +141,18 @@ class CassandraConnectorConfSpec extends FlatSpec with Matchers {
     conf1 shouldNot equal(conf2)
   }
 
+  it should "enable JMX reporting by default" in {
+    val conf = CassandraConnectorConf(new SparkConf(loadDefaults = false))
+    conf.jmxEnabled shouldBe true
+  }
+
+  it should "allow disabling JMX reporting through configuration" in {
+    val sparkConf = new SparkConf(loadDefaults = false)
+      .set(CassandraConnectorConf.JmxEnabledParam.name, "false")
+    val conf = CassandraConnectorConf(sparkConf)
+    conf.jmxEnabled shouldBe false
+  }
+
   /*
   TODO:
   it should "be equals for the same settings" in {
