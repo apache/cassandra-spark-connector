@@ -2,6 +2,8 @@
 
 *Lightning-fast cluster computing with Apache Spark&trade; and Apache Cassandra&reg;.*
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Maven Central](https://img.shields.io/maven-central/v/com.datastax.spark/spark-cassandra-connector-driver_2.12)](https://img.shields.io/maven-central/v/com.datastax.spark/spark-cassandra-connector-driver_2.12)
 [![CI](https://github.com/datastax/spark-cassandra-connector/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/datastax/spark-cassandra-connector/actions?query=branch%3Amaster)
 
 ## Quick Links
