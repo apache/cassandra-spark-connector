@@ -31,40 +31,40 @@ Cassandra and Spark nodes and are the core of our test coverage.
 
 ### Merge Path
 
-b2.5 => b3.0 => b3.1 => b3.2 => master
+b2.5 => b3.0 => b3.1 => b3.2 => b3.3 => b3.4 => trunk
 
 New features can be considered for 2.5 as long as they do not break apis.
 Once a feature is ready for b2.5, create a feature branch for b3.0 and merge
-b2.5 feature branch to b3.0 feature branch. Repeat for b3.1, b3.2 and master. 
+b2.5 feature branch to b3.0 feature branch. Repeat for b3.1, b3.2, b3.3, b3.4 and trunk. 
 
 Example for imaginary SPARKC-9999.
 
-Let's assume that `datastax` is `git@github.com:datastax/spark-cassandra-connector.git` remote 
+Let's assume that `apache` is `git@github.com:apache/cassandra-spark-connector.git` remote 
 and origin is your personal clone.
 ```shell
 $ git remote -v
-datastax	git@github.com:datastax/spark-cassandra-connector.git (fetch)
-datastax	git@github.com:datastax/spark-cassandra-connector.git (push)
+apache	git@github.com:apache/cassandra-spark-connector.git (fetch)
+apache	git@github.com:apache/cassandra-spark-connector.git (push)
 ...
 ```
 
 Here is what the work should look like.
 
 ```shell
-git fetch datastax
-git checkout -b SPARKC-9999-b2.5 datastax/b2.5
+git fetch apache
+git checkout -b SPARKC-9999-b2.5 apache/b2.5
 # do the work, commit
 git push origin SPARKC-9999-b2.5
  
 # Forward merge on the next version:
-git checkout -b SPARKC-9999-b3.0 datastax/b3.0
+git checkout -b SPARKC-9999-b3.0 apache/b3.0
 git merge SPARKC-9999-b2.5
 # Resolve conflict, if any
 # Push the new feature branch:
 git push origin SPARKC-9999-b3.0
 
 # Forward merge on the next version:
-git checkout -b SPARKC-9999-b3.1 datastax/b3.1
+git checkout -b SPARKC-9999-b3.1 apache/b3.1
 git merge SPARKC-9999-b3.0
 # Resolve conflict, if any
 # Push the new feature branch:
@@ -73,11 +73,11 @@ git push origin SPARKC-9999-b3.1
 # Repeat for b3.2
  
 # Forward merge on the next version:
-git checkout -b SPARKC-9999-master datastax/master
+git checkout -b SPARKC-9999-trunk apache/trunk
 git merge SPARKC-9999-b3.2
 # Resolve conflict, if any
 # Push the new feature branch:
-git push origin SPARKC-9999-master
+git push origin SPARKC-9999-trunk
 ```
 
 ### Sub-Projects
@@ -96,7 +96,7 @@ anything which could be used for any application even if Spark is not involved.
 
 
 #### test-support
-CCM Wrapper code. Much of this code is based on the Datastax Java Driver's test code. 
+CCM Wrapper code. Much of this code is based on the Apache Cassandra Java Driver's test code. 
 Includes code for spawning CCM as well as several modes for launching clusters
 while testing. Together this also defines which tests require seperate clusters to
 run and the parallelization used while running tests.

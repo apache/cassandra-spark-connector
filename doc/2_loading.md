@@ -383,7 +383,7 @@ In addition you are able to set these parameters on a per table basis
 by using `implicit vals`. This allows a user to define a set of 
 parameters in a separate object and import them into a block of 
 code rather than repeatedly passing the same 
-[`ReadConf` object](https://github.com/datastax/spark-cassandra-connector/blob/master/spark-cassandra-connector/src/main/scala/com/datastax/spark/connector/rdd/ReadConf.scala#L7-L18).
+[`ReadConf` object](https://github.com/apache/cassandra-spark-connector/blob/trunk/connector/src/main/scala/com/datastax/spark/connector/rdd/ReadConf.scala#L26-L37).
 
 #### Example Using Implicits for Read Configuration
 ```scala

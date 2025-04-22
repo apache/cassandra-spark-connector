@@ -1,11 +1,11 @@
 name: CI
 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
+  # Triggers the workflow on push or pull request events but only for the trunk branch
   push:
-    branches: [ b2.5, b3.0, master]
+    branches: [ b2.5, b3.0, trunk]
   pull_request:
-    branches: [ b2.5, b3.0, master]
+    branches: [ b2.5, b3.0, trunk]
 
   workflow_dispatch:
 

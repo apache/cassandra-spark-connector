@@ -62,7 +62,7 @@ sealed trait Fixture extends ClusterProvider {
     System.setProperty("dse", "true")
     System.setProperty("ccm.directory", home)
     System.setProperty("ccm.version", "6.8")
-    System.setProperty("ccm.branch", "master")
+    System.setProperty("ccm.branch", "trunk")
   }
 
   private[cluster] def configs: Seq[CcmConfig]

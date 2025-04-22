@@ -2,14 +2,14 @@
 
 *Lightning-fast cluster computing with Apache Spark&trade; and Apache Cassandra&reg;.*
 
-[![CI](https://github.com/datastax/spark-cassandra-connector/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/datastax/spark-cassandra-connector/actions?query=branch%3Amaster)
+[![CI](https://github.com/apache/cassandra-spark-connector/actions/workflows/main.yml/badge.svg?branch=trunk)](https://github.com/apache/cassandra-spark-connector/actions?query=branch%3Atrunk)
 
 ## Quick Links
 
 | What       | Where                                                                                                                                                                                                                                                                                                               |
 | ---------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Community  | Chat with us at [Apache Cassandra](https://cassandra.apache.org/_/community.html#discussions)                                                                                                                                                                                                                       |
-| Scala Docs | Most Recent Release (3.5.1): [Connector API docs](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.5.1/connector/com/datastax/spark/connector/index.html), [Connector Driver docs](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.5.1/driver/com/datastax/spark/connector/index.html) |
+| Scala Docs | Most Recent Release (3.5.1): [Connector API docs](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.1/connector/com/datastax/spark/connector/index.html), [Connector Driver docs](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.1/driver/com/datastax/spark/connector/index.html) |
 | Latest Production Release | [3.5.1](https://search.maven.org/artifact/com.datastax.spark/spark-cassandra-connector_2.12/3.5.1/jar)                                                                                                                                                                                                              |
 
 ## News
@@ -45,17 +45,17 @@ in your Spark applications.
 The connector project has several branches, each of which map into different
 supported versions of  Spark and Cassandra. For previous releases the branch is
 named "bX.Y" where X.Y is the major+minor version; for example the "b1.6" branch
-corresponds to the 1.6 release. The "master" branch will normally contain
+corresponds to the 1.6 release. The "trunk" branch will normally contain
 development for the next connector release in progress.
 
 Currently, the following branches are actively supported: 
-3.5.x ([master](https://github.com/datastax/spark-cassandra-connector/tree/master)),
-3.4.x ([b3.4](https://github.com/datastax/spark-cassandra-connector/tree/b3.4)),
-3.3.x ([b3.2](https://github.com/datastax/spark-cassandra-connector/tree/b3.3)),
-3.2.x ([b3.2](https://github.com/datastax/spark-cassandra-connector/tree/b3.2)),
-3.1.x ([b3.1](https://github.com/datastax/spark-cassandra-connector/tree/b3.1)),
-3.0.x ([b3.0](https://github.com/datastax/spark-cassandra-connector/tree/b3.0)) and 
-2.5.x ([b2.5](https://github.com/datastax/spark-cassandra-connector/tree/b2.5)).
+3.5.x ([trunk](https://github.com/apache/cassandra-spark-connector/tree/trunk)),
+3.4.x ([b3.4](https://github.com/apache/cassandra-spark-connector/tree/b3.4)),
+3.3.x ([b3.2](https://github.com/apache/cassandra-spark-connector/tree/b3.3)),
+3.2.x ([b3.2](https://github.com/apache/cassandra-spark-connector/tree/b3.2)),
+3.1.x ([b3.1](https://github.com/apache/cassandra-spark-connector/tree/b3.1)),
+3.0.x ([b3.0](https://github.com/apache/cassandra-spark-connector/tree/b3.0)) and 
+2.5.x ([b2.5](https://github.com/apache/cassandra-spark-connector/tree/b2.5)).
 
 | Connector | Spark         | Cassandra                  | Cassandra Java Driver | Minimum Java Version | Supported Scala Versions |
 |-----------|---------------|----------------------------|-----------------------|----------------------|--------------------------|
@@ -85,32 +85,32 @@ Currently, the following branches are actively supported:
 API documentation for the Scala and Java interfaces are available online:
 
 ### 3.5.1
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.5.1/connector/com/datastax/spark/connector/index.html)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.1/connector/com/datastax/spark/connector/index.html)
 
 ### 3.5.0
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.5.0/connector/com/datastax/spark/connector/index.html)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.0/connector/com/datastax/spark/connector/index.html)
 
 ### 3.4.1
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.4.1/connector/com/datastax/spark/connector/index.html)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.4.1/connector/com/datastax/spark/connector/index.html)
 
 ### 3.3.0
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.3.0/connector/com/datastax/spark/connector/index.html)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.3.0/connector/com/datastax/spark/connector/index.html)
 
 ### 3.2.0
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.2.0/connector/com/datastax/spark/connector/index.html)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.2.0/connector/com/datastax/spark/connector/index.html)
 
 ### 3.1.0
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.1.0/connector/com/datastax/spark/connector/index.html)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.1.0/connector/com/datastax/spark/connector/index.html)
 
 ### 3.0.1
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/3.0.1/connector/com/datastax/spark/connector/index.html)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.0.1/connector/com/datastax/spark/connector/index.html)
 
 ### 2.5.2
-* [Spark-Cassandra-Connector](https://datastax.github.io/spark-cassandra-connector/ApiDocs/2.5.2/connector/#package)
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/2.5.2/connector/#package)
 
 ### 2.4.2
-* [Spark-Cassandra-Connector](http://datastax.github.io/spark-cassandra-connector/ApiDocs/2.4.2/spark-cassandra-connector/)
-* [Embedded-Cassandra](http://datastax.github.io/spark-cassandra-connector/ApiDocs/2.4.2/spark-cassandra-connector-embedded/)
+* [Spark-Cassandra-Connector](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/spark-cassandra-connector/)
+* [Embedded-Cassandra](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/spark-cassandra-connector-embedded/)
 
 ## Download
 
@@ -157,13 +157,13 @@ In [DS320: Analytics with Spark](https://www.youtube.com/watch?v=D6PMEQAfjeU&lis
 
 ### Reporting Bugs
 
-New issues may be reported using [JIRA](https://datastax-oss.atlassian.net/browse/SPARKC/). Please include
+New issues may be reported using [JIRA](https://issues.apache.org/jira/projects/CASSANALYTICS). Please include
 all relevant details including versions of Spark, Spark Cassandra Connector, Cassandra and/or DSE. A minimal
 reproducible case with sample code is ideal.
 
 ### Mailing List
 
-Questions and requests for help may be submitted to the [user mailing list](https://groups.google.com/a/lists.datastax.com/forum/#!forum/spark-connector-user).
+Questions and requests for help may be submitted to the [user mailing list](https://cassandra.apache.org/_/community.html#discussions).
 
 
 ## Q/A Exchange
@@ -177,7 +177,7 @@ To protect the community, all contributors are required to sign the Apache Softw
 [Tips for Developing the Spark Cassandra Connector](doc/developers.md)
 
 Checklist for contributing changes to the project:
-* Create a [SPARKC JIRA](https://datastax-oss.atlassian.net/projects/SPARKC/issues)
+* Create a [SPARKC JIRA](https://issues.apache.org/jira/projects/CASSANALYTICS)
 * Make sure that all unit tests and integration tests pass
 * Add an appropriate entry at the top of CHANGES.txt
 * If the change has any end-user impacts, also include changes to the ./doc files as needed
