@@ -16,12 +16,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright DataStax, Inc.
- *
- * Please see the included license file for details.
- */
-
 package com.datastax.spark.connector.rdd
 
 import com.datastax.oss.driver.api.core.CqlSession

@@ -16,12 +16,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright DataStax, Inc.
- *
- * Please see the included license file for details.
- */
-
 package org.apache.spark.sql.cassandra
 
 import com.datastax.spark.connector.cql._

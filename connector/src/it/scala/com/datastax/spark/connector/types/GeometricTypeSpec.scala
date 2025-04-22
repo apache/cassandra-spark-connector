@@ -16,12 +16,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright DataStax, Inc.
- *
- * Please see the included license file for details.
- */
-
 package com.datastax.spark.connector.types
 
 import com.datastax.dse.driver.api.core.`type`.DseDataTypes

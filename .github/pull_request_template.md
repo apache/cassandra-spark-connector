@@ -15,7 +15,7 @@ pursue this particular fix?
 
 Example: "I removed the incorrect assertion which would throw the ThreeIntException. This exception was incorrectly added and the assertion is not actually needed."
 
-Fixes: [Put JIRA Reference HERE](https://datastax-oss.atlassian.net/projects/SPARKC)
+Fixes: [Put JIRA Reference HERE](https://issues.apache.org/jira/projects/CASSANALYTICS)
 
 # How Has This Been Tested?
 
@@ -23,6 +23,6 @@ Almost all changes and especially bug fixes will require a test to be added to e
 
 # Checklist:
 
-- [ ] I have a ticket in the [OSS JIRA](https://datastax-oss.atlassian.net/projects/SPARKC)
+- [ ] I have a ticket in the [JIRA](https://issues.apache.org/jira/projects/CASSANALYTICS)
 - [ ] I have performed a self-review of my own code
 - [ ] Locally all tests pass (make sure tests fail without your patch)

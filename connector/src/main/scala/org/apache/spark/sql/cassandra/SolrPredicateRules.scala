@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 
-/**
- * Copyright DataStax, Inc.
- *
- * Please see the included license file for details.
- */
 package org.apache.spark.sql.cassandra
 
 import java.time.format.DateTimeFormatter
