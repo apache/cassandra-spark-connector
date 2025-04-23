@@ -3,9 +3,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the trunk branch
   push:
-    branches: [ b2.5, b3.0, trunk]
   pull_request:
-    branches: [ b2.5, b3.0, trunk]
 
   workflow_dispatch:
 
@@ -16,15 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         scala:  [2.12.19, 2.13.13]
-        db-version: [3.11.17, 4.0.12, 4.1.4, 5.0-beta1, dse-6.8.44]
+        db-version: [3.11.19, 4.0.17, 4.1.8, 5.0.4, dse-6.8.44]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: ccm pip installation
-        uses: BSFishy/pip-action@v1
-        with:
-          packages: git+https://github.com/riptano/ccm.git@d74db63d75112908a77b6c80757df9343fdc3338
+      - name: Install ccm via pip
+        run: pip install git+https://github.com/apache/cassandra-ccm.git@trunk
 
       - name: Setup Java
         uses: actions/setup-java@v4
