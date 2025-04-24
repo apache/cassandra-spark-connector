@@ -70,7 +70,7 @@ git merge SPARKC-9999-b3.0
 # Push the new feature branch:
 git push origin SPARKC-9999-b3.1
 
-# Repeat for b3.2
+# Repeat for b3.2, b3.3, b3.4
  
 # Forward merge on the next version:
 git checkout -b SPARKC-9999-trunk apache/trunk
@@ -79,6 +79,7 @@ git merge SPARKC-9999-b3.2
 # Push the new feature branch:
 git push origin SPARKC-9999-trunk
 ```
+Repeat for b3.3, b3.4, etc
 
 ### Sub-Projects
 

@@ -177,12 +177,14 @@ To protect the community, all contributors are required to sign the Apache Softw
 [Tips for Developing the Spark Cassandra Connector](doc/developers.md)
 
 Checklist for contributing changes to the project:
-* Create a [SPARKC JIRA](https://issues.apache.org/jira/projects/CASSANALYTICS)
+* Create a [CASSANALYTICS JIRA](https://issues.apache.org/jira/projects/CASSANALYTICS)
 * Make sure that all unit tests and integration tests pass
 * Add an appropriate entry at the top of CHANGES.txt
 * If the change has any end-user impacts, also include changes to the ./doc files as needed
 * Prefix the pull request description with the JIRA number, for example: "SPARKC-123: Fix the ..."
 * Open a pull-request on GitHub and await review
+
+Old issues from before the donation to the ASF and the Apache Cassandra project can be found in this [SPARKC JIRA](https://datastax-oss.atlassian.net/projects/SPARKC/issues)
 
 ## Testing
 To run unit and integration tests:
