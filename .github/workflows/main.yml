@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install ccm via pip
+        # if cassandra-ccm's trunk breaks this CI, please file a report,
+        #  and temporarily switch this to @cassandra-test or @<sha> where sha is the last known working ccm commit
         run: pip install git+https://github.com/apache/cassandra-ccm.git@trunk
 
       - name: Setup Java
