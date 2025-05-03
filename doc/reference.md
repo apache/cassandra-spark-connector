@@ -224,7 +224,7 @@ total table record count</td>
   <td>None</td>
   <td>Surfaces the Cassandra Row TTL as a Column
 with the named specified. When reading use ttl.columnName=aliasForTTL. This
-can be done for every column with a TTL. When writing use writetime=columnName and the
+can be done for every column with a TTL. When writing use ttl=columnName and the
 columname will be used to set the TTL for that row.</td>
 </tr>
 <tr>
