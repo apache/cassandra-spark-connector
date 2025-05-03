@@ -55,7 +55,10 @@ class PrefetchingResultSetIterator(resultSet: AsyncResultSet, timer: Option[Time
   }
 
   private def maybePrefetch(): Unit = {
-    if (!currentIterator.hasNext && currentResultSet.hasMorePages) {
+    // It is sometimes possible to see pages have zero elements that are
+    // not the last, hence iterating until we get at least one element is
+    // needed
+    while (!currentIterator.hasNext && currentResultSet.hasMorePages) {
       currentResultSet = Await.result(nextResultSet.get, Duration.Inf)
       currentIterator = currentResultSet.currentPage().iterator()
       nextResultSet = fetchNextPage()
@@ -66,8 +69,16 @@ class PrefetchingResultSetIterator(resultSet: AsyncResultSet, timer: Option[Time
     currentIterator.hasNext || currentResultSet.hasMorePages
 
   override def next(): Row = {
-    val row = currentIterator.next() // let's try to exhaust the current iterator first
+    val row = currentIterator.next()
+
+    // This must be called after the call to next() and not before,
+    // so that hasNext returns is a correct result
     maybePrefetch()
     row
   }
+
+  // It is possible to have empty pages at the start of the query result,
+  // for example when using "filtering"; discard those and ensure hasNext
+  // always returns the correct result
+  maybePrefetch()
 }
