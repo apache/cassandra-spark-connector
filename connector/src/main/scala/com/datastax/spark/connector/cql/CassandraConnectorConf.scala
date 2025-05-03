@@ -80,7 +80,8 @@ case class CassandraConnectorConf(
   connectionFactory: CassandraConnectionFactory = DefaultConnectionFactory,
   quietPeriodBeforeCloseMillis: Int = CassandraConnectorConf.QuietPeriodBeforeCloseParam.default,
   timeoutBeforeCloseMillis: Int = CassandraConnectorConf.TimeoutBeforeCloseParam.default,
-  resolveContactPoints: Boolean = CassandraConnectorConf.ResolveContactPoints.default
+  resolveContactPoints: Boolean = CassandraConnectorConf.ResolveContactPoints.default,
+  maxFrameLengthInMB: Int = CassandraConnectorConf.MaxFrameLengthInMB.default,
 ) {
 
   override def hashCode: Int = HashCodeBuilder.reflectionHashCode(this, false)
@@ -350,6 +351,12 @@ object CassandraConnectorConf extends Logging {
     default = DefaultCassandraSSLConf.keyStoreType,
     description = """Key store type""")
 
+  val MaxFrameLengthInMB = ConfigParameter[Int](
+    name = "spark.cassandra.protocol.max-frame-length-mb",
+    section = ReferenceSection,
+    default = 256,
+    description = """The maximum length, in MB, of the frames supported by the driver. """)
+
   private def maybeResolveHostAndPort(hostAndPort: String, defaultPort: Int,
                                       resolveContactPoints: Boolean): Option[InetSocketAddress] = {
     val (hostName, port) = if (hostAndPort.contains(":")) {
@@ -447,6 +454,8 @@ object CassandraConnectorConf extends Logging {
 
     val connectionFactory = CassandraConnectionFactory.fromSparkConf(conf)
 
+    val maxFrameLengthInMB = conf.getInt(MaxFrameLengthInMB.name, MaxFrameLengthInMB.default)
+
     CassandraConnectorConf(
       contactInfo = getContactInfoFromSparkConf(conf),
       localDC = localDC,
@@ -462,7 +471,8 @@ object CassandraConnectorConf extends Logging {
       connectionFactory = connectionFactory,
       quietPeriodBeforeCloseMillis = quietPeriodBeforeClose,
       timeoutBeforeCloseMillis = timeoutBeforeClose,
-      resolveContactPoints = resolveContactPoints
+      resolveContactPoints = resolveContactPoints,
+      maxFrameLengthInMB = maxFrameLengthInMB
     )
   }
 

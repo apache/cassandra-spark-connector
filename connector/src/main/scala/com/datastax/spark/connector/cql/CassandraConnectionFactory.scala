@@ -86,6 +86,7 @@ object DefaultConnectionFactory extends CassandraConnectionFactory {
         .withInt(MultipleRetryPolicy.MaxRetryCount, conf.queryRetryCount)
         .withDuration(DseDriverOption.CONTINUOUS_PAGING_TIMEOUT_FIRST_PAGE, Duration.ofMillis(conf.readTimeoutMillis))
         .withDuration(DseDriverOption.CONTINUOUS_PAGING_TIMEOUT_OTHER_PAGES, Duration.ofMillis(conf.readTimeoutMillis))
+        .withInt(PROTOCOL_MAX_FRAME_LENGTH, conf.maxFrameLengthInMB * 1024 * 1024)
     }
 
     // compression option cannot be set to NONE (default)
