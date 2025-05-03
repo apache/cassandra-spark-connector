@@ -91,7 +91,13 @@ class TableWriter[T] private (
     val deleteColumnsClause = deleteColumnNames.map(quote).mkString(", ")
     val whereClause = quotedColumnNames(primaryKey).map(c => s"$c = :$c").mkString(" AND ")
 
-    s"DELETE ${deleteColumnsClause} FROM ${quote(keyspaceName)}.${quote(tableName)} WHERE $whereClause"
+    val timestampSpec = writeConf.timestamp match {
+      case TimestampOption(PerRowWriteOptionValue(placeholder)) => s""" USING TIMESTAMP :$placeholder"""
+      case TimestampOption(StaticWriteOptionValue(value)) => s" USING TIMESTAMP $value"
+      case _ => ""
+    }
+
+    s"DELETE ${deleteColumnsClause} FROM ${quote(keyspaceName)}.${quote(tableName)}$timestampSpec WHERE $whereClause"
   }
   private lazy val queryTemplateUsingUpdate: String = {
     val (primaryKey, regularColumns) = columns.partition(_.isPrimaryKeyColumn)
@@ -118,7 +124,22 @@ class TableWriter[T] private (
     val setClause = (setNonCounterColumnsClause ++ setCounterColumnsClause).mkString(", ")
     val whereClause = quotedColumnNames(primaryKey).map(c => s"$c = :$c").mkString(" AND ")
 
-    s"UPDATE ${quote(keyspaceName)}.${quote(tableName)} SET $setClause WHERE $whereClause"
+    val ttlSpec = writeConf.ttl match {
+      case TTLOption(PerRowWriteOptionValue(placeholder)) => Some(s"""TTL :$placeholder""")
+      case TTLOption(StaticWriteOptionValue(value)) => Some(s"TTL $value")
+      case _ => None
+    }
+
+    val timestampSpec = writeConf.timestamp match {
+      case TimestampOption(PerRowWriteOptionValue(placeholder)) => Some(s"""TIMESTAMP :$placeholder""")
+      case TimestampOption(StaticWriteOptionValue(value)) => Some(s"TIMESTAMP $value")
+      case _ => None
+    }
+
+    val options = List(ttlSpec, timestampSpec).flatten
+    val optionsSpec = if (options.nonEmpty) s" USING ${options.mkString(" AND ")}" else ""
+
+    s"UPDATE ${quote(keyspaceName)}.${quote(tableName)}$optionsSpec SET $setClause WHERE $whereClause"
   }
 
   private val isCounterUpdate =
