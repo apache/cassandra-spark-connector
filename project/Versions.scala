@@ -23,7 +23,7 @@ object Versions {
   val CommonsLang3    = "3.10"
   val Paranamer       = "2.8"
 
-  val CassandraJavaDriver = "4.18.1"
+  val CassandraJavaDriver = "4.19.0"
   val EsriGeometry        = "2.2.4"
 
   val ScalaCheck      = "1.14.0"
