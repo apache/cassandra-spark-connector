@@ -78,17 +78,17 @@ class CassandraCatalogTableReadSpec extends CassandraCatalogSpecBase {
   it should "handle count pushdowns" in {
     setupBasicTable()
     val request = spark.sql(s"""SELECT COUNT(*) from $defaultKs.$testTable""")
-    val reader = request
+    var factory = request
       .queryExecution
       .executedPlan
       .collectFirst {
-        case batchScanExec: BatchScanExec=> batchScanExec.readerFactory.createReader(EmptyInputPartition)
+        case batchScanExec: BatchScanExec=> batchScanExec.readerFactory
         case adaptiveSparkPlanExec: AdaptiveSparkPlanExec => adaptiveSparkPlanExec.executedPlan.collectLeaves().collectFirst{
-          case batchScanExec: BatchScanExec=> batchScanExec.readerFactory.createReader(EmptyInputPartition)
+          case batchScanExec: BatchScanExec=> batchScanExec.readerFactory
         }.get
       }
 
-    reader.get.isInstanceOf[CassandraCountPartitionReader] should be (true)
+    factory.get.asInstanceOf[CassandraScanPartitionReaderFactory].isCountQuery should be (true)
     request.collect()(0).get(0) should be (101)
   }
 

@@ -30,6 +30,8 @@ import com.datastax.spark.connector.util.Logging
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.read._
 import org.apache.spark.sql.types.{LongType, StructField, StructType}
+import org.apache.spark.metrics.InputMetricsUpdater
+import org.apache.spark.TaskContext
 
 case class CassandraScanPartitionReaderFactory(
   connector: CassandraConnector,
@@ -38,10 +40,12 @@ case class CassandraScanPartitionReaderFactory(
   readConf: ReadConf,
   queryParts: CqlQueryParts) extends PartitionReaderFactory {
 
+  def isCountQuery: Boolean = queryParts.selectedColumnRefs.contains(RowCountRef)
+
   override def createReader(partition: InputPartition): PartitionReader[InternalRow] = {
 
     val cassandraPartition = partition.asInstanceOf[CassandraPartition[Any, _ <: Token[Any]]]
-    if (queryParts.selectedColumnRefs.contains(RowCountRef)) {
+    if (isCountQuery) {
       //Count Pushdown
       CassandraCountPartitionReader(
         connector,
@@ -79,6 +83,8 @@ abstract class CassandraPartitionReaderBase
   protected val rowIterator = getIterator()
   protected var lastRow: InternalRow = InternalRow()
 
+  protected val metricsUpdater = InputMetricsUpdater(TaskContext.get(), readConf)
+
   override def next(): Boolean = {
     if (rowIterator.hasNext) {
       lastRow = rowIterator.next()
@@ -91,6 +97,7 @@ abstract class CassandraPartitionReaderBase
   override def get(): InternalRow = lastRow
 
   override def close(): Unit = {
+    metricsUpdater.finish()
     scanner.close()
   }
 
@@ -125,7 +132,8 @@ abstract class CassandraPartitionReaderBase
     tokenRanges.iterator.flatMap { range =>
       val scanResult = ScanHelper.fetchTokenRange(scanner, tableDef, queryParts, range, readConf.consistencyLevel, readConf.fetchSizeInRows)
       val meta = scanResult.metadata
-      scanResult.rows.map(rowReader.read(_, meta))
+      val iteratorWithMetrics = scanResult.rows.map(metricsUpdater.updateMetrics)
+      iteratorWithMetrics.map(rowReader.read(_, meta))
     }
   }
 

@@ -30,6 +30,8 @@ import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.read.{InputPartition, PartitionReader, PartitionReaderFactory}
 import org.apache.spark.sql.sources.In
 import org.apache.spark.sql.types.{LongType, StructField, StructType}
+import org.apache.spark.metrics.InputMetricsUpdater
+import org.apache.spark.TaskContext
 
 import scala.util.{Failure, Success}
 
@@ -80,6 +82,7 @@ abstract class CassandraBaseInJoinReader(
   protected val maybeRateLimit = JoinHelper.maybeRateLimit(readConf)
   protected val requestsPerSecondRateLimiter = JoinHelper.requestsPerSecondRateLimiter(readConf)
 
+  protected val metricsUpdater = InputMetricsUpdater(TaskContext.get(), readConf)
   protected def pairWithRight(left: CassandraRow): SettableFuture[Iterator[(CassandraRow, InternalRow)]] = {
     val resultFuture = SettableFuture.create[Iterator[(CassandraRow, InternalRow)]]
     val leftSide = Iterator.continually(left)
@@ -87,9 +90,10 @@ abstract class CassandraBaseInJoinReader(
     queryExecutor.executeAsync(bsb.bind(left).executeAs(readConf.executeAs)).onComplete {
       case Success(rs) =>
         val resultSet = new PrefetchingResultSetIterator(rs)
+        val iteratorWithMetrics = resultSet.map(metricsUpdater.updateMetrics)
         /* This is a much less than ideal place to actually rate limit, we are buffering
         these futures this means we will most likely exceed our threshold*/
-        val throttledIterator = resultSet.map(maybeRateLimit)
+        val throttledIterator = iteratorWithMetrics.map(maybeRateLimit)
         val rightSide = throttledIterator.map(rowReader.read(_, rowMetadata))
         resultFuture.set(leftSide.zip(rightSide))
       case Failure(throwable) =>
@@ -121,6 +125,7 @@ abstract class CassandraBaseInJoinReader(
   override def get(): InternalRow = currentRow
 
   override def close(): Unit = {
+    metricsUpdater.finish()
     session.close()
   }
 }
