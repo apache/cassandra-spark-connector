@@ -154,6 +154,13 @@ class TypeConverterTest {
   }
 
   @Test
+  def testByteArrayToString() {
+    val c = TypeConverter.forType[String]
+    val byteArray : Array[Byte] = Array(1,3,-56,45,23,67)
+    assertEquals("0x0103c82d1743", c.convert(byteArray))
+  }
+
+  @Test
   def testDate() {
     val c = TypeConverter.forType[Date]
     val dateStr = "2014-04-23 11:21:32+0100"
