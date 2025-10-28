@@ -274,13 +274,13 @@ object TypeConverter {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
   )
   private def byteArrayToString (x: Array[Byte]) : String = {
-    val result = new StringBuilder(x.length * 2) 
+    val result = new StringBuilder(x.length * 2 + 2).append("0x")
     x.foreach { b =>
       val v = b & 0xFF
       result.append(HEX_CHARS(v >>> 4))
       result.append(HEX_CHARS(v & 0x0F))
     }
-    "0x" + result.toString()
+    result.toString()
   }
   private def stringToByteArray (x: String)  = new BigInteger(x.substring(2), 16).toByteArray
 
