@@ -74,6 +74,7 @@ case class CcmConfig(
     CcmConfig.getCachedVersionFromCcm(rawVersion)
   }
 
+  /** Enables SSL with JKS keystore format (for Cassandra). */
   def withSsl(keystorePath: String, keystorePassword: String): CcmConfig = {
     copy(cassandraConfiguration = cassandraConfiguration +
       ("client_encryption_options.enabled" -> "true") +
@@ -82,7 +83,16 @@ case class CcmConfig(
     )
   }
 
-  /** Enables client authentication. This also enables encryption with `withSsl(...)`. */
+  /** Enables SSL with PEM certificate format (for Scylla). */
+  def withSslPem(certPath: String, keyPath: String): CcmConfig = {
+    copy(cassandraConfiguration = cassandraConfiguration +
+      ("client_encryption_options.enabled" -> "true") +
+      ("client_encryption_options.certificate" -> certPath) +
+      ("client_encryption_options.keyfile" -> keyPath)
+    )
+  }
+
+  /** Enables client authentication with JKS format. This also enables encryption with `withSsl(...)`. */
   def withSslAuth(
      keystorePath: String,
      keystorePassword: String,
@@ -93,6 +103,18 @@ case class CcmConfig(
       ("client_encryption_options.require_client_auth" -> "true") +
       ("client_encryption_options.truststore" -> truststorePath) +
       ("client_encryption_options.truststore_password" -> truststorePassword)
+    )
+  }
+
+  /** Enables client authentication with PEM format (for Scylla). */
+  def withSslAuthPem(
+      certPath: String,
+      keyPath: String,
+      truststorePath: String): CcmConfig = {
+    val ssl = withSslPem(certPath, keyPath)
+    ssl.copy(cassandraConfiguration = ssl.cassandraConfiguration +
+      ("client_encryption_options.require_client_auth" -> "true") +
+      ("client_encryption_options.truststore" -> truststorePath)
     )
   }
 
@@ -196,6 +218,11 @@ object CcmConfig {
   // A separate keystore where the certificate has a CN of localhost, used for hostname
   // validation testing.
   val DEFAULT_SERVER_LOCALHOST_KEYSTORE_PATH: String = "/server_localhost.keystore"
+
+  // Server PEM files for Scylla SSL configuration
+  val DEFAULT_SERVER_CERT_PATH: String = "/server.crt"
+  val DEFAULT_SERVER_KEY_PATH: String = "/server.key"
+  val DEFAULT_SERVER_TRUSTSTORE_PEM_PATH: String = "/server_truststore.pem"
 
   // DSE versions
   val DSE_V6_8_5: Version = Version.parse("6.8.5")

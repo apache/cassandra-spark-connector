@@ -109,10 +109,20 @@ trait SSLCluster extends SingleClusterFixture {
     prefix = groupNumber.toString,
     resource = CcmConfig.DEFAULT_SERVER_KEYSTORE_PATH)
 
+  private val serverCertPath = CcmConfig.storeResource(
+    prefix = groupNumber.toString,
+    resource = CcmConfig.DEFAULT_SERVER_CERT_PATH)
+
+  private val serverKeyPath = CcmConfig.storeResource(
+    prefix = groupNumber.toString,
+    resource = CcmConfig.DEFAULT_SERVER_KEY_PATH)
+
   private[cluster] final override val configs: Seq[CcmConfig] = Seq(
-    defaultConfig.withSsl(
-      keystorePath.toString, CcmConfig.DEFAULT_SERVER_KEYSTORE_PASSWORD
-    ))
+    if (defaultConfig.scyllaEnabled) {
+      defaultConfig.withSslPem(serverCertPath, serverKeyPath)
+    } else {
+      defaultConfig.withSsl(keystorePath, CcmConfig.DEFAULT_SERVER_KEYSTORE_PASSWORD)
+    })
 
   private[cluster] override def connectionParameters(address: InetSocketAddress): Map[String, String] =
     DefaultCluster.defaultConnectionParameters(address) ++
@@ -143,11 +153,27 @@ trait AuthCluster extends SingleClusterFixture {
     prefix = groupNumber.toString,
     resource = CcmConfig.DEFAULT_SERVER_TRUSTSTORE_PATH)
 
+  private val serverCertPath = CcmConfig.storeResource(
+    prefix = groupNumber.toString,
+    resource = CcmConfig.DEFAULT_SERVER_CERT_PATH)
+
+  private val serverKeyPath = CcmConfig.storeResource(
+    prefix = groupNumber.toString,
+    resource = CcmConfig.DEFAULT_SERVER_KEY_PATH)
+
+  private val serverTruststorePemPath = CcmConfig.storeResource(
+    prefix = groupNumber.toString,
+    resource = CcmConfig.DEFAULT_SERVER_TRUSTSTORE_PEM_PATH)
+
   private[cluster] final override val configs: Seq[CcmConfig] = {
-    val sslConf = defaultConfig.withSslAuth(
-      keystorePath, CcmConfig.DEFAULT_SERVER_KEYSTORE_PASSWORD,
-      truststorePath, CcmConfig.DEFAULT_SERVER_TRUSTSTORE_PASSWORD
-    )
+    val sslConf = if (defaultConfig.scyllaEnabled) {
+      defaultConfig.withSslAuthPem(serverCertPath, serverKeyPath, serverTruststorePemPath)
+    } else {
+      defaultConfig.withSslAuth(
+        keystorePath, CcmConfig.DEFAULT_SERVER_KEYSTORE_PASSWORD,
+        truststorePath, CcmConfig.DEFAULT_SERVER_TRUSTSTORE_PASSWORD
+      )
+    }
 
     if (defaultConfig.dseEnabled) {
       Seq(sslConf.copy(dseConfiguration = sslConf.dseConfiguration ++ Map(
