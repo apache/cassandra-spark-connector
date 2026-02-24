@@ -26,6 +26,7 @@ import com.datastax.oss.driver.api.core.config.DefaultDriverOption.{CONNECTION_M
 import com.datastax.oss.driver.api.core.cql.{AsyncResultSet, BoundStatement, SimpleStatement, Statement}
 import com.datastax.oss.driver.api.core.cql.SimpleStatement._
 import com.datastax.oss.driver.api.core.{CqlSession, ProtocolVersion, Version}
+import com.datastax.spark.connector.ccm.CcmConfig
 import com.datastax.spark.connector.cluster.ClusterProvider
 import com.datastax.spark.connector.cql.{CassandraConnector, DefaultAuthConfFactory}
 import com.datastax.spark.connector.datasource.{CassandraCatalog, CassandraScan, CassandraTable}
@@ -204,6 +205,26 @@ trait SparkCassandraITSpecBase
     else f
   }
 
+  /** Returns true if running against Scylla */
+  def isScylla: Boolean = CcmConfig().scyllaEnabled
+
+  /** Skips the given test if the cluster is Scylla.
+    * @param issue Issue reference in format "scylladb/scylladb#NNN: description" or
+    *              "scylladb/spark-scylladb-connector#NNN: description" explaining why the test is skipped
+    */
+  def notScylla(issue: String)(f: => Unit): Unit = {
+    require(issue.matches("scylladb/(scylla(db)?|spark-scylladb-connector)#\\d+: .+"),
+      s"Issue must be in format 'scylladb/scylladb#NNN: description' or 'scylladb/spark-scylladb-connector#NNN: description', got: $issue")
+    if (isScylla) report(s"Skipped on Scylla ($issue)")
+    else f
+  }
+
+  /** Skips the given test if the cluster is not Scylla */
+  def scyllaOnly(f: => Unit): Unit = {
+    if (isScylla) f
+    else report(s"Skipped because not Scylla")
+  }
+
   /** Skips the given test if the Cluster Version is lower than the given version or the cluster is not DSE */
   def dseFrom(version: Version)(f: => Any): Unit = {
     dseOnly {
@@ -235,6 +256,26 @@ trait SparkCassandraITSpecBase
 
   def awaitAll[T](units: IterableOnce[Future[T]]): IterableOnce[T] = {
     Await.result(Future.sequence(units.iterator), Duration.Inf)
+  }
+
+  /** Retry a block of code up to maxRetries times with exponential backoff.
+    * Useful for test setup that may fail due to transient connection issues. */
+  def withRetry[T](maxRetries: Int = 3, initialDelayMs: Int = 1000)(block: => T): T = {
+    var lastException: Throwable = null
+    for (attempt <- 1 to maxRetries) {
+      try {
+        return block
+      } catch {
+        case e: Throwable =>
+          lastException = e
+          if (attempt < maxRetries) {
+            val delay = initialDelayMs * attempt
+            logWarning(s"Attempt $attempt failed, retrying in ${delay}ms: ${e.getMessage}")
+            Thread.sleep(delay)
+          }
+      }
+    }
+    throw lastException
   }
 
   def keyspaceCql(name: String = ks) =

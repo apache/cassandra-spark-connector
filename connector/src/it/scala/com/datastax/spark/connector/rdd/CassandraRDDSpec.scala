@@ -83,10 +83,11 @@ class CassandraRDDSpec extends SparkCassandraITFlatSpecBase with DefaultCluster 
   override lazy val conn = CassandraConnector(defaultConf)
   val bigTableRowCount = 100000
 
-  conn.withSessionDo { session =>
-    createKeyspace(session)
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session)
 
-    awaitAll(
+      awaitAll(
       Future {
         skipIfProtocolVersionLT(V4) {
           markup(s"Making PV4 Types")
@@ -296,9 +297,12 @@ class CassandraRDDSpec extends SparkCassandraITFlatSpecBase with DefaultCluster 
       Future {
         executor.execute(newInstance( s"""CREATE TABLE $ks.big_table (key INT PRIMARY KEY, value INT)"""))
         val insert = session.prepare( s"""INSERT INTO $ks.big_table(key, value) VALUES (?, ?)""")
-        awaitAll {
-          for (k <- (0 until bigTableRowCount).grouped(100); i <- k) yield {
-            executor.executeAsync(insert.bind(i.asInstanceOf[AnyRef], i.asInstanceOf[AnyRef]))
+        // Use retry logic to handle transient connection issues during bulk insert
+        withRetry(maxRetries = 3) {
+          awaitAll {
+            for (k <- (0 until bigTableRowCount).grouped(100); i <- k) yield {
+              executor.executeAsync(insert.bind(i.asInstanceOf[AnyRef], i.asInstanceOf[AnyRef]))
+            }
           }
         }
       },
@@ -327,6 +331,7 @@ class CassandraRDDSpec extends SparkCassandraITFlatSpecBase with DefaultCluster 
       }
     )
     executor.waitForCurrentlyExecutingTasks()
+    }
   }
 
   "A CassandraRDD" should "allow to read a Cassandra table as Array of CassandraRow" in {

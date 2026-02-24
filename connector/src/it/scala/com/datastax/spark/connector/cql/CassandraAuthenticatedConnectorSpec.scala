@@ -22,17 +22,18 @@ import java.io.IOException
 
 import com.datastax.oss.driver.api.core.AllNodesFailedException
 import com.datastax.oss.driver.api.core.auth.AuthenticationException
-import com.datastax.spark.connector.cluster.AuthCluster
+import com.datastax.spark.connector.cluster.{AuthCluster, ScyllaFixture}
 import com.datastax.spark.connector.{SparkCassandraITFlatSpecBase, _}
 
 import scala.jdk.CollectionConverters._
 
-class CassandraAuthenticatedConnectorSpec extends SparkCassandraITFlatSpecBase with AuthCluster {
+class CassandraAuthenticatedConnectorSpec extends SparkCassandraITFlatSpecBase with AuthCluster with ScyllaFixture {
 
+  override def isScylla: Boolean = defaultConfig.scyllaEnabled
 
-  val authConf = defaultConf
-  val defaultConnConf = CassandraConnectorConf(authConf)
-  val defaultContactInfo = defaultConnConf.contactInfo.asInstanceOf[IpBasedContactInfo]
+  lazy val authConf = defaultConf
+  lazy val defaultConnConf = CassandraConnectorConf(authConf)
+  lazy val defaultContactInfo = defaultConnConf.contactInfo.asInstanceOf[IpBasedContactInfo]
 
 
   "A CassandraConnector" should "authenticate with username and password when using native protocol for valid credentials provided by AuthCluster" in {
@@ -65,7 +66,6 @@ class CassandraAuthenticatedConnectorSpec extends SparkCassandraITFlatSpecBase w
   }
 
   "A DataFrame" should "read and write data with valid auth" in {
-
     spark.conf.set(DefaultAuthConfFactory.UserNameParam.name, "cassandra")
     spark.conf.set(DefaultAuthConfFactory.PasswordParam.name, "cassandra")
 

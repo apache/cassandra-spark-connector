@@ -36,7 +36,7 @@ final class RefCountedCache[K, V](create: K => V,
                                   keys: (K, V) => Set[K] = (_: K, _: V) => Set.empty[K]) {
 
   private[cql] case class ReleaseTask(value: V, count: Int, scheduledTime: Long) extends Runnable {
-    def run() {
+    def run(): Unit = {
       releaseImmediately(value, count)
     }
   }
@@ -97,7 +97,7 @@ final class RefCountedCache[K, V](create: K => V,
     }
   }
 
-  private def releaseImmediately(value: V, count: Int = 1) {
+  private def releaseImmediately(value: V, count: Int = 1): Unit = {
     if (refCounter.release(value, count) == 0) {
       // Here we're sure no-one else has the value.
       // Even though it is still in cache, it is not possible to get it from there,
@@ -109,7 +109,7 @@ final class RefCountedCache[K, V](create: K => V,
   }
 
   @tailrec
-  private def releaseDeferred(value: V, releaseDelayMillis: Int, count: Int) {
+  private def releaseDeferred(value: V, releaseDelayMillis: Int, count: Int): Unit = {
     val newTime = System.currentTimeMillis() + releaseDelayMillis
     val newTask =
       deferredReleases.remove(value) match {
@@ -128,7 +128,7 @@ final class RefCountedCache[K, V](create: K => V,
   /** Releases previously acquired value. Once the value is released by all threads and
     * the `releaseDelayMillis` timeout passes, the value is destroyed by calling `destroy` function and
     * removed from the cache. */
-  def release(value: V, releaseDelayMillis: Int = 0) {
+  def release(value: V, releaseDelayMillis: Int = 0): Unit = {
     if (releaseDelayMillis == 0 || scheduledExecutorService.isShutdown)
       releaseImmediately(value)
     else
@@ -136,7 +136,7 @@ final class RefCountedCache[K, V](create: K => V,
   }
 
   /** Shuts down the background deferred `release` scheduler and forces all pending release tasks to be executed */
-  def shutdown() {
+  def shutdown(): Unit = {
     scheduledExecutorService.shutdown()
     while (deferredReleases.nonEmpty)
       for ((value, task) <- deferredReleases.snapshot())
@@ -146,7 +146,7 @@ final class RefCountedCache[K, V](create: K => V,
 
   /** Removes and destroys unused entries from the cache immediately.
     * Entries with reference count > 0 are not removed. */
-  def evict() {
+  def evict(): Unit = {
     for ((value, task) <- deferredReleases)
       if (deferredReleases.remove(value, task))
         task.run()
@@ -159,7 +159,7 @@ final class RefCountedCache[K, V](create: K => V,
   }
 
   /** Called periodically by `scheduledExecutorService`*/
-  private def processPendingReleases() {
+  private def processPendingReleases(): Unit = {
     val now = System.currentTimeMillis()
     for ((value, task) <- deferredReleases)
       if (task.scheduledTime <= now)
@@ -170,7 +170,7 @@ final class RefCountedCache[K, V](create: K => V,
   }
 
   private val processPendingReleasesTask = new Runnable() {
-    override def run() {
+    override def run(): Unit = {
       processPendingReleases()
     }
   }

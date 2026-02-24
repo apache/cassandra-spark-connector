@@ -37,6 +37,7 @@ import com.datastax.oss.driver.internal.core.util.collection.SimpleQueryPlan
 import com.datastax.spark.connector.cql.LocalNodeFirstLoadBalancingPolicy.{LoadBalancingShuffleNodes, _}
 import com.datastax.spark.connector.util.DriverUtil.{toAddress, toOption}
 
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 import scala.util.Random
 
@@ -55,9 +56,9 @@ class LocalNodeFirstLoadBalancingPolicy(context: DriverContext, profileName: Str
   private val random = new Random
   private val nodeFilter: Option[Predicate[Node]] = {
     val internalContext = context.asInstanceOf[InternalDriverContext]
-    Option(internalContext.getNodeFilter(profileName))
+    (Option(internalContext.getNodeFilter(profileName)): @nowarn("cat=deprecation"))
       .orElse {
-        toOption(Reflection.buildFromConfig(internalContext, profileName, DefaultDriverOption.LOAD_BALANCING_FILTER_CLASS, classOf[Predicate[Node]]))
+        toOption(Reflection.buildFromConfig(internalContext, profileName, DefaultDriverOption.LOAD_BALANCING_FILTER_CLASS, classOf[Predicate[Node]])): @nowarn("cat=deprecation")
       }
   }
 
@@ -93,10 +94,10 @@ class LocalNodeFirstLoadBalancingPolicy(context: DriverContext, profileName: Str
     val (localReplica, otherReplicas) = replicas.partition(isLocalHost)
     lazy val maybeShuffledOtherReplicas = if (shuffleReplicas) random.shuffle(otherReplicas.toIndexedSeq) else otherReplicas
 
-    lazy val otherNodes = tokenUnawareQueryPlan(statement).toIterator
+    lazy val otherNodes = tokenUnawareQueryPlan(statement).iterator
       .filter(node => !replicas.contains(node) && distance(node) != NodeDistance.IGNORED)
 
-    (localReplica.iterator #:: maybeShuffledOtherReplicas.iterator #:: otherNodes #:: Stream.empty).flatten
+    (localReplica.iterator #:: maybeShuffledOtherReplicas.iterator #:: otherNodes #:: LazyList.empty).flatten
   }
 
   def tokenMap =
@@ -140,7 +141,7 @@ class LocalNodeFirstLoadBalancingPolicy(context: DriverContext, profileName: Str
     new SimpleQueryPlan(nodes: _*)
   }
 
-  override def onAdd(node: Node) {
+  override def onAdd(node: Node): Unit = {
     // The added host might be a "better" version of a host already in the set.
     // The nodes added in the init call don't have DC and rack set.
     // Therefore we want to really replace the object now, to get full information on DC:
@@ -149,7 +150,7 @@ class LocalNodeFirstLoadBalancingPolicy(context: DriverContext, profileName: Str
     distanceReporter.setDistance(node, distance(node))
   }
 
-  override def onRemove(node: Node) {
+  override def onRemove(node: Node): Unit = {
     nodes -= node
   }
 

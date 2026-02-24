@@ -31,13 +31,15 @@ import scala.util.Random
 class GroupingBatchBuilderSpec extends SparkCassandraITFlatSpecBase with DefaultCluster {
   override lazy val conn = CassandraConnector(defaultConf)
 
-  conn.withSessionDo { session =>
-    createKeyspace(session)
-    session.execute(s"""CREATE TABLE $ks.tab (id INT PRIMARY KEY, value TEXT)""")
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session)
+      session.execute(s"""CREATE TABLE $ks.tab (id INT PRIMARY KEY, value TEXT)""")
+    }
   }
 
-  val schema = schemaFromCassandra(conn, Some(ks), Some("tab"))
-  val rowWriter = RowWriterFactory.defaultRowWriterFactory[(Int, String)].rowWriter(schema.tables.head, IndexedSeq("id", "value"))
+  lazy val schema = schemaFromCassandra(conn, Some(ks), Some("tab"))
+  lazy val rowWriter = RowWriterFactory.defaultRowWriterFactory[(Int, String)].rowWriter(schema.tables.head, IndexedSeq("id", "value"))
 
   def makeBatchBuilder(session: CqlSession): (RichBoundStatementWrapper => Any, BatchSize, Int, Iterator[(Int, String)]) => GroupingBatchBuilder[(Int, String)] = {
     val protocolVersion = session.getContext.getProtocolVersion

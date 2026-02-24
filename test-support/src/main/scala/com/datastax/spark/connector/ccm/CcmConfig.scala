@@ -37,13 +37,44 @@ case class CcmConfig(
     createOptions: List[String] = List(),
     dseWorkloads: List[String] = List(),
     jmxPortOffset: Int = 0,
-    version: Version = Version.parse(System.getProperty("ccm.version", "5.0-beta1")),
+    rawVersion: String = System.getProperty("ccm.version", "5.0-beta1"),
     installDirectory: Option[String] = Option(System.getProperty("ccm.directory")),
     installBranch: Option[String] = Option(System.getProperty("ccm.branch")),
     dseEnabled: Boolean = Option(System.getProperty("ccm.dse")).exists(_.toLowerCase == "true"),
+    scyllaEnabled: Boolean = Option(System.getProperty("ccm.scylla")).exists(_.toLowerCase == "true"),
     javaVersion: Option[Int] = None,
     mode: ClusterMode = ClusterModes.fromEnvVar) {
 
+  lazy val version: Version = {
+    if (scyllaEnabled) {
+      resolveScyllaVersion(rawVersion)
+    } else {
+      Version.parse(rawVersion)
+    }
+  }
+
+  private def resolveScyllaVersion(versionStr: String): Version = {
+    // Check if it's in the format "release:x.x.x"
+    if (versionStr.startsWith("release:")) {
+      val extractedVersion = versionStr.substring(8) // Remove "release:" prefix
+      logger.info(s"Extracted version from release format: $extractedVersion")
+      try {
+        Version.parse(extractedVersion)
+      } catch {
+        case _: IllegalArgumentException =>
+          getVersionFromCcm()
+      }
+    } else {
+      // For non-standard version strings, get version from CCM
+      getVersionFromCcm()
+    }
+  }
+
+  private def getVersionFromCcm(): Version = {
+    CcmConfig.getCachedVersionFromCcm(rawVersion)
+  }
+
+  /** Enables SSL with JKS keystore format (for Cassandra). */
   def withSsl(keystorePath: String, keystorePassword: String): CcmConfig = {
     copy(cassandraConfiguration = cassandraConfiguration +
       ("client_encryption_options.enabled" -> "true") +
@@ -52,7 +83,16 @@ case class CcmConfig(
     )
   }
 
-  /** Enables client authentication. This also enables encryption with `withSsl(...)`. */
+  /** Enables SSL with PEM certificate format (for Scylla). */
+  def withSslPem(certPath: String, keyPath: String): CcmConfig = {
+    copy(cassandraConfiguration = cassandraConfiguration +
+      ("client_encryption_options.enabled" -> "true") +
+      ("client_encryption_options.certificate" -> certPath) +
+      ("client_encryption_options.keyfile" -> keyPath)
+    )
+  }
+
+  /** Enables client authentication with JKS format. This also enables encryption with `withSsl(...)`. */
   def withSslAuth(
      keystorePath: String,
      keystorePassword: String,
@@ -66,14 +106,24 @@ case class CcmConfig(
     )
   }
 
+  /** Enables client authentication with PEM format (for Scylla). */
+  def withSslAuthPem(
+      certPath: String,
+      keyPath: String,
+      truststorePath: String): CcmConfig = {
+    val ssl = withSslPem(certPath, keyPath)
+    ssl.copy(cassandraConfiguration = ssl.cassandraConfiguration +
+      ("client_encryption_options.require_client_auth" -> "true") +
+      ("client_encryption_options.truststore" -> truststorePath)
+    )
+  }
+
   def getDseVersion: Option[Version] = {
     if (dseEnabled) Option(version) else None
   }
 
   def getCassandraVersion: Version = {
-    if (!dseEnabled) {
-      version
-    } else {
+    if (dseEnabled) {
       val stableVersion = version.nextStable()
       if (stableVersion.compareTo(DSE_V6_0_0) >= 0) {
         Version.V4_0_0
@@ -84,6 +134,10 @@ case class CcmConfig(
       } else {
         V2_1_19
       }
+    } else if (scyllaEnabled) {
+      V3_10
+    } else {
+      version
     }
   }
 
@@ -108,31 +162,64 @@ object CcmConfig {
 
   val logger: Logger = LoggerFactory.getLogger(classOf[CcmConfig])
 
+  // Cache for resolved Scylla versions to avoid expensive CCM cluster creation
+  private val versionCache = new java.util.concurrent.ConcurrentHashMap[String, Version]()
+
+  private[ccm] def getCachedVersionFromCcm(rawVersion: String): Version = {
+    versionCache.computeIfAbsent(rawVersion, { version =>
+      import scala.sys.process._
+
+      val tmpDir = s"/tmp/get-version-${System.currentTimeMillis()}"
+      val createCmd = s"""ccm create ccm_1 -i 127.0.254. -n 1:0 -v "$version" --scylla --config-dir=$tmpDir"""
+      val versionCmd = s"ccm node1 versionfrombuild --config-dir=$tmpDir"
+
+      try {
+        logger.info(s"Creating temporary CCM cluster to resolve version for: $version")
+        createCmd.!!
+        val resolvedVersion = versionCmd.!!.trim
+        logger.info(s"Resolved Scylla version: $resolvedVersion")
+        Version.parse(resolvedVersion)
+      } catch {
+        case e: Exception =>
+          throw new RuntimeException("failed to resolve scylla version", e)
+      } finally {
+        // Clean up the temporary cluster
+        try {
+          s"ccm remove --config-dir=$tmpDir".!
+        } catch {
+          case _: Exception => // Ignore cleanup errors
+        }
+      }
+    })
+  }
+
+  // TLS certificate paths - files are generated by scripts/generate-test-certs.sh
   val DEFAULT_CLIENT_TRUSTSTORE_PASSWORD: String = "cassandra1sfun"
-  val DEFAULT_CLIENT_TRUSTSTORE_PATH: String = "/client.truststore"
+  val DEFAULT_CLIENT_TRUSTSTORE_PATH: String = "/tls/client.truststore"
 
   val DEFAULT_CLIENT_TRUSTSTORE_FILE: File =
     createTempStore(DEFAULT_CLIENT_TRUSTSTORE_PATH)
 
   val DEFAULT_CLIENT_KEYSTORE_PASSWORD: String = "cassandra1sfun"
-  val DEFAULT_CLIENT_KEYSTORE_PATH: String = "/client.keystore"
+  val DEFAULT_CLIENT_KEYSTORE_PATH: String = "/tls/client.keystore"
 
   val DEFAULT_CLIENT_KEYSTORE_FILE: File =
     createTempStore(DEFAULT_CLIENT_KEYSTORE_PATH)
 
   // Contains the same keypair as the client keystore, but in format usable by OpenSSL
-  val DEFAULT_CLIENT_PRIVATE_KEY_FILE: File = createTempStore("/client.key")
-  val DEFAULT_CLIENT_CERT_CHAIN_FILE: File = createTempStore("/client.crt")
+  val DEFAULT_CLIENT_PRIVATE_KEY_FILE: File = createTempStore("/tls/client.key")
+  val DEFAULT_CLIENT_CERT_CHAIN_FILE: File = createTempStore("/tls/client.crt")
 
   val DEFAULT_SERVER_TRUSTSTORE_PASSWORD: String = "cassandra1sfun"
-  val DEFAULT_SERVER_TRUSTSTORE_PATH: String = "/server.truststore"
+  val DEFAULT_SERVER_TRUSTSTORE_PATH: String = "/tls/server.truststore"
 
   val DEFAULT_SERVER_KEYSTORE_PASSWORD: String = "cassandra1sfun"
-  val DEFAULT_SERVER_KEYSTORE_PATH: String = "/server.keystore"
+  val DEFAULT_SERVER_KEYSTORE_PATH: String = "/tls/server.keystore"
 
-  // A separate keystore where the certificate has a CN of localhost, used for hostname
-  // validation testing.
-  val DEFAULT_SERVER_LOCALHOST_KEYSTORE_PATH: String = "/server_localhost.keystore"
+  // Server PEM files for Scylla SSL configuration
+  val DEFAULT_SERVER_CERT_PATH: String = "/tls/server.crt"
+  val DEFAULT_SERVER_KEY_PATH: String = "/tls/server.key"
+  val DEFAULT_SERVER_TRUSTSTORE_PEM_PATH: String = "/tls/server_truststore.pem"
 
   // DSE versions
   val DSE_V6_8_5: Version = Version.parse("6.8.5")

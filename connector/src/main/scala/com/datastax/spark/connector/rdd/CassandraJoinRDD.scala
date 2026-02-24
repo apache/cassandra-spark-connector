@@ -143,7 +143,7 @@ class CassandraJoinRDD[L, R] (
     metricsUpdater: InputMetricsUpdater
   ): Iterator[(L, R)] = {
 
-    val queryExecutor = QueryExecutor(session, readConf.parallelismLevel, None, None)
+    val queryExecutor = QueryExecutor(session, readConf.parallelismLevel, None, None, connector.conf)
 
     def pairWithRight(left: L): SettableFuture[Iterator[(L, R)]] = {
       val resultFuture = SettableFuture.create[Iterator[(L, R)]]

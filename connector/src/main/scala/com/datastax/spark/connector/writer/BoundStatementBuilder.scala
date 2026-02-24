@@ -41,6 +41,18 @@ private[connector] class BoundStatementBuilder[T](
   private val converters = columnTypes.map(ColumnType.converterToCassandra(_))
   private val buffer = Array.ofDim[Any](columnNames.size)
 
+  /** Whether the prepared statement contains an auto-timestamp placeholder that
+    * needs to be bound with a unique, incrementing microsecond timestamp per row. */
+  private val hasAutoTimestamp: Boolean = {
+    val varDefs = preparedStmt.getVariableDefinitions
+    (0 until varDefs.size()).exists(i => varDefs.get(i).getName.asInternal() == TableWriter.AutoTimestampParam)
+  }
+
+  /** Monotonically incrementing microsecond counter for auto-timestamps.
+    * Uses a global counter to guarantee uniqueness across all concurrent
+    * BoundStatementBuilder instances within the same JVM. */
+  private val autoTsCounter = BoundStatementBuilder.globalAutoTsCounter
+
 
   require(!ignoreNulls || protocolVersion.getCode >= DefaultProtocolVersion.V4.getCode,
     s"""
@@ -128,12 +140,26 @@ private[connector] class BoundStatementBuilder[T](
       val serializedValue = boundStatement.stmt.getBytesUnsafe(i)
       if (serializedValue != null) bytesCount += serializedValue.remaining()
     }
+
+    if (hasAutoTimestamp) {
+      boundStatement.update(_.setLong(TableWriter.AutoTimestampParam, autoTsCounter.getAndIncrement()))
+    }
+
     boundStatement.bytesCount = bytesCount
     boundStatement
   }
 }
 
 private[connector] object BoundStatementBuilder {
+
+  /** Global monotonically incrementing microsecond counter shared across all
+    * BoundStatementBuilder instances in the JVM. Ensures that every bound
+    * statement gets a unique timestamp even when multiple Spark tasks bind
+    * concurrently. Initialized to the current wall-clock time in microseconds
+    * so that timestamps stay in the same ballpark as server-assigned ones. */
+  private[writer] val globalAutoTsCounter =
+    new java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis() * 1000)
+
   /** Calculate bound statement size in bytes. */
   def calculateDataSize(stmt: BoundStatement): Int = {
     var size = 0

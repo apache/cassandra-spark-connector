@@ -23,7 +23,7 @@ import com.datastax.spark.connector.{ColumnName, SomeColumns}
 import com.datastax.spark.connector.rdd.{CassandraJoinRDD, CassandraLeftJoinRDD, CassandraTableScanRDD}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.{And, Attribute, BindReferences, EqualTo, ExprId, Expression, GenericInternalRow, JoinedRow, Predicate, UnsafeProjection, UnsafeRow}
+import org.apache.spark.sql.catalyst.expressions.{And, Attribute, BindReferences, EqualTo, ExprId, Expression, GenericInternalRow, InterpretedPredicate, JoinedRow, UnsafeProjection, UnsafeRow}
 import org.apache.spark.sql.catalyst.plans._
 import org.apache.spark.sql.execution.datasources.v2.BatchScanExec
 import org.apache.spark.sql.execution.{DataSourceScanExec, SparkPlan, UnaryExecNode}
@@ -100,7 +100,7 @@ case class CassandraDirectJoinExec(
     val unhandledConditions = Seq(unhandledEquiPredicates, condition).flatten.reduceOption(And)
 
     if (unhandledConditions.isDefined) {
-      Predicate.create(unhandledConditions.get , keySource.output ++ cassandraPlan.output).eval _
+      InterpretedPredicate(BindReferences.bindReference(unhandledConditions.get, keySource.output ++ cassandraPlan.output)).eval _
     } else {
       (r: InternalRow) => true
     }
@@ -176,7 +176,7 @@ case class CassandraDirectJoinExec(
 
       val joinRow = new JoinedRow
       joinRDD.mapPartitions { it =>
-        val resultProjection = createResultProjection
+        val resultProjection = createResultProjection()
         it.map { case (unsafeKeyRow, cassandraRow) =>
           numOutputRows.add(1)
           joinRow.withLeft(unsafeKeyRow)
@@ -201,7 +201,7 @@ case class CassandraDirectJoinExec(
 
       val joinRow = new JoinedRow
       joinRDD.mapPartitions { it =>
-        val resultProjection = createResultProjection
+        val resultProjection = createResultProjection()
         val nullRow = new GenericInternalRow(cassandraPlan.output.length)
         it.map { case (unsafeKeyRow, cassandraRow) =>
           numOutputRows.add(1)

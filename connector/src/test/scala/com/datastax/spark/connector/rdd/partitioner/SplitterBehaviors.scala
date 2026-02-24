@@ -36,7 +36,7 @@ private[partitioner] trait SplitterBehaviors[V, T <: Token[V]] {
   def outputs(splits: Int, withSize: BigInt, sizeTolerance: BigInt = BigInt(0)): SplitResult =
     SplitResult(splits, withSize - sizeTolerance, withSize + sizeTolerance)
 
-  def testSplittingTokens(splitter: => TokenRangeSplitter[V, T]) {
+  def testSplittingTokens(splitter: => TokenRangeSplitter[V, T]): Unit = {
     val hugeRanges = splitWholeRingIn(10)
 
     val splitCases = Seq[(TokenRange[V, T], Int, SplitResult)](
@@ -72,7 +72,7 @@ private[partitioner] trait SplitterBehaviors[V, T <: Token[V]] {
     }
   }
 
-  def testSplittingTokenSequences(splitter: TokenRangeSplitter[V, T]) {
+  def testSplittingTokenSequences(splitter: TokenRangeSplitter[V, T]): Unit = {
     val mediumRanges = splitWholeRingIn(100)
     val wholeRingSize = mediumRanges.map(_.rangeSize).sum
 

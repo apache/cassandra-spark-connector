@@ -131,7 +131,7 @@ private[connector] class CassandraPartitionGenerator[V, T <: Token[V]](
     // Loop over groups and get next element of each
     // emmit them in order. So we get one partition for different endpoints.
     val groupIterators = partitionsGroupedByEndpoints.map(_.iterator)
-    val roundRobinSelectedPartitions = Iterator.continually { groupIterators.filter(_.hasNext).map(_.next) }
+    val roundRobinSelectedPartitions = Iterator.continually { groupIterators.filter(_.hasNext).map(_.next()) }
       .takeWhile(_.nonEmpty).flatten.toSeq
 
     val indexedPartitions = roundRobinSelectedPartitions

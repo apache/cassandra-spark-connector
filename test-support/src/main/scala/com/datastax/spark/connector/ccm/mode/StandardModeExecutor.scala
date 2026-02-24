@@ -65,10 +65,12 @@ private[mode] trait DefaultExecutor extends ClusterModeExecutor {
       case 1 => config.jvmArgs :+ "-Dcassandra.superuser_setup_delay_ms=0" :+ "-Dcassandra.ring_delay_ms=1000" :+ "-Dcassandra.skip_sync=true"
       case _ => config.jvmArgs :+ "-Dcassandra.ring_delay_ms=5000" :+ "-Dcassandra.skip_sync=true"
     }
-    val formattedJvmArgs = jvmArgs.map(arg => s"--jvm_arg=$arg")
-    val formattedJvmVersion = javaVersion.map(v => s"--jvm-version=$v").toSeq
+    // Scylla CCM does not support jvm version option and --skip-wait-other-notice, since it is skipped by default
+    val formattedJvmArgs = if (config.scyllaEnabled) Seq.empty else jvmArgs.map(arg => s"--jvm_arg=$arg")
+    val formattedJvmVersion = if (config.scyllaEnabled) Seq.empty else javaVersion.map(v => s"--jvm-version=$v").toSeq
+    val waitOthersNotice = if (config.scyllaEnabled) "" else "--skip-wait-other-notice"
     try {
-      execute(Seq(s"node$nodeNo", "start", "-v", "--skip-wait-other-notice") ++ formattedJvmArgs ++ formattedJvmVersion :_*)
+      execute(Seq(s"node$nodeNo", "start", "-v", waitOthersNotice) ++ formattedJvmArgs ++ formattedJvmVersion :_*)
       waitForNode(nodeNo)
     } catch {
       case NonFatal(e) =>
@@ -111,11 +113,12 @@ private[mode] trait DefaultExecutor extends ClusterModeExecutor {
       val options = config.installDirectory
         .map(dir => config.createOptions :+ s"--install-dir=${new File(dir).getAbsolutePath}")
         .orElse(config.installBranch.map(branch => config.createOptions ++ Seq("-v", s"git:${branch.trim().replaceAll("\"", "")}")))
-        .getOrElse(config.createOptions ++ Seq("-v", adjustCassandraBetaVersion(config.version.toString)))
+        .getOrElse(config.createOptions ++ Seq("-v", adjustCassandraBetaVersion(config.rawVersion)))
 
       val dseFlag = if (config.dseEnabled) Some("--dse") else None
+      val scyllaFlag = if (config.scyllaEnabled) Some("--scylla") else None
 
-      val createArgs = Seq("create", clusterName, "-i", config.ipPrefix) ++ options ++ dseFlag
+      val createArgs = Seq("create", clusterName, "-i", config.ipPrefix) ++ options ++ dseFlag ++ scyllaFlag
 
       // Check installed Directory
       val repositoryDir = Paths.get(
@@ -151,7 +154,8 @@ private[mode] trait DefaultExecutor extends ClusterModeExecutor {
           "-j", config.jmxPort(i).toString,
           "-i", config.ipOfNode(i),
           "--remote-debug-port=0") ++
-          dseFlag :+
+          dseFlag ++
+          scyllaFlag :+
           node
 
         execute(addArgs: _*)
@@ -164,7 +168,10 @@ private[mode] trait DefaultExecutor extends ClusterModeExecutor {
       config.cassandraConfiguration.foreach { case (key, value) =>
         execute("updateconf", s"$key:$value")
       }
-      if (config.getCassandraVersion.compareTo(Version.V2_2_0) >= 0 && config.getCassandraVersion.compareTo(CcmConfig.V4_1_0) < 0) {
+      if (config.scyllaEnabled) {
+        execute("updateconf", "enable_user_defined_functions:true")
+        execute("updateconf", "experimental_features:[udf]")
+      } else if (config.getCassandraVersion.compareTo(Version.V2_2_0) >= 0 && config.getCassandraVersion.compareTo(CcmConfig.V4_1_0) < 0) {
         execute("updateconf", "enable_user_defined_functions:true")
       } else if (config.getCassandraVersion.compareTo(CcmConfig.V4_1_0) >= 0) {
         execute("updateconf", "user_defined_functions_enabled:true")

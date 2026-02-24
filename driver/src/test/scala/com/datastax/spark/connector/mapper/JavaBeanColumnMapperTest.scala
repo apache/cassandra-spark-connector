@@ -71,7 +71,7 @@ class JavaBeanColumnMapperTest {
   private val table3 = TableDef("test", "table", Seq(c1), Seq(c2), Seq(c6))
 
   @Test
-  def testGetters() {
+  def testGetters(): Unit = {
     val columnMap = new JavaBeanColumnMapper[JavaBeanColumnMapperTestClass]
       .columnMapForWriting(table1, table1.columnRefs
       )
@@ -82,7 +82,7 @@ class JavaBeanColumnMapperTest {
   }
 
   @Test
-  def testGettersWithUDT() {
+  def testGettersWithUDT(): Unit = {
     val mapper = new JavaBeanColumnMapper[ColumnMapperTestUDTBean]
     val columnMap = mapper.columnMapForWriting(u1, u1.columnRefs)
     val getters = columnMap.getters
@@ -92,7 +92,7 @@ class JavaBeanColumnMapperTest {
   }
 
   @Test
-  def testSetters() {
+  def testSetters(): Unit = {
     val columnMap = new JavaBeanColumnMapper[JavaBeanColumnMapperTestClass]
       .columnMapForReading(table1, table1.columnRefs)
     val setters = columnMap.setters
@@ -102,7 +102,7 @@ class JavaBeanColumnMapperTest {
   }
 
   @Test
-  def testColumnNameOverrideGetters() {
+  def testColumnNameOverrideGetters(): Unit = {
     val columnNameOverrides: Map[String, String] = Map("cassandra_property_1" -> c5.columnName, "flagged" -> c4.columnName)
     val columnMap = new JavaBeanColumnMapper[JavaBeanColumnMapperTestClass](columnNameOverrides)
       .columnMapForWriting(table2, IndexedSeq(c5.ref, c2.ref, c4.ref))
@@ -113,7 +113,7 @@ class JavaBeanColumnMapperTest {
   }
 
   @Test
-  def testColumnNameOverrideSetters() {
+  def testColumnNameOverrideSetters(): Unit = {
     val columnNameOverrides: Map[String, String] = Map("property1" -> c5.columnName, "flagged" -> c4.columnName)
     val columnMap = new JavaBeanColumnMapper[JavaBeanColumnMapperTestClass](columnNameOverrides)
       .columnMapForReading(table2, IndexedSeq(c5.ref, c2.ref, c4.ref))
@@ -124,20 +124,20 @@ class JavaBeanColumnMapperTest {
   }
 
   @Test
-  def testSerializeColumnMap() {
+  def testSerializeColumnMap(): Unit = {
     val columnMap = new JavaBeanColumnMapper[JavaBeanColumnMapperTestClass]
       .columnMapForReading(table1, table1.columnRefs)
     SerializationUtils.roundtrip(columnMap)
   }
 
   @Test
-  def testImplicit() {
+  def testImplicit(): Unit = {
     val mapper = implicitly[ColumnMapper[JavaBeanColumnMapperTestClass]]
     assertTrue(mapper.isInstanceOf[JavaBeanColumnMapper[_]])
   }
 
   @Test
-  def testWorkWithAliases() {
+  def testWorkWithAliases(): Unit = {
     val mapper = new JavaBeanColumnMapper[ClassWithWeirdProps]()
     val selectedColumns = IndexedSeq(
       ColumnName("property_1").as("devil"),
@@ -148,7 +148,7 @@ class JavaBeanColumnMapperTest {
   }
 
   @Test
-  def testWorkWithAliasesAndHonorOverrides() {
+  def testWorkWithAliasesAndHonorOverrides(): Unit = {
     val mapper = new JavaBeanColumnMapper[ClassWithWeirdProps](Map("cat" -> "other"))
     val selectedColumns = IndexedSeq(
       ColumnName("property_1").as("devil"),

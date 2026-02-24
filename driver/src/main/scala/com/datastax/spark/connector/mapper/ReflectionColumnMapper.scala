@@ -85,7 +85,7 @@ abstract class ReflectionColumnMapper[T : ClassTag] extends ColumnMapper[T] {
         paramNames
           .filter(_ != "$_outer")
           .filter(!_.startsWith("this$"))
-          .map(columnRefOrThrow)
+          .map(columnRefOrThrow).toIndexedSeq
       }
     }
 

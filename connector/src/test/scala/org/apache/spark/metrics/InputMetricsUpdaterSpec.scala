@@ -33,7 +33,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 class InputMetricsUpdaterSpec extends FlatSpec with Matchers with MockitoSugar {
 
-  implicit val defaultPatienceConfig = Eventually.PatienceConfig(
+  implicit val defaultPatienceConfig: Eventually.PatienceConfig = Eventually.PatienceConfig(
     Eventually.scaled(20.seconds), Eventually.scaled(500.milliseconds))
 
   private def newTaskContext(useTaskMetrics: Boolean = true)(sources: Source*): TaskContext = {

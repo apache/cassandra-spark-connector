@@ -20,7 +20,7 @@ package org.apache.spark.sql.cassandra.execution
 
 import com.datastax.spark.connector.datasource.{CassandraScan, CassandraScanBuilder, CassandraTable}
 import com.datastax.spark.connector.util.Logging
-import org.apache.spark.sql.{SparkSession, Strategy}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.cassandra.{AlwaysOff, AlwaysOn, Automatic, CassandraSourceRelation}
 import org.apache.spark.sql.cassandra.CassandraSourceRelation._
 import org.apache.spark.sql.catalyst.expressions.{Alias, Attribute, AttributeReference, ExprId, Expression, NamedExpression}
@@ -29,7 +29,7 @@ import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.plans._
 import org.apache.spark.sql.execution.datasources.v2.{BatchScanExec, DataSourceV2Relation, DataSourceV2ScanRelation, DataSourceV2Strategy}
 import org.apache.spark.sql.catalyst.optimizer.{BuildLeft, BuildRight, BuildSide}
-import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
+import org.apache.spark.sql.execution.{ProjectExec, SparkPlan, SparkStrategy}
 
 
 /**
@@ -37,10 +37,10 @@ import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
   * Converts logical plans where the join target is a Cassandra derived branch with joinWithCassandraTable
   * style Join
   */
-case class CassandraDirectJoinStrategy(spark: SparkSession) extends Strategy with Serializable {
+case class CassandraDirectJoinStrategy(spark: SparkSession) extends SparkStrategy with Serializable {
   import CassandraDirectJoinStrategy._
 
-  val conf = spark.sqlContext.conf
+  val conf = spark.sessionState.conf
 
   override def apply(plan: LogicalPlan): Seq[SparkPlan] = plan match {
     case ExtractEquiJoinKeys(joinType, leftKeys, rightKeys, condition, _, left, right, _)
@@ -60,7 +60,7 @@ case class CassandraDirectJoinStrategy(spark: SparkSession) extends Strategy wit
          our target branch. This will let us know all of the pushable filters that we can
          use in the direct join.
       */
-      val dataSourceOptimizedPlan = new DataSourceV2Strategy(spark)(joinTargetBranch).head
+      val dataSourceOptimizedPlan = new DataSourceV2Strategy(spark.asInstanceOf[org.apache.spark.sql.classic.SparkSession])(joinTargetBranch).head
       val cassandraScanExec = getScanExec(dataSourceOptimizedPlan).get
 
       joinTargetBranch match {

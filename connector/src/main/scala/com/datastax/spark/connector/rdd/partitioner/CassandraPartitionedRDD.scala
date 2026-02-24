@@ -58,7 +58,7 @@ class CassandraPartitionedRDD[T](
 
   override def getPreferredLocations(split: Partition): Seq[String] = split match {
     case epp: ReplicaPartition =>
-      epp.endpoints
+      epp.endpoints.toIndexedSeq
     case other: Partition => throw new IllegalArgumentException(
       "CassandraPartitionedRDD doesn't have Endpointed Partitions. PreferredLocations cannot be" +
         "deterimined")

@@ -170,7 +170,7 @@ class CassandraLeftJoinRDD[L, R] (
   ): Iterator[(L, Option[R])] = {
     import com.datastax.spark.connector.util.Threads.BlockingIOExecutionContext
 
-    val queryExecutor = QueryExecutor(session, readConf.parallelismLevel, None, None)
+    val queryExecutor = QueryExecutor(session, readConf.parallelismLevel, None, None, connector.conf)
 
     def pairWithRight(left: L): SettableFuture[Iterator[(L, Option[R])]] = {
       val resultFuture = SettableFuture.create[Iterator[(L, Option[R])]]

@@ -342,12 +342,12 @@ class CassandraSQLSpec extends SparkCassandraITFlatSpecBase with DefaultCluster 
     result should have length 1
   }
 
-  it should "allow to select rows with indexed columns that belong to partition key" in {
+  it should "allow to select rows with indexed columns that belong to partition key" in notScylla("scylladb/scylladb#2060: Scylla doesn't support mixing token and partition key restrictions") {
     val result = spark.sql(s"SELECT * FROM ks1_index_test WHERE ipk1 = 2").collect()
     result should have length 1
   }
 
-  it should "allow to select rows with indexed partition and regular columns" in {
+  it should "allow to select rows with indexed partition and regular columns" in notScylla("scylladb/scylladb#2060: Scylla doesn't support mixing token and partition key restrictions") {
     val result = spark.sql(s"SELECT * FROM ks1_index_test WHERE ipk1 = 2 and id1 = 2").collect()
     result should have length 1
   }

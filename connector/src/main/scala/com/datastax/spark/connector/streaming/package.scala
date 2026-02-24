@@ -21,13 +21,17 @@ package com.datastax.spark.connector
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 
+import scala.annotation.nowarn
+import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
 package object streaming {
 
+  @nowarn("cat=deprecation")
   implicit def toStreamingContextFunctions(ssc: StreamingContext): SparkContextFunctions =
     new StreamingContextFunctions(ssc)
 
+  @nowarn("cat=deprecation")
   implicit def toDStreamFunctions[T: ClassTag](ds: DStream[T]): DStreamFunctions[T] =
     new DStreamFunctions[T](ds)
 

@@ -71,7 +71,7 @@ object CassandraSQLRow {
 
   def fromJavaDriverRow(row: Row, metaData:CassandraRowMetadata): CassandraSQLRow = {
     val data = CassandraRow.dataFromJavaDriverRow(row, metaData)
-    new CassandraSQLRow(metaData, data.map(toSparkSqlType))
+    new CassandraSQLRow(metaData, data.map(toSparkSqlType).toIndexedSeq)
   }
 
   implicit object CassandraSQLRowReader extends RowReader[CassandraSQLRow] with ThisRowReaderAsFactory[CassandraSQLRow] {

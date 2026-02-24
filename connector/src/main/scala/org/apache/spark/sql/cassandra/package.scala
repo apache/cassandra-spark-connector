@@ -20,6 +20,7 @@ package org.apache.spark.sql
 
 import scala.language.implicitConversions
 import com.datastax.spark.connector.util.{ConfigParameter, DeprecatedConfigParameter}
+import org.apache.spark.sql.catalyst.expressions.Expression
 import org.apache.spark.sql.streaming.DataStreamWriter
 
 package object cassandra {
@@ -40,7 +41,7 @@ package object cassandra {
       DefaultSource.CassandraDataSourceTableNameProperty -> table,
       DefaultSource.CassandraDataSourcePushdownEnableProperty -> pushdownEnable.toString)
 
-  implicit class DataFrameReaderWrapper(val dfReader: DataFrameReader) extends AnyVal {
+  implicit class DataFrameReaderWrapper(private val dfReader: DataFrameReader) extends AnyVal {
     /** Sets the format used to access Cassandra through Connector */
     def cassandraFormat: DataFrameReader = {
       dfReader.format(CassandraFormat)
@@ -57,7 +58,7 @@ package object cassandra {
     }
   }
 
-  implicit class DataFrameWriterWrapper[T](val dfWriter: DataFrameWriter[T]) extends AnyVal {
+  implicit class DataFrameWriterWrapper[T](private val dfWriter: DataFrameWriter[T]) extends AnyVal {
     /** Sets the format used to access Cassandra through Connector */
     def cassandraFormat: DataFrameWriter[T] = {
       dfWriter.format(CassandraFormat)
@@ -103,7 +104,7 @@ package object cassandra {
 
   }
 
-  implicit class DataStreamWriterWrapper[T](val dsWriter: DataStreamWriter[T]) extends AnyVal {
+  implicit class DataStreamWriterWrapper[T](private val dsWriter: DataStreamWriter[T]) extends AnyVal {
     /** Sets the format used to access Cassandra through Connector */
     def cassandraFormat: DataStreamWriter[T] = {
       dsWriter.format(CassandraFormat)
@@ -149,7 +150,7 @@ package object cassandra {
   }
 
   @deprecated("Use SparkSession instead of SQLContext", "2.0.0")
-  implicit class CassandraSQLContextFunctions(val sqlContext: SQLContext) extends AnyVal {
+  implicit class CassandraSQLContextFunctions(private val sqlContext: SQLContext) extends AnyVal {
 
     import org.apache.spark.sql.cassandra.CassandraSQLContextParams._
 
@@ -196,8 +197,14 @@ package object cassandra {
     }
   }
 
+  private def columnToExpr(col: Column): Expression =
+    org.apache.spark.sql.classic.ColumnConversions.expression(col)
+
+  private def exprToColumn(expr: Expression): Column =
+    org.apache.spark.sql.classic.ClassicConversions.ColumnConstructorExt(Column).apply(expr)
+
   def ttl(column: Column): Column = {
-      Column(CassandraTTL(column.expr))
+      exprToColumn(CassandraTTL(columnToExpr(column)))
   }
 
   def ttl(column: String): Column = {
@@ -205,14 +212,14 @@ package object cassandra {
   }
 
   def writeTime(column: Column): Column = {
-      Column(CassandraWriteTime(column.expr))
+      exprToColumn(CassandraWriteTime(columnToExpr(column)))
   }
 
   def writeTime(column: String): Column = {
       writeTime(Column(column))
   }
 
-  implicit class CassandraSparkSessionFunctions(val sparkSession: SparkSession) extends AnyVal {
+  implicit class CassandraSparkSessionFunctions(private val sparkSession: SparkSession) extends AnyVal {
 
     import org.apache.spark.sql.cassandra.CassandraSQLContextParams._
 

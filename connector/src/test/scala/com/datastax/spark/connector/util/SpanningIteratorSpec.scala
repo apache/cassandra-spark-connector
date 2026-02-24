@@ -51,7 +51,7 @@ class SpanningIteratorSpec extends FlatSpec with Matchers {
   }
 
   it should "be lazy and work with infinite streams" in {
-    val stream = Stream.from(0)
+    val stream = LazyList.from(0)
     val grouped = new SpanningIterator(stream.iterator, identity[Int])
     grouped.take(5).toSeq.map(_._1) should contain inOrder(0, 1, 2, 3, 4)
   }

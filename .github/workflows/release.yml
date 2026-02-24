@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        type: boolean
+        description: 'dry-run: run without publishing to Maven Central'
+        default: false
+
+      skip-tests:
+        type: boolean
+        description: 'skip-tests: do not run tests while releasing'
+        default: false
+
+      target-tag:
+        type: string
+        description: 'target-tag: tag or branch name to release. Use to re-release tagged releases'
+        default: scylla-4.x
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Code One Commit Before ${{ inputs.target-tag }}
+        if: inputs.target-tag != 'scylla-4.x'
+        env:
+          RELEASE_TARGET_TAG: ${{ inputs.target-tag }}
+        run: make checkout-one-commit-before
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: sbt
+
+      - name: Import GPG key
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+        run: echo "$PGP_SECRET" | base64 --decode | gpg --import --no-tty --batch --yes
+
+      - name: Configure Git user
+        run: |
+          git config user.name "ScyllaDB Promoter"
+          git config user.email "github-promoter@scylladb.com"
+
+      - name: Prepare release
+        run: make release-prepare
+
+      - name: Perform release
+        if: inputs.dry-run == false
+        env:
+          RELEASE_SKIP_TESTS: ${{ inputs.skip-tests }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
+        run: make release
+
+      - name: Perform release dry-run
+        if: inputs.dry-run == true
+        env:
+          RELEASE_SKIP_TESTS: ${{ inputs.skip-tests }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
+        run: make release-dry-run
+
+      - name: Upload release logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbt-stdout
+          path: /tmp/spark-connector-release-logs/*.log
+
+      - name: Push changes to SCM
+        if: ${{ inputs.dry-run == false && inputs.target-tag == 'scylla-4.x' }}
+        run: |
+          git status && git log -3
+          git push origin --follow-tags -v

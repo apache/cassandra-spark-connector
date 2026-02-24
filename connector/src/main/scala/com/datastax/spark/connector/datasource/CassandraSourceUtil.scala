@@ -87,10 +87,14 @@ object CassandraSourceUtil extends Logging {
     //Default settings
     val conf = sparkConf.clone()
 
+    // Normalize userOptions keys to lowercase for case-insensitive lookup.
+    // In Spark 4.x, CaseInsensitiveStringMap.asScala.toMap produces a case-sensitive map
+    // with original-case keys, so we must normalize here.
+    val lowerCaseUserOptions = userOptions.map { case (k, v) => (k.toLowerCase(Locale.ROOT), v) }
+
     def consolidate(prop: String): Option[String] = {
       Seq(
-        //userOptions is actually a caseInsensitive map so lower case keys must be used
-        userOptions.get(prop.toLowerCase(Locale.ROOT)),
+        lowerCaseUserOptions.get(prop.toLowerCase(Locale.ROOT)),
         sqlConf.get(s"$cluster:$keyspace/$prop"),
         sqlConf.get(s"$cluster/$prop"),
         sqlConf.get(s"default/$prop"),
@@ -118,7 +122,7 @@ object CassandraSourceUtil extends Logging {
     }
     conf.setAll(sqlConf -- SqlPropertyKeys)
     //Set all user properties while avoiding SCC Properties
-    conf.setAll(userOptions -- (AllSCCConfNames ++ AllSCCConfNames.map(_.toLowerCase(Locale.ROOT))))
+    conf.setAll(lowerCaseUserOptions -- AllSCCConfNames.map(_.toLowerCase(Locale.ROOT)))
     conf
   }
 
@@ -254,7 +258,7 @@ object CassandraSourceUtil extends Logging {
   def optionsListToString(options: List[(String, Any)]): String = {
     options.map {
       case (k: String, v: String) => s"$k='$v'"
-      case (k: String, innerM: Map[String, String]) => s"$k='${mapToString(innerM)}'"
+      case (k: String, innerM: Map[String, String] @unchecked) => s"$k='${mapToString(innerM)}'"
       case (_, _) => throw new IllegalArgumentException(s"Unable to parse $options")
     }.mkString(",")
 

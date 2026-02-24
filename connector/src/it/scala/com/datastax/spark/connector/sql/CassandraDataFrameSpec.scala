@@ -263,7 +263,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase with DefaultCl
         )
         .load()
     }
-    exception.getMessage should include("Couldn't find")
+    exception.getMessage should include("randomtable")
   }
 
   it should " provide useful suggestions if a table can't be found but a close match exists" in {
@@ -279,8 +279,7 @@ class CassandraDataFrameSpec extends SparkCassandraITFlatSpecBase with DefaultCl
         )
         .load
     }
-    exception.getMessage should include("Couldn't find")
-    exception.getMessage should include("hardtoremembernamedtable")
+    exception.getMessage should include("hardertoremembertablename")
   }
 
   it should "read and write C* Tuple columns" in {

@@ -16,28 +16,19 @@
  * limitations under the License.
  */
 
-package com.datastax.spark.connector.util
+package org.apache.spark.sql
 
-import org.apache.spark.repl.SparkILoop
-import scala.tools.nsc.Settings
-import java.io.{BufferedReader, PrintWriter}
-import scala.collection.parallel.ParIterable
+/**
+ * AnalysisException subclass for Cassandra connector errors.
+ * In Spark 4.x, the primary constructor of AnalysisException is protected
+ * and the public constructors require a registered errorClass.
+ * This subclass can access the protected constructor.
+ */
+class CassandraAnalysisException(message: String)
+  extends AnalysisException(message)
 
-class Scala213SparkILoop(in: BufferedReader, out: PrintWriter) extends SparkILoop(in, out) {
-
-  def run(interpreterSettings: Settings): Boolean = {
-    super.process(interpreterSettings)
-  }
-}
-
-
-object RuntimeUtil {
-
-  def toParallelIterable[A](iterable: Iterable[A]): ParIterable[A] = {
-    iterable.par
-  }
-
-  def createSparkILoop(in: BufferedReader, out: PrintWriter): Scala213SparkILoop = {
-    new Scala213SparkILoop(in, out)
+object CassandraAnalysisException {
+  def apply(message: String): CassandraAnalysisException = {
+    new CassandraAnalysisException(message)
   }
 }

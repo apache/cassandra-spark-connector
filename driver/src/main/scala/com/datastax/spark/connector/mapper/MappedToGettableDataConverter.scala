@@ -221,14 +221,14 @@ object MappedToGettableDataConverter extends Logging {
           val columnValues = extractor.extract(obj.asInstanceOf[T])
           for (i <- columnValues.indices)
             columnValues(i) = converters(i).convert(columnValues(i))
-          struct.newInstance(columnValues: _*)
+          struct.newInstance(columnValues.toIndexedSeq: _*)
         case obj if obj == null =>
           null.asInstanceOf[struct.ValueRepr]
         case Some(obj) if cls.isInstance(obj) =>
           val columnValues = extractor.extract(obj.asInstanceOf[T])
           for (i <- columnValues.indices)
             columnValues(i) = converters(i).convert(columnValues(i))
-          struct.newInstance(columnValues: _*)
+          struct.newInstance(columnValues.toIndexedSeq: _*)
         case None =>
           null.asInstanceOf[struct.ValueRepr]
       }

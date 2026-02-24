@@ -24,6 +24,7 @@ import com.datastax.oss.driver.api.core.metadata.Metadata
 import com.datastax.spark.connector.util.DriverUtil.toName
 import org.apache.commons.lang3.StringUtils
 
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 
 object NameTools {
@@ -59,6 +60,7 @@ object NameTools {
   case class KeyspaceOnlySuggestions(keyspaces: Seq[String]) extends Suggestions
 
 
+  @nowarn("cat=deprecation")
   def getSuggestions(clusterMetadata: Metadata, keyspace: String): Option[Suggestions] = {
     val keyspaceScores = clusterMetadata
       .getKeyspaces
@@ -88,6 +90,7 @@ object NameTools {
    * 4. Fuzzy match on table no match on keyspace else
    * 5. None
    */
+  @nowarn("cat=deprecation")
   def getSuggestions(clusterMetadata: Metadata, keyspace: String, table: String): Option[Suggestions] = {
 
     val keyspaceScores = clusterMetadata
@@ -127,7 +130,7 @@ object NameTools {
 
   def getErrorString(keyspace: String, table: Option[String], suggestion: Option[Suggestions]): String = suggestion match {
     case None if table.isDefined => s"Couldn't find $keyspace.${table.get} or any similarly named keyspace and table pairs"
-    case None if table.isEmpty => s"Couldn't find $keyspace or any similarly named keyspaces"
+    case None => s"Couldn't find $keyspace or any similarly named keyspaces"
     case Some(TableSuggestions(tables)) => s"Couldn't find table ${table.get} in $keyspace - Found similar tables in that keyspace:\n${tables.map(t => s"$keyspace.$t").mkString("\n")}"
     case Some(KeyspaceSuggestions(keyspaces)) => s"Couldn't find table ${table.get} in $keyspace - Found similar keyspaces with that table:\n${keyspaces.map(k => s"$k.$table").mkString("\n")}"
     case Some(KeyspaceAndTableSuggestions(kt)) => s"Couldn't find table ${table.get} or keyspace $keyspace - Found similar keyspaces and tables:\n${kt.map { case (k, t) => s"$k.$t"}.mkString("\n")}"

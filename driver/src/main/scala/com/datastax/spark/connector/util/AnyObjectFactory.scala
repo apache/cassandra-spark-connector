@@ -23,6 +23,7 @@ import java.lang.reflect.Constructor
 // FIXME:
 import com.datastax.oss.driver.shaded.guava.common.primitives.Primitives
 
+import scala.language.existentials
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
 import org.apache.commons.lang3.reflect.ConstructorUtils
@@ -90,7 +91,7 @@ class AnyObjectFactory[T: TypeTag] extends Serializable {
   @transient
   private lazy val outerInstanceArg: Seq[AnyRef] = {
     if (isRealMemberClass(javaClass)) {
-      Seq(resolveDirectOuterInstance)
+      Seq(resolveDirectOuterInstance())
     } else {
       Seq.empty
     }
@@ -101,7 +102,7 @@ class AnyObjectFactory[T: TypeTag] extends Serializable {
     val outerClasses = extractOuterClasses(javaClass).reverse
 
     // create an instance of the top level class
-    val rootInstance = outerClasses.head.newInstance().asInstanceOf[AnyRef]
+    val rootInstance = outerClasses.head.getDeclaredConstructor().newInstance().asInstanceOf[AnyRef]
 
     // this is for Spark Shell - all classes created in the console are inner classes of some mysterious Spark classes;
     // it shows that we need to create only the instance of the top level class, and then, instances of all inner

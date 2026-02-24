@@ -31,11 +31,19 @@ private[ccm] trait ClusterModeExecutor {
 
   protected val dir: Path
 
-  protected val javaVersion: Option[Int] = config.javaVersion match {
-    case None if config.dseEnabled => Some(8)
-    case None if config.version.getMajor < 5 => Some(8)
-    case None => Some(11)
-    case other => other
+  // When CCM_JAVA_HOME is set, we control the Java version via JAVA_HOME override
+  // in CcmBridge, so --jvm-version is not needed and can cause errors if CCM can't
+  // find the JDK at its expected system paths (e.g. in GitHub Actions with setup-java).
+  protected val javaVersion: Option[Int] = if (sys.env.contains("CCM_JAVA_HOME")) {
+    None
+  } else {
+    config.javaVersion match {
+      case None if config.scyllaEnabled => Some(8)
+      case None if config.dseEnabled => Some(8)
+      case None if config.version.getMajor < 5 => Some(8)
+      case None => Some(11)
+      case other => other
+    }
   }
 
   def create(clusterName: String): Unit

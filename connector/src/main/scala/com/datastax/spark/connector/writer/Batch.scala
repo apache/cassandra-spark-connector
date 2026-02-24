@@ -52,7 +52,7 @@ private[writer] sealed trait Batch extends Ordered[Batch] {
 
 private[writer] object Batch {
 
-  implicit val batchOrdering = Ordering.ordered[Batch]
+  implicit val batchOrdering: Ordering[Batch] = Ordering.ordered[Batch]
 
   def apply(batchSize: BatchSize): Batch = {
     batchSize match {

@@ -20,6 +20,7 @@ package com.datastax.spark.connector.japi;
 
 import com.datastax.spark.connector.rdd.reader.RowReader;
 import com.datastax.spark.connector.writer.RowWriter;
+import com.datastax.spark.connector.writer.TokenRangeAccumulator;
 import scala.Option;
 import scala.Tuple2;
 import scala.reflect.ClassTag;
@@ -76,7 +77,7 @@ public class RDDJavaFunctions<T> extends RDDAndDStreamCommonJavaFunctions<T> {
             WriteConf conf,
             CassandraConnector connector
     ) {
-        rddFunctions.saveToCassandra(keyspace, table, columnNames, conf, connector, rowWriterFactory);
+        rddFunctions.saveToCassandra(keyspace, table, columnNames, conf, Option.<TokenRangeAccumulator>apply(null), connector, rowWriterFactory);
     }
 
     public void deleteFromCassandra(

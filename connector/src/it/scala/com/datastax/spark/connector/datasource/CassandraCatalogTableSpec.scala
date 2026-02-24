@@ -82,7 +82,13 @@ class CassandraCatalogTableSpec extends CassandraCatalogSpecBase {
       .getOptions.asScala
 
     createdOptions(fromInternal(DefaultTimeToLiveOption._1)) should be (DefaultTimeToLiveOption._2.toInt)
-    createdOptions(fromInternal(CompactionOption._1)).asInstanceOf[java.util.Map[String, String]].asScala should contain theSameElementsAs (CompactionOption._2)
+
+    // Normalize class names for comparison - Scylla uses short names, Cassandra uses fully qualified
+    def normalizeClassName(s: String): String = s.split('.').last
+    val actualCompaction = createdOptions(fromInternal(CompactionOption._1)).asInstanceOf[java.util.Map[String, String]].asScala
+    val normalizedActual = actualCompaction.map { case (k, v) => if (k == "class") (k, normalizeClassName(v)) else (k, v) }
+    val normalizedExpected = CompactionOption._2.map { case (k, v) => if (k == "class") (k, normalizeClassName(v)) else (k, v) }
+    normalizedActual should contain theSameElementsAs normalizedExpected
   }
 
   it should "create a table with multiple partition keys and clustering keys" in {

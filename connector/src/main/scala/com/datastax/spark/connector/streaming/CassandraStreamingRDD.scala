@@ -24,10 +24,12 @@ import com.datastax.spark.connector.rdd._
 import com.datastax.spark.connector.{AllColumns, ColumnSelector}
 import org.apache.spark.streaming.StreamingContext
 
+import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
 /** RDD representing a Cassandra table for Spark Streaming.
   * @see [[com.datastax.spark.connector.rdd.CassandraTableScanRDD]]*/
+@nowarn("cat=deprecation")
 class CassandraStreamingRDD[R] private[connector] (
     sctx: StreamingContext,
     connector: CassandraConnector,

@@ -46,6 +46,7 @@ trait Assertions {
     case x if x eq Duration.Undefined => duration
     case x if !x.isFinite             => throw new IllegalArgumentException("`end` cannot be infinite")
     case f: FiniteDuration            => f - now
+    case _                            => throw new IllegalStateException("Unexpected duration state")
   }
 
   /**
@@ -54,12 +55,12 @@ trait Assertions {
    * If no timeout is given, take it from the innermost enclosing `within`
    * block.
    */
-  def awaitCond(p: => Boolean, max: Duration = 3.seconds, interval: Duration = 100.millis, message: String = "") {
+  def awaitCond(p: => Boolean, max: Duration = 3.seconds, interval: Duration = 100.millis, message: String = ""): Unit = {
     val _max = remainingOrDilated(max)
     val stop = now + _max
 
     @tailrec
-    def poll(t: Duration) {
+    def poll(t: Duration): Unit = {
       if (!p) {
         assert(now < stop, s"timeout ${_max} expired: $message")
         Thread.sleep(t.toMillis)
@@ -74,5 +75,6 @@ trait Assertions {
     case x if x eq Duration.Undefined => remainingOrDefault
     case x if !x.isFinite             => throw new IllegalArgumentException("max duration cannot be infinite")
     case f: FiniteDuration            => f.dilated
+    case _                            => throw new IllegalStateException("Unexpected duration state")
   }
 }

@@ -131,6 +131,13 @@ Setting this to -1 means unlimited retries
       </td>
 </tr>
 <tr>
+  <td><code>spark.cassandra.query.retry.maxRetries</code></td>
+  <td>10</td>
+  <td>Maximum number of retries for a failed query due to transient errors
+(NodeUnavailableException, BusyConnectionException, OverloadedException).
+Set to 0 to disable retries.</td>
+</tr>
+<tr>
   <td><code>spark.cassandra.read.timeoutMS</code></td>
   <td>120000</td>
   <td>Maximum period of time to wait for a read to return </td>
@@ -253,7 +260,7 @@ columname will be used to set the writetime for that row.</td>
 </tr>
 <tr>
   <td><code>spark.cassandra.connection.ssl.enabledAlgorithms</code></td>
-  <td>Set(TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_256_CBC_SHA)</td>
+  <td>Set(TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_256_CBC_SHA)</td>
   <td>SSL cipher suites</td>
 </tr>
 <tr>

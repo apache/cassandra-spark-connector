@@ -70,8 +70,8 @@ class MergeJoinIteratorSpec  extends FlatSpec with Matchers {
   }
 
   it should "be lazy and work with infinite streams" in {
-    val streamL = Stream.from(0)
-    val streamR = Stream.from(0)
+    val streamL = LazyList.from(0)
+    val streamR = LazyList.from(0)
     val grouped = new MergeJoinIterator(streamL.iterator, streamR.iterator, identity[Int],
       identity[Int])
     grouped.take(5).toSeq.map(_._1) should contain inOrder(0, 1, 2, 3, 4)
@@ -93,9 +93,9 @@ class MergeJoinIteratorSpec  extends FlatSpec with Matchers {
     grouped(1)._3 should contain inOrder(2 -> "2a", 2 -> "2b", 2 -> "2c")
     grouped(2)._1 should be(3)
     grouped(2)._2 should contain(3 -> "3a")
-    grouped(2)._3 should be('empty)
+    grouped(2)._3 should be(Symbol("empty"))
     grouped(3)._1 should be(4)
-    grouped(3)._2 should be('empty)
+    grouped(3)._2 should be(Symbol("empty"))
     grouped(3)._3 should contain(4 -> "4a")
   }
 

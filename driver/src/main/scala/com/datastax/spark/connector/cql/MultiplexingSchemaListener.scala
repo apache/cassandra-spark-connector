@@ -85,59 +85,59 @@ class MultiplexingSchemaListener() extends SchemaChangeListener {
     listeners.readOnlySnapshot().values
 
   override def onKeyspaceCreated(keyspace: KeyspaceMetadata): Unit =
-    getListeners.foreachTry(_.onKeyspaceCreated(keyspace))
+    getListeners().foreachTry(_.onKeyspaceCreated(keyspace))
 
   override def onKeyspaceDropped(keyspace: KeyspaceMetadata): Unit =
-    getListeners.foreachTry(_.onKeyspaceDropped(keyspace))
+    getListeners().foreachTry(_.onKeyspaceDropped(keyspace))
 
   override def onKeyspaceUpdated(current: KeyspaceMetadata, previous: KeyspaceMetadata): Unit =
-    getListeners.foreachTry(_.onKeyspaceUpdated(current, previous))
+    getListeners().foreachTry(_.onKeyspaceUpdated(current, previous))
 
   override def onTableCreated(table: TableMetadata): Unit =
-    getListeners.foreachTry(_.onTableCreated(table))
+    getListeners().foreachTry(_.onTableCreated(table))
 
   override def onTableDropped(table: TableMetadata): Unit =
-    getListeners.foreachTry(_.onTableDropped(table))
+    getListeners().foreachTry(_.onTableDropped(table))
 
   override def onTableUpdated(current: TableMetadata, previous: TableMetadata): Unit =
-    getListeners.foreachTry(_.onTableUpdated(current, previous))
+    getListeners().foreachTry(_.onTableUpdated(current, previous))
 
   override def onUserDefinedTypeCreated(`type`: UserDefinedType): Unit =
-    getListeners.foreachTry(_.onUserDefinedTypeCreated(`type`))
+    getListeners().foreachTry(_.onUserDefinedTypeCreated(`type`))
 
   override def onUserDefinedTypeDropped(`type`: UserDefinedType): Unit =
-    getListeners.foreachTry(_.onUserDefinedTypeDropped(`type`))
+    getListeners().foreachTry(_.onUserDefinedTypeDropped(`type`))
 
   override def onUserDefinedTypeUpdated(current: UserDefinedType, previous: UserDefinedType): Unit =
-    getListeners.foreachTry(_.onUserDefinedTypeUpdated(current, previous))
+    getListeners().foreachTry(_.onUserDefinedTypeUpdated(current, previous))
 
   override def onFunctionCreated(function: FunctionMetadata): Unit =
-    getListeners.foreachTry(_.onFunctionCreated(function))
+    getListeners().foreachTry(_.onFunctionCreated(function))
 
   override def onFunctionDropped(function: FunctionMetadata): Unit =
-    getListeners.foreachTry(_.onFunctionDropped(function))
+    getListeners().foreachTry(_.onFunctionDropped(function))
 
   override def onFunctionUpdated(current: FunctionMetadata, previous: FunctionMetadata): Unit =
-    getListeners.foreachTry(_.onFunctionUpdated(current, previous))
+    getListeners().foreachTry(_.onFunctionUpdated(current, previous))
 
   override def onAggregateCreated(aggregate: AggregateMetadata): Unit =
-    getListeners.foreachTry(_.onAggregateCreated(aggregate))
+    getListeners().foreachTry(_.onAggregateCreated(aggregate))
 
   override def onAggregateDropped(aggregate: AggregateMetadata): Unit =
-    getListeners.foreachTry(_.onAggregateDropped(aggregate))
+    getListeners().foreachTry(_.onAggregateDropped(aggregate))
 
   override def onAggregateUpdated(current: AggregateMetadata, previous: AggregateMetadata): Unit =
-    getListeners.foreachTry(_.onAggregateUpdated(current, previous))
+    getListeners().foreachTry(_.onAggregateUpdated(current, previous))
 
   override def onViewCreated(view: ViewMetadata): Unit =
-    getListeners.foreachTry(_.onViewCreated(view))
+    getListeners().foreachTry(_.onViewCreated(view))
 
   override def onViewDropped(view: ViewMetadata): Unit =
-    getListeners.foreachTry(_.onViewDropped(view))
+    getListeners().foreachTry(_.onViewDropped(view))
 
   override def onViewUpdated(current: ViewMetadata, previous: ViewMetadata): Unit =
-    getListeners.foreachTry(_.onViewUpdated(current, previous))
+    getListeners().foreachTry(_.onViewUpdated(current, previous))
 
   override def close(): Unit =
-    getListeners.foreachTry(_.close())
+    getListeners().foreachTry(_.close())
 }

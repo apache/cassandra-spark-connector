@@ -27,7 +27,7 @@ import org.scalatest.{FunSuite, Matchers}
 class CassandraRowTest extends FunSuite with Matchers {
 
   test("basicAccessTest") {
-    val row = new CassandraRow(CassandraRowMetadata(Array("value")), Array("1"))
+    val row = new CassandraRow(CassandraRowMetadata(Array("value").toIndexedSeq), Array("1").toIndexedSeq)
     assertEquals(1, row.size)
     assertEquals(Some("1"), row.getStringOption(0))
     assertEquals(Some("1"), row.getStringOption("value"))
@@ -36,14 +36,14 @@ class CassandraRowTest extends FunSuite with Matchers {
   }
 
   test("nullAccessTest") {
-    val row = new CassandraRow(CassandraRowMetadata(Array("value")), Array(null))
+    val row = new CassandraRow(CassandraRowMetadata(Array("value").toIndexedSeq), Array(null).toIndexedSeq)
     assertEquals(None, row.getStringOption(0))
     assertEquals(None, row.getStringOption("value"))
     assertEquals(1, row.size)
   }
 
   test("NoneAccessTest") {
-    val row = new CassandraRow(CassandraRowMetadata(Array("value")), Array(None))
+    val row = new CassandraRow(CassandraRowMetadata(Array("value").toIndexedSeq), Array(None).toIndexedSeq)
     assertEquals(None, row.getStringOption(0))
     assertEquals(None, row.getStringOption("value"))
     assertEquals(1, row.size)
@@ -51,12 +51,12 @@ class CassandraRowTest extends FunSuite with Matchers {
 
 
   test("nullToStringTest") {
-    val row = new CassandraRow(CassandraRowMetadata(Array("value")), Array(null))
+    val row = new CassandraRow(CassandraRowMetadata(Array("value").toIndexedSeq), Array(null).toIndexedSeq)
     assertEquals("CassandraRow{value: null}", row.toString())
   }
 
   test("nonExistentColumnAccessTest") {
-    val row = new CassandraRow(CassandraRowMetadata(Array("value")), Array(null))
+    val row = new CassandraRow(CassandraRowMetadata(Array("value").toIndexedSeq), Array(null).toIndexedSeq)
     intercept[ColumnNotFoundException] {
       row.getString("wring-column")
     }
@@ -69,7 +69,7 @@ class CassandraRowTest extends FunSuite with Matchers {
     val integer = Integer.valueOf(2)
     val string = "3"
 
-    val row = new CassandraRow(CassandraRowMetadata(Array("date", "integer", "string")), Array(date, integer, string))
+    val row = new CassandraRow(CassandraRowMetadata(Array("date", "integer", "string").toIndexedSeq), Array(date, integer, string).toIndexedSeq)
     assertEquals(3, row.size)
     assertEquals(date, row.getDate("date"))
     assertEquals(date.getTime, row.getLong("date"))
@@ -106,7 +106,7 @@ class CassandraRowTest extends FunSuite with Matchers {
     map.put("b", 2)
     map.put("c", 3)
 
-    val row = new CassandraRow(CassandraRowMetadata(Array("list", "set", "map")), Array(list, set, map))
+    val row = new CassandraRow(CassandraRowMetadata(Array("list", "set", "map").toIndexedSeq), Array(list, set, map).toIndexedSeq)
 
     val scalaList = row.getList[Int]("list")
     assertEquals(Vector(1, 1, 2), scalaList)
@@ -118,14 +118,14 @@ class CassandraRowTest extends FunSuite with Matchers {
     assertEquals(Set("apple", "banana", "mango"), scalaSet)
 
     val scalaMap = row.getMap[String, Long]("map")
-    assertEquals(Map("a" → 1, "b" → 2, "c" → 3), scalaMap)
+    assertEquals(Map("a" ->1, "b" ->2, "c" ->3), scalaMap)
 
     val scalaMapAsSet = row.getSet[(String, String)]("map")
-    assertEquals(Set("a" → "1", "b" → "2", "c" → "3"), scalaMapAsSet)
+    assertEquals(Set("a" ->"1", "b" ->"2", "c" ->"3"), scalaMapAsSet)
   }
 
   test("serializationTest") {
-    val row = new CassandraRow(CassandraRowMetadata(Array("value")), Array("1"))
+    val row = new CassandraRow(CassandraRowMetadata(Array("value").toIndexedSeq), Array("1").toIndexedSeq)
     val bs = new ByteArrayOutputStream
     val os = new ObjectOutputStream(bs)
     os.writeObject(row)

@@ -55,7 +55,7 @@ class CassandraRDDMock[R : ClassTag](prev: RDD[R], keyspace: String = "fake", ta
   override def toEmptyCassandraRDD: EmptyCassandraRDD[R] = new EmptyCassandraRDD[R](prev.sparkContext, keyspace, table)
 
   /** Counts the number of items in this RDD by selecting count(*) on Cassandra table */
-  override def cassandraCount(): Long = prev.count
+  override def cassandraCount(): Long = prev.count()
 
   /** Doesn't actually copy since we don't really use any of these parameters **/
   override protected def copy(

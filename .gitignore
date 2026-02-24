@@ -2,6 +2,7 @@
 *.log
 .DS_Store
 # sbt specific
+.bsp/
 .cache/
 .history/
 .lib/
@@ -24,4 +25,24 @@ metastore_db
 *.iws
 *.iml
 
+bin/
 checkpoint
+
+# Codex - AI assistant metadata
+.codex/
+.codex-cache/
+.codex-config.json
+.codex-settings.json
+codex.log
+AGENTS.md
+
+# Claude - AI assistant metadata
+.anthropic/
+.claude/
+claude.log
+claude_history.json
+claude_config.json
+CLAUDE.md
+
+# Generated TLS certificates for integration tests
+test-support/src/main/resources/tls/

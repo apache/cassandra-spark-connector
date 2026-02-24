@@ -18,7 +18,7 @@
 
 package org.apache.spark.sql.datastax.test.monotonic
 
-import org.apache.spark.sql.{DataFrame, Dataset, SQLContext}
+import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.sql.catalyst.types.DataTypeUtils
 import org.apache.spark.sql.catalyst.expressions.GenericInternalRow
 import org.apache.spark.sql.catalyst.plans.logical.LocalRelation
@@ -62,7 +62,7 @@ class DefaultSource extends StreamSourceProvider {
         }
         val rows = (startValue.toInt to endValue.toInt).map( value =>
           new GenericInternalRow(values = Array(value)))
-        Dataset.ofRows(spark.sparkSession, LocalRelation(DataTypeUtils.toAttributes(schema), rows, isStreaming = true))
+        org.apache.spark.sql.classic.Dataset.ofRows(spark.sparkSession.asInstanceOf[org.apache.spark.sql.classic.SparkSession], LocalRelation(DataTypeUtils.toAttributes(schema), rows, isStreaming = true))
       }
 
       override def stop() {}

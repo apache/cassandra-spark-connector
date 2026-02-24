@@ -22,20 +22,22 @@ import com.datastax.oss.driver.api.core.config.DefaultDriverOption
 import com.datastax.oss.driver.api.core.cql.{AsyncResultSet, BoundStatement}
 import org.scalatest.Inspectors
 import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
-import com.datastax.spark.connector.cluster.DefaultCluster
+import com.datastax.spark.connector.cluster.{DefaultCluster, ScyllaFixture, SeparateJVM}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.rdd.partitioner.DataSizeEstimates
 import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory
 import com.datastax.spark.connector.writer.AsyncExecutor
 
-class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with DefaultCluster with Inspectors {
+class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with DefaultCluster with SeparateJVM with ScyllaFixture with Inspectors {
 
+  override def isScylla: Boolean = defaultConfig.scyllaEnabled
   override lazy val conn = CassandraConnector(defaultConf)
   val tokenFactory = TokenFactory.forSystemLocalPartitioner(conn)
   val tableName = "data"
   val noMinimalThreshold = Int.MinValue
 
   "CassandraTableScanRDD" should "favor user provided split count over minimal threshold" in {
+    assumeNotScylla(scyllaSkipReason)
     val userProvidedSplitCount = 8
     val minimalSplitCountThreshold = 32
     val rddWith64MB = getCassandraTableScanRDD(splitSizeMB = 1, splitCount = Some(userProvidedSplitCount),
@@ -47,6 +49,7 @@ class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with Defaul
   }
 
   it should "favor user provided split count over size-estimated partitions" in {
+    assumeNotScylla(scyllaSkipReason)
     val userProvidedSplitCount = 8
     val rddWith64MB = getCassandraTableScanRDD(splitSizeMB = 1, splitCount = Some(userProvidedSplitCount),
       minimalSplitCountThreshold = noMinimalThreshold)
@@ -57,6 +60,7 @@ class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with Defaul
   }
 
   it should "create size-estimated partitions with splitSize size" in {
+    assumeNotScylla(scyllaSkipReason)
     val rddWith64MB = getCassandraTableScanRDD(splitSizeMB = 1, minimalSplitCountThreshold = noMinimalThreshold)
 
     val partitions = rddWith64MB.getPartitions
@@ -66,6 +70,7 @@ class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with Defaul
   }
 
   it should "create size-estimated partitions when above minimal threshold" in {
+    assumeNotScylla(scyllaSkipReason)
     val minimalSplitCountThreshold = 2
     val rddWith64MB = getCassandraTableScanRDD(splitSizeMB = 1, minimalSplitCountThreshold = minimalSplitCountThreshold)
 
@@ -76,6 +81,7 @@ class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with Defaul
   }
 
   it should "create size-estimated partitions but not less than minimum partitions threshold" in {
+    assumeNotScylla(scyllaSkipReason)
     val minimalSplitCountThreshold = 64
     val rddWith64MB = getCassandraTableScanRDD(splitSizeMB = 32, minimalSplitCountThreshold = minimalSplitCountThreshold)
 
@@ -85,6 +91,7 @@ class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with Defaul
   }
 
   it should "align index fields of partitions with their place in the array" in {
+    assumeNotScylla(scyllaSkipReason)
     val minimalSplitCountThreshold = 64
     val rddWith64MB = getCassandraTableScanRDD(splitSizeMB = 32, minimalSplitCountThreshold = minimalSplitCountThreshold)
 
@@ -93,7 +100,13 @@ class CassandraTableScanRDDSpec extends SparkCassandraITFlatSpecBase with Defaul
     forAll(partitions.zipWithIndex) { case (part, index) => part.index should be(index) }
   }
 
+  private val scyllaSkipReason = "scylladb/spark-scylladb-connector#32: Heavy data load test causes Scylla node instability in CI"
+
   override def beforeClass {
+    // Skip data setup for Scylla: inserting 1M rows overwhelms the single-node cluster in CI
+    // Individual tests will be skipped with assumeNotScylla
+    if (isScylla) return
+
     conn.withSessionDo { session =>
 
       val executor = getExecutor(session)

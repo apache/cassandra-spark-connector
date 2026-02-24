@@ -23,7 +23,7 @@ import org.apache.spark.sql.catalyst.types.DataTypeUtils
 import org.apache.spark.sql.execution.streaming.{LongOffset, Offset, Source}
 import org.apache.spark.sql.sources.StreamSourceProvider
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Dataset, SQLContext}
+import org.apache.spark.sql.{DataFrame, SQLContext}
 
 
 /**
@@ -52,7 +52,7 @@ class DefaultSource extends StreamSourceProvider {
     }
 
     override def getBatch(start: Option[Offset], end: Offset): DataFrame = {
-      Dataset.ofRows(sqlContext.sparkSession, LocalRelation(DataTypeUtils.toAttributes(schema), isStreaming = true))
+      org.apache.spark.sql.classic.Dataset.ofRows(sqlContext.sparkSession.asInstanceOf[org.apache.spark.sql.classic.SparkSession], LocalRelation(DataTypeUtils.toAttributes(schema), isStreaming = true))
     }
 
     override def stop() {}

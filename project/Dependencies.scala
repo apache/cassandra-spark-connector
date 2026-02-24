@@ -49,18 +49,19 @@ object Dependencies
       .exclude("org.slf4j", "log4j-over-slf4j")
 
     def driverCoreExclude(): ModuleID = module
-      .exclude("org.apache.cassandra", "java-driver-core") // doesn't shade guava
+      .exclude("com.scylladb", "java-driver-core") // doesn't shade guava
       .exclude("org.apache.tinkerpop", "*")
       // until SPARK-20075 is fixed we fallback to java workarounds for native calls
       .exclude("com.github.jnr", "jnr-posix")
   }
 
   object TestCommon {
-    val mockito = "org.mockito" % "mockito-all" % Mockito
+    val mockito = "org.mockito" % "mockito-core" % Mockito
+    val mockitoInline = "org.mockito" % "mockito-inline" % Mockito
     val junit = "junit" % "junit" % JUnit
     val junitInterface = "com.novocode" % "junit-interface" % JUnitInterface
     val scalaTest = "org.scalatest" %% "scalatest" % ScalaTest
-    val driverMapperProcessor = "org.apache.cassandra" % "java-driver-mapper-processor" % CassandraJavaDriver
+    val driverMapperProcessor = "com.scylladb" % "java-driver-mapper-processor" % ScyllaJavaDriver
     val esriGeometry = "com.esri.geometry" % "esri-geometry-api" % EsriGeometry
   }
 
@@ -79,22 +80,16 @@ object Dependencies
       TestCommon.driverMapperProcessor % "test,it" driverCoreExclude(),
       TestCommon.scalaTest % "test,it",
       TestCommon.mockito % "test,it",
+      TestCommon.mockitoInline % "test,it",
       TestCommon.junit % "test,it",
       TestCommon.junitInterface % "test,it",
       TestCommon.esriGeometry % "test,it").map(_.logbackExclude())
   }
 
-  // Required for metrics
-  object Jetty {
-    val jettyServer       = "org.eclipse.jetty"       % "jetty-server"            % SparkJetty % "provided"
-    val jettyServlet      = "org.eclipse.jetty"       % "jetty-servlet"           % SparkJetty % "provided"
-
-    val dependencies = Seq(jettyServer, jettyServlet)
-  }
 
   object Driver {
-    val driverCore = "org.apache.cassandra" % "java-driver-core-shaded" % CassandraJavaDriver driverCoreExclude()
-    val driverMapper = "org.apache.cassandra" % "java-driver-mapper-runtime" % CassandraJavaDriver driverCoreExclude()
+    val driverCore = "com.scylladb" % "java-driver-core-shaded" % ScyllaJavaDriver driverCoreExclude()
+    val driverMapper = "com.scylladb" % "java-driver-mapper-runtime" % ScyllaJavaDriver driverCoreExclude()
 
     val commonsLang3 = "org.apache.commons" % "commons-lang3" % Versions.CommonsLang3
     val paranamer = "com.thoughtworks.paranamer" % "paranamer" % Versions.Paranamer
@@ -104,21 +99,16 @@ object Dependencies
   }
 
   object Compatibility {
-    val scalaCompat = "org.scala-lang.modules" %% "scala-collection-compat" % Versions.ScalaCompat
     val parallelCollections = "org.scala-lang.modules" %% "scala-parallel-collections" % Versions.ParallelCollections
 
-    def dependencies(version: String): Seq[ModuleID] = {
-      CrossVersion.partialVersion(version) match {
-        case Some((2, scalaMajor)) if scalaMajor == 13 => Seq(scalaCompat, parallelCollections)
-        case _ => Seq(scalaCompat)
-      }
-    }
+    val dependencies = Seq(parallelCollections)
   }
 
   object TestDriver {
     val dependencies = Seq(
       TestCommon.scalaTest % "test",
       TestCommon.mockito % "test",
+      TestCommon.mockitoInline % "test",
       TestCommon.junit % "test",
       TestCommon.junitInterface % "test",
       TestCommon.driverMapperProcessor % "test" driverCoreExclude()

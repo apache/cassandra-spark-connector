@@ -26,7 +26,8 @@ import org.apache.commons.exec.{CommandLine, ExecuteWatchdog, LogOutputStream, _
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
+import scala.language.reflectiveCalls
 import scala.util.Try
 
 class CcmBridge(config: CcmConfig) extends AutoCloseable {
@@ -76,7 +77,12 @@ class CcmBridge(config: CcmConfig) extends AutoCloseable {
   }
 
   def refreshSizeEstimates(n: Int): Unit = {
-    nodetool(n, "refreshsizeestimates")
+    // Scylla does not support nodetool refreshsizeestimates
+    if (!config.scyllaEnabled) {
+      nodetool(n, "refreshsizeestimates")
+    } else {
+      CcmBridge.logger.info("Skipping refreshsizeestimates - not supported on Scylla")
+    }
   }
 
   def flush(n: Int): Unit = {
@@ -116,12 +122,20 @@ object CcmBridge {
       val streamHandler = new PumpStreamHandler(outStream, errStream)
       executor.setStreamHandler(streamHandler)
       executor.setWatchdog(watchDog)
-      val env =
-        if (sys.env.contains("CCM_JAVA_HOME")) {
-          sys.env + ("JAVA_HOME" -> sys.env("CCM_JAVA_HOME"))
+      val env = {
+        val base = if (sys.env.contains("CCM_JAVA_HOME")) {
+          val ccmJavaHome = sys.env("CCM_JAVA_HOME")
+          // Prepend CCM Java's bin to PATH so `java` on PATH matches JAVA_HOME.
+          // CCM validates that PATH's java version matches JAVA_HOME.
+          val updatedPath = s"$ccmJavaHome/bin${java.io.File.pathSeparator}${sys.env.getOrElse("PATH", "")}"
+          sys.env + ("JAVA_HOME" -> ccmJavaHome) + ("PATH" -> updatedPath)
         } else {
           sys.env
         }
+        // Clear JAVA_TOOL_OPTIONS to prevent Java 17+ flags (e.g. --add-opens)
+        // from being passed to older JVMs that don't understand them.
+        base - "JAVA_TOOL_OPTIONS" - "_JAVA_OPTIONS"
+      }
 
       val retValue = executor.execute(cli, env.asJava)
       if (retValue != 0) {

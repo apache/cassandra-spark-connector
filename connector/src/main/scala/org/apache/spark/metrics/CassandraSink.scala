@@ -24,13 +24,13 @@ import java.util.function.BiConsumer
 
 import com.codahale.metrics.{Counting, Gauge, Metered, Metric, MetricRegistry, Sampling}
 import org.apache.spark.metrics.sink.Sink
-import org.apache.spark.{SecurityManager, SparkConf, SparkEnv}
+import org.apache.spark.{SparkConf, SparkEnv}
 import com.datastax.oss.driver.api.core.cql.{AsyncResultSet, ResultSet}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.util.Logging
 import scala.jdk.CollectionConverters._
 
-class CassandraSink(val properties: Properties, val registry: MetricRegistry, securityMgr: SecurityManager)
+class CassandraSink(val properties: Properties, val registry: MetricRegistry)
   extends Sink with Runnable with Logging {
 
   val ttl = properties.getProperty("ttl", "15").toInt
@@ -41,12 +41,12 @@ class CassandraSink(val properties: Properties, val registry: MetricRegistry, se
   @volatile private var connector: Option[CassandraConnector] = None
   @volatile private var writer: Option[CassandraSink.Writer] = None
 
-  override def start: Unit = {
+  override def start(): Unit = {
     logInfo("CassandraSink started")
     executor.scheduleAtFixedRate(this, refreshRate, refreshRate, TimeUnit.SECONDS)
   }
 
-  override def stop: Unit = {
+  override def stop(): Unit = {
     logInfo("CassandraSink finished")
     executor.shutdown()
   }

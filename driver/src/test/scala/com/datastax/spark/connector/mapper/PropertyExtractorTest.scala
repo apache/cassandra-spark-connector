@@ -26,7 +26,7 @@ class PropertyExtractorTest {
   class TestClass(val field1: String, val field2: Int)
 
   @Test
-  def testSimpleExtraction() {
+  def testSimpleExtraction(): Unit = {
     val testObject = new TestClass("a", 1)
     val propertyExtractor = new PropertyExtractor(classOf[TestClass], Seq("field1", "field2"))
     val result = propertyExtractor.extract(testObject)
@@ -36,14 +36,14 @@ class PropertyExtractorTest {
   }
 
   @Test
-  def testAvailableProperties() {
+  def testAvailableProperties(): Unit = {
     val triedProperties = Seq("field1", "foo", "bar")
     val availableProperties = PropertyExtractor.availablePropertyNames(classOf[TestClass], triedProperties)
     assertEquals(Seq("field1"), availableProperties)
   }
 
   @Test(expected = classOf[NoSuchMethodException])
-  def testWrongPropertyName() {
+  def testWrongPropertyName(): Unit = {
     val testObject = new TestClass("a", 1)
     val propertyExtractor = new PropertyExtractor(classOf[TestClass], Seq("foo"))
     propertyExtractor.extract(testObject)

@@ -26,7 +26,7 @@ import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, Project}
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.v2.DataSourceV2Relation
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{AnalysisException, SparkSession, functions}
+import org.apache.spark.sql.{CassandraAnalysisException, SparkSession, functions}
 
 trait CassandraMetadataFunction extends UnaryExpression with Unevaluable {
   def confParam: String
@@ -89,8 +89,7 @@ object CassandraMetadataFunction {
 
   def cassandraTTLFunctionBuilder(args: Seq[Expression]): CassandraTTL = {
     if (args.length != 1) {
-      throw new AnalysisException(s"Unable to call Cassandra ttl with more than 1 argument, given" +
-        s" $args")
+      throw CassandraAnalysisException( s"Unable to call Cassandra ttl with more than 1 argument, given $args")
     }
     CassandraTTL(args.head)
   }
@@ -105,8 +104,7 @@ object CassandraMetadataFunction {
 
   def cassandraWriteTimeFunctionBuilder(args: Seq[Expression]): CassandraWriteTime = {
     if (args.length != 1) {
-      throw new AnalysisException(s"Unable to call Cassandra writetime with more than 1 argument," +
-        s" given $args")
+      throw CassandraAnalysisException( s"Unable to call Cassandra writetime with more than 1 argument, given $args")
     }
     CassandraWriteTime(args.head)
   }
@@ -121,9 +119,10 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
 
   def replaceMetadata(metaDataExpression: CassandraMetadataFunction, plan: LogicalPlan)
   : LogicalPlan = {
-    assert(metaDataExpression.child.isInstanceOf[AttributeReference],
-      s"""Can only use Cassandra Metadata Functions on Attribute References,
-         |found a ${metaDataExpression.child.getClass}""".stripMargin)
+    if (!metaDataExpression.child.isInstanceOf[AttributeReference]) {
+      // Child not yet resolved, return plan unchanged to allow re-application after resolution
+      return plan
+    }
 
     val cassandraColumnName = metaDataExpression.child.asInstanceOf[AttributeReference].name
     val cassandraCql = s"${metaDataExpression.cql}($cassandraColumnName)"
@@ -131,13 +130,12 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
     val (cassandraTable) = plan.collectFirst {
       case DataSourceV2Relation(table: CassandraTable, _, _, _, _)
         if table.tableDef.columnByName.contains(cassandraColumnName) => table }
-      .getOrElse(throw new IllegalArgumentException(
-        s"Unable to find Cassandra Source Relation for TTL/Writetime for column $cassandraColumnName"))
+      .getOrElse(throw CassandraAnalysisException( s"Unable to find Cassandra Source Relation for TTL/Writetime for column $cassandraColumnName"))
 
     val columnDef = cassandraTable.tableDef.columnByName(cassandraColumnName)
 
     if (columnDef.isPrimaryKeyColumn)
-      throw new AnalysisException(s"Unable to use ${metaDataExpression.cql} function on non-normal column ${columnDef.columnName}")
+      throw CassandraAnalysisException( s"Unable to use ${metaDataExpression.cql} function on non-normal column ${columnDef.columnName}")
 
     //Used for CassandraRelation Leaves, giving them a reference to the underlying Metadata
     val (cassandraAttributeReference, cassandraField) = if (columnDef.isMultiCell) {
@@ -152,7 +150,9 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
     val unResolvedAttributeReference =  new NullableUnresolvedAttribute(cassandraCql)
 
     //Used for any leaf nodes that do not have the ability to produce a true Metadata Value
-    val nullAttributeReference = Alias(functions.lit(null).cast(metaDataExpression.dataType).expr, cassandraCql)()
+    val nullAttributeReference = Alias(
+      org.apache.spark.sql.classic.ColumnConversions.expression(
+        functions.lit(null).cast(metaDataExpression.dataType)), cassandraCql)()
 
     // Remove Metadata Expressions
     val metadataFunctionRemovedPlan = plan.transformAllExpressions{

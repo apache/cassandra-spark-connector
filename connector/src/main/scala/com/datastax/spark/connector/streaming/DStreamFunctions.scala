@@ -62,13 +62,14 @@ class DStreamFunctions[T](dstream: DStream[T])
     keyspaceName: String,
     tableName: String,
     columnNames: ColumnSelector = AllColumns,
-    writeConf: WriteConf = WriteConf.fromSparkConf(conf))(
+    writeConf: WriteConf = WriteConf.fromSparkConf(conf),
+    tokenRangeAccumulator: Option[TokenRangeAccumulator] = None)(
   implicit
     connector: CassandraConnector = CassandraConnector(conf),
     rwf: RowWriterFactory[T]): Unit = {
     warnIfKeepAliveIsShort()
 
-    val writer = TableWriter(connector, keyspaceName, tableName, columnNames, writeConf)
+    val writer = TableWriter(connector, keyspaceName, tableName, columnNames, writeConf, tokenRangeAcc = tokenRangeAccumulator)
     dstream.foreachRDD(rdd => rdd.sparkContext.runJob(rdd, writer.write _))
   }
 

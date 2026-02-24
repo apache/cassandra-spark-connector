@@ -31,6 +31,8 @@ import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.read._
 import org.apache.spark.sql.types.{LongType, StructField, StructType}
 
+import scala.language.existentials
+
 case class CassandraScanPartitionReaderFactory(
   connector: CassandraConnector,
   tableDef: TableDef,

@@ -34,7 +34,9 @@ import com.datastax.spark.connector.util.ByteBufferUtil
 import com.datastax.spark.connector.util.Symbols._
 import org.apache.commons.lang3.tuple
 
+import scala.annotation.nowarn
 import scala.collection.immutable.{TreeMap, TreeSet}
+import scala.language.implicitConversions
 import scala.reflect.runtime.universe._
 import scala.jdk.CollectionConverters._
 
@@ -446,6 +448,7 @@ object TypeConverter {
 
   implicit object JavaLocalDateConverter extends NullableTypeConverter[JavaLocalDate] {
 
+    @nowarn("cat=deprecation")
     private def fromDateFields(date: Date): JavaLocalDate = {
       if (date == null) {
         throw new IllegalArgumentException("The date must not be null")
@@ -1110,14 +1113,14 @@ object TypeConverter {
   }
 
   /** Registers a custom converter */
-  def registerConverter(c: TypeConverter[_]) {
+  def registerConverter(c: TypeConverter[_]): Unit = {
     synchronized {
       converters = c +: converters
     }
   }
 
   /** Remove a custom converter */
-  def unregisterConverter(c: TypeConverter[_]) {
+  def unregisterConverter(c: TypeConverter[_]): Unit = {
     synchronized {
       require(!originalConverters.contains(c), "Cannot unregister built-in converter")
       converters = converters.filterNot(_ == c)

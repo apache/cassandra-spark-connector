@@ -28,7 +28,7 @@ import org.apache.spark.rdd.{RDD, UnionRDD}
 import org.apache.spark.{Partitioner, SparkContext}
 import com.datastax.spark.connector.cql.{CassandraConnector, Schema, TableDef}
 import com.datastax.spark.connector.rdd.partitioner.dht.{Token, TokenFactory}
-import com.datastax.spark.connector.rdd.partitioner.{BucketingRangeIndex, CassandraPartition, TokenGenerator, TokenRangeWithPartitionIndex}
+import com.datastax.spark.connector.rdd.partitioner.{BucketingRangeIndex, CassandraPartition, MonotonicBucketing, TokenGenerator, TokenRangeWithPartitionIndex}
 import com.datastax.spark.connector.util.{Logging, schemaFromCassandra}
 import com.datastax.spark.connector.writer.RowWriter
 import scala.jdk.CollectionConverters._
@@ -107,8 +107,8 @@ class DseGraphPartitioner[V, T <: Token[V]](
   implicit private val tokenFactory: TokenFactory[V, T] =
     TokenFactory.forSystemLocalPartitioner(connector).asInstanceOf[TokenFactory[V, T]]
 
-  implicit lazy private val tokenOrdering = tokenFactory.tokenOrdering
-  implicit lazy private val tokenBucketing = tokenFactory.tokenBucketing
+  implicit lazy private val tokenOrdering: Ordering[T] = tokenFactory.tokenOrdering
+  implicit lazy private val tokenBucketing: MonotonicBucketing[T] = tokenFactory.tokenBucketing
 
   /**
     * Within the Unioned RDD all of the partitions are offset by their relative position in the
@@ -133,7 +133,7 @@ class DseGraphPartitioner[V, T <: Token[V]](
     */
   private[connector] val labelToPartitions: Map[String, Array[CassandraPartition[V, T]]] = {
     rdds.map { case rdd: RDD[_] =>
-      (rddToLabel(rdd), rdd.partitions.map { case part: CassandraPartition[V, T] => part })
+      (rddToLabel(rdd), rdd.partitions.map { case part: (CassandraPartition[V, T] @unchecked) => part })
     }.toMap
   }
 
@@ -151,7 +151,7 @@ class DseGraphPartitioner[V, T <: Token[V]](
         TokenRangeWithPartitionIndex(tr.range, p.index)
       }
 
-      (label, new BucketingRangeIndex[ITR, T](indexedTokenRanges))
+      (label, new BucketingRangeIndex[ITR, T](indexedTokenRanges.toIndexedSeq))
     }.toMap
   }
 

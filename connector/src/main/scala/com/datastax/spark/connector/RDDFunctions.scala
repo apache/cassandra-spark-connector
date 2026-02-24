@@ -45,12 +45,14 @@ class RDDFunctions[T](rdd: RDD[T]) extends WritableToCassandra[T] with Serializa
     keyspaceName: String,
     tableName: String,
     columns: ColumnSelector = AllColumns,
-    writeConf: WriteConf = WriteConf.fromSparkConf(sparkContext.getConf))(
+    writeConf: WriteConf = WriteConf.fromSparkConf(sparkContext.getConf),
+    tokenRangeAccumulator: Option[TokenRangeAccumulator] = None
+    )(
   implicit
     connector: CassandraConnector = CassandraConnector(sparkContext),
     rwf: RowWriterFactory[T]): Unit = {
 
-    val writer = TableWriter(connector, keyspaceName, tableName, columns, writeConf)
+    val writer = TableWriter(connector, keyspaceName, tableName, columns, writeConf, partitions = rdd.partitions, tokenRangeAcc = tokenRangeAccumulator)
     rdd.sparkContext.runJob(rdd, writer.write _)
   }
   /**
@@ -73,13 +75,14 @@ class RDDFunctions[T](rdd: RDD[T]) extends WritableToCassandra[T] with Serializa
   def saveAsCassandraTableEx(
     table: TableDef,
     columns: ColumnSelector = AllColumns,
-    writeConf: WriteConf = WriteConf.fromSparkConf(sparkContext.getConf))(
+    writeConf: WriteConf = WriteConf.fromSparkConf(sparkContext.getConf),
+    tokenRangeAccumulator: Option[TokenRangeAccumulator] = None)(
   implicit
     connector: CassandraConnector = CassandraConnector(sparkContext),
     rwf: RowWriterFactory[T]): Unit = {
 
     connector.withSessionDo(session => session.execute(table.cql))
-    saveToCassandra(table.keyspaceName, table.tableName, columns, writeConf)
+    saveToCassandra(table.keyspaceName, table.tableName, columns, writeConf, tokenRangeAccumulator)
   }
 
   /**
@@ -133,6 +136,7 @@ class RDDFunctions[T](rdd: RDD[T]) extends WritableToCassandra[T] with Serializa
       case c :SomeColumns => c.columns.nonEmpty
       case _  => false
     }
+
     val writer = TableWriter(connector, keyspaceName, tableName, keyColumns, writeConf, !columnDelete)
     rdd.sparkContext.runJob(rdd, writer.delete(deleteColumns) _)
   }

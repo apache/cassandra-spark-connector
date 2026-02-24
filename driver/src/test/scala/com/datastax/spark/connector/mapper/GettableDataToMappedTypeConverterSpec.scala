@@ -231,7 +231,7 @@ class GettableDataToMappedTypeConverterSpec extends FlatSpec with Matchers {
 
   case class UserWithMultipleAddresses(login: String, addresses: Vector[Address])
 
-  def testUserWithMultipleAddresses(addressesType: ColumnType[_]) {
+  def testUserWithMultipleAddresses(addressesType: ColumnType[_]): Unit = {
     val addressesColumn = ColumnDef("addresses", RegularColumn, addressesType)
     val userTable = new TableDef(
       keyspaceName = "test",

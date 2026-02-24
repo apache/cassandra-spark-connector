@@ -184,7 +184,7 @@ class GettableDataToMappedTypeConverter[T : TypeTag : ColumnMapper](
 
   /** Converters for converting each of the constructor parameters */
   private val ctorParamConverters: Seq[TypeConverter[_]] = {
-    val ctorParamTypes: Seq[Type] = factory.constructorParamTypes
+    val ctorParamTypes: Seq[Type] = factory.constructorParamTypes.toIndexedSeq
     val ctorColumnTypes: Seq[ColumnType[_]] = columnMap.constructor.map(columnType)
     for ((ct, pt) <- ctorColumnTypes zip ctorParamTypes) yield
       converter(ct, pt)
@@ -197,7 +197,7 @@ class GettableDataToMappedTypeConverter[T : TypeTag : ColumnMapper](
       for ((s, _) <- columnMap.setters)
         yield (s, ReflectionUtil.methodParamTypes(targetType, s).head)
     val setterColumnTypes: Map[String, ColumnType[_]] =
-      columnMap.setters.mapValues(columnType).toMap
+      columnMap.setters.view.mapValues(columnType).toMap
     for (setterName <- setterParamTypes.keys) yield {
       val ct = setterColumnTypes(setterName)
       val pt = setterParamTypes(setterName)
@@ -280,13 +280,13 @@ class GettableDataToMappedTypeConverter[T : TypeTag : ColumnMapper](
     case data: GettableData =>
       val buf = buffer.get()
       fillBuffer(data, buf)
-      val obj = factory.newInstance(buf: _*)
+      val obj = factory.newInstance(buf.toIndexedSeq: _*)
       invokeSetters(data, obj)
       obj
 
     case data: GettableByIndexData =>
       val buf = buffer.get()
       fillBuffer(data, buf)
-      factory.newInstance(buf: _*)
+      factory.newInstance(buf.toIndexedSeq: _*)
   }
 }

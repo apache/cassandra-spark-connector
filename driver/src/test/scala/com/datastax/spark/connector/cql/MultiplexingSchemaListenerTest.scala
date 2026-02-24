@@ -176,7 +176,7 @@ class MultiplexingSchemaListenerTest extends FlatSpec with Matchers with Mockito
     checkViewEvents(amount)
   }
 
-  private def checkEvent(eventType: String, amount: Int) {
+  private def checkEvent(eventType: String, amount: Int): Unit = {
     actionsDone(s"on${eventType}Created") shouldBe (amount)
     actionsDone(s"on${eventType}Dropped") shouldBe (amount)
     actionsDone(s"on${eventType}Updated") shouldBe (amount)

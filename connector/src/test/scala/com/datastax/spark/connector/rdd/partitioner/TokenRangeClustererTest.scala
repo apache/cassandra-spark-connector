@@ -26,6 +26,8 @@ import com.datastax.spark.connector.rdd.partitioner.dht.{LongToken, TokenRange}
 import org.junit.Assert._
 import org.junit.Test
 
+import scala.language.implicitConversions
+
 class TokenRangeClustererTest {
 
   val node1 = InetAddress.getByName("192.168.123.1")
@@ -40,14 +42,14 @@ class TokenRangeClustererTest {
   private implicit def tokenToLong(token: LongToken): Long = token.value
 
   @Test
-  def testEmpty() {
+  def testEmpty(): Unit = {
     val trc = new TokenRangeClusterer(10)
     val groups = trc.group(Seq.empty)
     assertEquals(0, groups.size)
   }
 
   @Test
-  def testTrivialClustering() {
+  def testTrivialClustering(): Unit = {
     val tr1 = tokenRange(start = 0, end = 10, nodes = Set(node1))
     val tr2 = tokenRange(start = 10, end = 20, nodes = Set(node1))
     val trc = new TokenRangeClusterer[Long, LongToken](1)
@@ -57,7 +59,7 @@ class TokenRangeClustererTest {
   }
 
   @Test
-  def testSplitByHost() {
+  def testSplitByHost(): Unit = {
     val tr1 = tokenRange(start = 0, end = 10, nodes = Set(node1))
     val tr2 = tokenRange(start = 10, end = 20, nodes = Set(node1))
     val tr3 = tokenRange(start = 20, end = 30, nodes = Set(node2))
@@ -71,7 +73,7 @@ class TokenRangeClustererTest {
   }
 
   @Test
-  def testSplitByCount() {
+  def testSplitByCount(): Unit = {
     val tr1 = tokenRange(start = minToken, end = minToken / 2, Set(node1))
     val tr2 = tokenRange(start = minToken / 2, end = 0, Set(node1))
     val tr3 = tokenRange(start = 0, end = maxToken / 2, Set(node1))
@@ -85,7 +87,7 @@ class TokenRangeClustererTest {
   }
 
   @Test
-  def testMultipleEndpoints() {
+  def testMultipleEndpoints(): Unit = {
     val tr1 = tokenRange(start = 0, end = 10, nodes = Set(node2, node1, node3))
     val tr2 = tokenRange(start = 10, end = 20, nodes = Set(node1, node3, node4))
     val tr3 = tokenRange(start = 20, end = 30, nodes = Set(node3, node1, node5))
@@ -98,7 +100,7 @@ class TokenRangeClustererTest {
   }
 
   @Test
-  def testMaxGroupSize() {
+  def testMaxGroupSize(): Unit = {
     val tr1 = tokenRange(start = 0, end = 10, nodes = Set(node1, node2, node3))
     val tr2 = tokenRange(start = 10, end = 20, nodes = Set(node1, node2, node3))
     val tr3 = tokenRange(start = 20, end = 30, nodes = Set(node1, node2, node3))

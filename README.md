@@ -4,6 +4,14 @@
 
 [![CI](https://github.com/apache/cassandra-spark-connector/actions/workflows/main.yml/badge.svg?branch=trunk)](https://github.com/apache/cassandra-spark-connector/actions?query=branch%3Atrunk)
 
+This is a fork from [datastax/spark-cassandra-connector](https://github.com/datastax/spark-cassandra-connector) including features specific to [ScyllaDB](https://scylladb.com) and to the needs of the [ScyllaDB Migrator](https://migrator.docs.scylladb.com).
+
+## Changes compared to the original library
+
+- Add support for skipping some token ranges when reading a table, and track into a Spark accumulator the token ranges that have been written.
+
+The complete changelog can be viewed here: [master...scylla-4.x](https://github.com/datastax/spark-cassandra-connector/compare/master...scylladb:spark-scylladb-connector:scylla-4.x).
+
 ## Quick Links
 
 | What       | Where                                                                                                                                                                                                                                                                                                               |
@@ -48,69 +56,17 @@ named "bX.Y" where X.Y is the major+minor version; for example the "b1.6" branch
 corresponds to the 1.6 release. The "trunk" branch will normally contain
 development for the next connector release in progress.
 
-Currently, the following branches are actively supported: 
-3.5.x ([trunk](https://github.com/apache/cassandra-spark-connector/tree/trunk)),
-3.4.x ([b3.4](https://github.com/apache/cassandra-spark-connector/tree/b3.4)),
-3.3.x ([b3.2](https://github.com/apache/cassandra-spark-connector/tree/b3.3)),
-3.2.x ([b3.2](https://github.com/apache/cassandra-spark-connector/tree/b3.2)),
-3.1.x ([b3.1](https://github.com/apache/cassandra-spark-connector/tree/b3.1)),
-3.0.x ([b3.0](https://github.com/apache/cassandra-spark-connector/tree/b3.0)) and 
-2.5.x ([b2.5](https://github.com/apache/cassandra-spark-connector/tree/b2.5)).
+Currently, the following branch is actively supported: 
+4.x ([scylla-4.x](https://github.com/scylladb/spark-scylladb-connector/tree/scylla-4.x)).
 
 | Connector | Spark         | Cassandra                  | Cassandra Java Driver | Minimum Java Version | Supported Scala Versions |
 |-----------|---------------|----------------------------|-----------------------|----------------------|--------------------------|
-| 3.5.1     | 3.5           | 2.1.5*, 2.2, 3.x, 4.x, 5.0 | 4.18.1                | 8                    | 2.12, 2.13               |  
-| 3.5       | 3.5           | 2.1.5*, 2.2, 3.x, 4.x      | 4.13                  | 8                    | 2.12, 2.13               |  
-| 3.4       | 3.4           | 2.1.5*, 2.2, 3.x, 4.x      | 4.13                  | 8                    | 2.12, 2.13               |
-| 3.3       | 3.3           | 2.1.5*, 2.2, 3.x, 4.x      | 4.13                  | 8                    | 2.12                     |
-| 3.2       | 3.2           | 2.1.5*, 2.2, 3.x, 4.0      | 4.13                  | 8                    | 2.12                     |
-| 3.1       | 3.1           | 2.1.5*, 2.2, 3.x, 4.0      | 4.12                  | 8                    | 2.12                     |
-| 3.0       | 3.0           | 2.1.5*, 2.2, 3.x, 4.0      | 4.12                  | 8                    | 2.12                     |
-| 2.5       | 2.4           | 2.1.5*, 2.2, 3.x, 4.0      | 4.12                  | 8                    | 2.11, 2.12               |
-| 2.4.2     | 2.4           | 2.1.5*, 2.2, 3.x           | 3.0                   | 8                    | 2.11, 2.12               |
-| 2.4       | 2.4           | 2.1.5*, 2.2, 3.x           | 3.0                   | 8                    | 2.11                     |
-| 2.3       | 2.3           | 2.1.5*, 2.2, 3.x           | 3.0                   | 8                    | 2.11                     |
-| 2.0       | 2.0, 2.1, 2.2 | 2.1.5*, 2.2, 3.x           | 3.0                   | 8                    | 2.10, 2.11               |
-| 1.6       | 1.6           | 2.1.5*, 2.2, 3.0           | 3.0                   | 7                    | 2.10, 2.11               |
-| 1.5       | 1.5, 1.6      | 2.1.5*, 2.2, 3.0           | 3.0                   | 7                    | 2.10, 2.11               |
-| 1.4       | 1.4           | 2.1.5*                     | 2.1                   | 7                    | 2.10, 2.11               |
-| 1.3       | 1.3           | 2.1.5*                     | 2.1                   | 7                    | 2.10, 2.11               |
-| 1.2       | 1.2           | 2.1, 2.0                   | 2.1                   | 7                    | 2.10, 2.11               |
-| 1.1       | 1.1, 1.0      | 2.1, 2.0                   | 2.1                   | 7                    | 2.10, 2.11               |
-| 1.0       | 1.0, 0.9      | 2.0                        | 2.0                   | 7                    | 2.10, 2.11               |
-
-**Compatible with 2.1.X where X >= 5*
+| 4.0.0     | 3.5.x         | 2.1.5*, 2.2, 3.x, 4.x, 5.0 | 4.18.1                | 8                    | 2.12, 2.13               |
 
 ## Hosted API Docs
 API documentation for the Scala and Java interfaces are available online:
 
-### 3.5.1
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.1/connector/com/datastax/spark/connector/index.html)
-
-### 3.5.0
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.0/connector/com/datastax/spark/connector/index.html)
-
-### 3.4.1
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.4.1/connector/com/datastax/spark/connector/index.html)
-
-### 3.3.0
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.3.0/connector/com/datastax/spark/connector/index.html)
-
-### 3.2.0
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.2.0/connector/com/datastax/spark/connector/index.html)
-
-### 3.1.0
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.1.0/connector/com/datastax/spark/connector/index.html)
-
-### 3.0.1
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.0.1/connector/com/datastax/spark/connector/index.html)
-
-### 2.5.2
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/2.5.2/connector/#package)
-
-### 2.4.2
-* [Spark-Cassandra-Connector](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/spark-cassandra-connector/)
-* [Embedded-Cassandra](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/spark-cassandra-connector-embedded/)
+- [Latest](https://javadoc.io/doc/com.scylladb/spark-scylladb-connector_2.13/latest/index.html).
 
 ## Download
 
@@ -118,7 +74,7 @@ This project is available on the Maven Central Repository.
 For SBT to download the connector binaries, sources and javadoc, put this in your project
 SBT config:
 
-    libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "3.5.1"
+    libraryDependencies += "com.scylladb" %% "spark-scylladb-connector" % "4.0.0"
 
 * The default Scala version for Spark 3.0+ is 2.12 please choose the appropriate build. See the
 [FAQ](doc/FAQ.md) for more information.
@@ -212,6 +168,23 @@ To generate the Reference Document use
     ./sbt/sbt spark-cassandra-connector-unshaded/run (outputLocation)
 
 outputLocation defaults to doc/reference.md
+
+## Branching Model
+
+Our branch `scylla-4.x` is based off commit `dbbf02890605692d163572cda4b2462993754d7b`. It introduces binary incompatible changes compared to the upstream version 3.5.x.
+
+We should occasionally merge the upstream changes to our fork.
+
+## Release Process
+
+Create a [new GitHub release](https://github.com/scylladb/spark-scylladb-connector/releases), give it a tag name (please see the rules below), a title, and a description. You can generate the changelog automatically from the GitHub UI. Click Publish. A workflow will be automatically triggered and will build the project and release it on [Sonatype](https://central.sonatype.org).
+
+Rules for the release tag name:
+
+- Make sure to use tag names like `v1.2.3`, starting with `v` and followed by a [semantic version number](https://semver.org).
+- Bump the major version number if the new release breaks the backward compatibility (e.g., an existing configuration or setup will not work anymore with the new release).
+- Bump the minor version number if the new release introduces new features in a backward compatible manner.
+- Bump the patch version number if the new release only introduces bugfixes in a backward compatible manner.
 
 ## License
 

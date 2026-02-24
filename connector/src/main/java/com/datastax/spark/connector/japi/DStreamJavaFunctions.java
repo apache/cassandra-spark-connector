@@ -22,9 +22,11 @@ import com.datastax.spark.connector.ColumnSelector;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.streaming.DStreamFunctions;
 import com.datastax.spark.connector.writer.RowWriterFactory;
+import com.datastax.spark.connector.writer.TokenRangeAccumulator;
 import com.datastax.spark.connector.writer.WriteConf;
 import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.dstream.DStream;
+import scala.Option;
 
 /**
  * A Java API wrapper over {@link DStream} to provide Spark Cassandra Connector functionality.
@@ -55,6 +57,6 @@ public class DStreamJavaFunctions<T> extends RDDAndDStreamCommonJavaFunctions<T>
     @Override
     protected void saveToCassandra(String keyspace, String table, RowWriterFactory<T> rowWriterFactory,
                                    ColumnSelector columnNames, WriteConf conf, CassandraConnector connector) {
-        dsf.saveToCassandra(keyspace, table, columnNames, conf, connector, rowWriterFactory);
+        dsf.saveToCassandra(keyspace, table, columnNames, conf, Option.<TokenRangeAccumulator>apply(null), connector, rowWriterFactory);
     }
 }

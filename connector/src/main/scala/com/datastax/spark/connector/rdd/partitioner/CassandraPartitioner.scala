@@ -150,7 +150,7 @@ implicit
     partitions.length
 
   override def equals(that: Any): Boolean = that match {
-    case that: CassandraPartitioner[Key, V, T] =>
+    case that: CassandraPartitioner[Key, V, T] @unchecked =>
       (this.indexedTokenRanges == that.indexedTokenRanges
         && this.tableDef.keyspaceName == that.tableDef.keyspaceName
         && this.connector == that.connector)

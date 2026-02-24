@@ -21,6 +21,7 @@ package com.datastax.spark.connector.datasource
 import com.datastax.spark.connector.cql.{CassandraConnector, TableDef}
 import com.datastax.spark.connector.writer.{TableWriter, WriteConf}
 import com.datastax.spark.connector.{ColumnName, SomeColumns}
+import org.apache.spark.Partition
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.write.streaming.StreamingDataWriterFactory
 import org.apache.spark.sql.connector.write.{DataWriter, DataWriterFactory, WriterCommitMessage}
@@ -52,10 +53,10 @@ case class CassandraDriverDataWriter(
 
   private val unsafeRowWriterFactory = new InternalRowWriterFactory(inputSchema)
 
-  private val columns = SomeColumns(inputSchema.fieldNames.map(name => ColumnName(name)): _*)
+  private val columns = SomeColumns(inputSchema.fieldNames.map(name => ColumnName(name)).toIndexedSeq: _*)
 
   private val writer =
-    TableWriter(connector, tableDef, columns, writeConf, false)(unsafeRowWriterFactory)
+    TableWriter(connector, tableDef, columns, writeConf, false, partitions = Array(), None)(unsafeRowWriterFactory)
       .getAsyncWriter()
 
   override def write(record: InternalRow): Unit = writer.write(record)

@@ -39,7 +39,7 @@ class TypeConverterTest {
   final val DefaultHost = "127.0.0.1"
 
   @Test
-  def testBoolean() {
+  def testBoolean(): Unit = {
     val c = TypeConverter.forType[Boolean]
     assertEquals(true, c.convert("true"))
     assertEquals(false, c.convert("false"))
@@ -48,7 +48,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testJavaBoolean() {
+  def testJavaBoolean(): Unit = {
     val c = TypeConverter.forType[java.lang.Boolean]
     assertEquals(true, c.convert("true"))
     assertEquals(false, c.convert("false"))
@@ -57,21 +57,21 @@ class TypeConverterTest {
   }
 
   @Test
-  def testInt() {
+  def testInt(): Unit = {
     val c = TypeConverter.forType[Int]
     assertEquals(12345, c.convert("12345"))
     assertEquals(12345, c.convert(12345))
   }
 
   @Test
-  def testJavaInteger() {
+  def testJavaInteger(): Unit = {
     val c = TypeConverter.forType[java.lang.Integer]
     assertEquals(12345, c.convert("12345"))
     assertEquals(12345, c.convert(12345))
   }
 
   @Test
-  def testLong() {
+  def testLong(): Unit = {
     val c = TypeConverter.forType[Long]
     val instant = java.time.Instant.ofEpochMilli(12345L)
     assertEquals(12345L, c.convert("12345"))
@@ -84,7 +84,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testJavaLong() {
+  def testJavaLong(): Unit = {
     val c = TypeConverter.forType[java.lang.Long]
     assertEquals(12345L, c.convert("12345"))
     assertEquals(12345L, c.convert(12345))
@@ -92,69 +92,69 @@ class TypeConverterTest {
   }
 
   @Test
-  def testFloat() {
+  def testFloat(): Unit = {
     val c = TypeConverter.forType[Float]
     assertEquals(1.0f, c.convert("1.0"), 0.0001f)
     assertEquals(1.0f, c.convert(1.0f), 0.0001f)
   }
 
   @Test
-  def testJavaFloat() {
+  def testJavaFloat(): Unit = {
     val c = TypeConverter.forType[java.lang.Float]
     assertEquals(1.0f, c.convert("1.0").toFloat, 0.0001f)
     assertEquals(1.0f, c.convert(1.0f).toFloat, 0.0001f)
   }
 
   @Test
-  def testDouble() {
+  def testDouble(): Unit = {
     val c = TypeConverter.forType[Double]
     assertEquals(1.0, c.convert("1.0"), 0.0001)
     assertEquals(1.0, c.convert(1.0), 0.0001)
   }
 
   @Test
-  def testJavaDouble() {
+  def testJavaDouble(): Unit = {
     val c = TypeConverter.forType[java.lang.Double]
     assertEquals(1.0, c.convert("1.0"), 0.0001)
     assertEquals(1.0, c.convert(1.0), 0.0001)
   }
 
   @Test
-  def testBigInt() {
+  def testBigInt(): Unit = {
     val c = TypeConverter.forType[BigInt]
     assertEquals(BigInt(12345), c.convert(12345))
     assertEquals(BigInt("123456789123456789123456789"), c.convert("123456789123456789123456789"))
   }
 
   @Test
-  def testJavaBigInteger() {
+  def testJavaBigInteger(): Unit = {
     val c = TypeConverter.forType[BigInteger]
     assertEquals(new BigInteger("12345"), c.convert(12345))
     assertEquals(new BigInteger("123456789123456789123456789"), c.convert("123456789123456789123456789"))
   }
 
   @Test
-  def testBigDecimal() {
+  def testBigDecimal(): Unit = {
     val c = TypeConverter.forType[BigDecimal]
     assertEquals(BigDecimal(12345.25), c.convert(12345.25))
     assertEquals(BigDecimal("123456789123456789.123456789"), c.convert("123456789123456789.123456789"))
   }
 
   @Test
-  def testJavaBigDecimal() {
+  def testJavaBigDecimal(): Unit = {
     val c = TypeConverter.forType[java.math.BigDecimal]
     assertEquals(new java.math.BigDecimal("12345.25"), c.convert(12345.25))
     assertEquals(new java.math.BigDecimal("123456789123456789.123456789"), c.convert("123456789123456789.123456789"))
   }
 
   @Test
-  def testString() {
+  def testString(): Unit = {
     val c = TypeConverter.forType[String]
     assertEquals("a string", c.convert("a string"))
   }
 
   @Test
-  def testDate() {
+  def testDate(): Unit = {
     val c = TypeConverter.forType[Date]
     val dateStr = "2014-04-23 11:21:32+0100"
     val dayOnlyStr = "2014-04-23"
@@ -175,7 +175,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testTimestamp() {
+  def testTimestamp(): Unit = {
     val c = TypeConverter.forType[Timestamp]
     val dateStr = "2014-04-23 11:21:32+0100"
     val dayOnlyStr = "2014-04-23"
@@ -190,7 +190,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testParsableDate() {
+  def testParsableDate(): Unit = {
     val c = TypeConverter.forType[Date]
 
     val validDates = List(
@@ -249,7 +249,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testCalendar1() {
+  def testCalendar1(): Unit = {
     val c = TypeConverter.forType[GregorianCalendar]
     val dateStr = "2014-04-23 11:21:32+0100"
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ")
@@ -259,7 +259,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testCalendar2() {
+  def testCalendar2(): Unit = {
     val c = TypeConverter.forType[Date]
     val dateStr = "2014-04-23 11:21:32+0100"
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ")
@@ -269,20 +269,20 @@ class TypeConverterTest {
   }
 
   @Test
-  def testInetAddress() {
+  def testInetAddress(): Unit = {
     val c = TypeConverter.forType[InetAddress]
     assertEquals(InetAddress.getByName(DefaultHost), c.convert(DefaultHost))
   }
 
   @Test
-  def testUUID() {
+  def testUUID(): Unit = {
     val c = TypeConverter.forType[UUID]
     val uuidStr = "550e8400-e29b-41d4-a716-446655440000"
     assertEquals(UUID.fromString(uuidStr), c.convert(uuidStr))
   }
 
   @Test
-  def testByteArray() {
+  def testByteArray(): Unit = {
     val c = TypeConverter.forType[Array[Byte]]
     val array = Array[Byte](1, 2, 3, 4)
     val buf = ByteBuffer.allocate(4)
@@ -371,7 +371,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testOption() {
+  def testOption(): Unit = {
     val c = TypeConverter.forType[Option[String]]
     assertEquals(None, c.convert(null))
     assertEquals(None, c.convert(None))
@@ -379,7 +379,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testCassandraOption() {
+  def testCassandraOption(): Unit = {
     val c = TypeConverter.forType[CassandraOption[String]]
     val unset = CassandraOption.Unset
     val set = CassandraOption.Value("not-null")
@@ -388,7 +388,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testList() {
+  def testList(): Unit = {
     val c = TypeConverter.forType[Vector[Option[Int]]]
     val arrayList = new java.util.ArrayList[String]()
     arrayList.add("1")
@@ -398,7 +398,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testSet() {
+  def testSet(): Unit = {
     val c = TypeConverter.forType[Set[Int]]
     val arrayList = new java.util.ArrayList[String]()
     arrayList.add("1")
@@ -407,7 +407,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testTreeSet() {
+  def testTreeSet(): Unit = {
     val c = TypeConverter.forType[TreeSet[Int]]
     val arrayList = new java.util.ArrayList[String]()
     arrayList.add("2")
@@ -418,7 +418,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testMap() {
+  def testMap(): Unit = {
     val c = TypeConverter.forType[Map[Int, Option[String]]]
     val map = new java.util.HashMap[String, String]()
     map.put("1", "a")
@@ -428,7 +428,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testTreeMap() {
+  def testTreeMap(): Unit = {
     val c = TypeConverter.forType[TreeMap[Int, Option[String]]]
     val map = new java.util.HashMap[String, String]()
     map.put("1", "a")
@@ -437,7 +437,7 @@ class TypeConverterTest {
     assertEquals(TreeMap(1 -> Some("a"), 2 -> Some("b"), 3 -> None), c.convert(map))
   }
 
-  private def abstractTestJavaList(c: TypeConverter[_]) {
+  private def abstractTestJavaList(c: TypeConverter[_]): Unit = {
     val arrayList = new java.util.ArrayList[String]()
     arrayList.add("1")
     arrayList.add("2")
@@ -448,16 +448,16 @@ class TypeConverterTest {
   }
 
   @Test
-  def testJavaList() {
+  def testJavaList(): Unit = {
     abstractTestJavaList(TypeConverter.forType[java.util.List[Int]])
   }
 
   @Test
-  def testJavaArrayList() {
+  def testJavaArrayList(): Unit = {
     abstractTestJavaList(TypeConverter.forType[java.util.ArrayList[Int]])
   }
 
-  private def abstractTestJavaSet(c: TypeConverter[_]) {
+  private def abstractTestJavaSet(c: TypeConverter[_]): Unit = {
     val c = TypeConverter.forType[java.util.HashSet[Int]]
     val arrayList = new java.util.ArrayList[String]()
     arrayList.add("1")
@@ -469,16 +469,16 @@ class TypeConverterTest {
   }
 
   @Test
-  def testJavaSet() {
+  def testJavaSet(): Unit = {
     abstractTestJavaSet(TypeConverter.forType[java.util.Set[Int]])
   }
 
   @Test
-  def testJavaHashSet() {
+  def testJavaHashSet(): Unit = {
     abstractTestJavaSet(TypeConverter.forType[java.util.HashSet[Int]])
   }
 
-  private def abstractTestJavaMap(c: TypeConverter[_]) {
+  private def abstractTestJavaMap(c: TypeConverter[_]): Unit = {
     val map = new java.util.HashMap[String, String]()
     map.put("1", "a")
     map.put("2", "b")
@@ -492,12 +492,12 @@ class TypeConverterTest {
   }
 
   @Test
-  def testJavaMap() {
+  def testJavaMap(): Unit = {
     abstractTestJavaMap(TypeConverter.forType[java.util.Map[Int, Option[String]]])
   }
 
   @Test
-  def testJavaHashMap() {
+  def testJavaHashMap(): Unit = {
     abstractTestJavaMap(TypeConverter.forType[java.util.HashMap[Int, Option[String]]])
   }
 
@@ -521,7 +521,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testOptionToNullConverter() {
+  def testOptionToNullConverter(): Unit = {
     val c = new TypeConverter.OptionToNullConverter(TypeConverter.IntConverter)
     assertEquals(1.asInstanceOf[AnyRef], c.convert(Some(1)))
     assertEquals(1.asInstanceOf[AnyRef], c.convert(1))
@@ -532,7 +532,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testCassandraOptionToNull() {
+  def testCassandraOptionToNull(): Unit = {
     val c = new TypeConverter.OptionToNullConverter(TypeConverter.IntConverter)
     assertEquals(Unset, c.convert(CassandraOption.Unset))
     assertEquals(null, c.convert(CassandraOption.Null))
@@ -540,12 +540,12 @@ class TypeConverterTest {
   }
 
   @Test(expected = classOf[IllegalArgumentException])
-  def testUnsupportedType() {
+  def testUnsupportedType(): Unit = {
     TypeConverter.forType[TypeConverterTest]
   }
 
   @Test
-  def testSerializeCollectionConverter() {
+  def testSerializeCollectionConverter(): Unit = {
     val c1 = TypeConverter.forType[Vector[Int]]
     val c2 = SerializationUtils.roundtrip(c1)
 
@@ -560,7 +560,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testSerializeMapConverter() {
+  def testSerializeMapConverter(): Unit = {
     val c1 = TypeConverter.forType[Map[Int, Int]]
     val c2 = SerializationUtils.roundtrip(c1)
 
@@ -577,7 +577,7 @@ class TypeConverterTest {
   type StringAlias = String
 
   @Test
-  def testTypeAliases() {
+  def testTypeAliases(): Unit = {
     assertNotNull(TypeConverter.forType[StringAlias])
     assertNotNull(TypeConverter.forType[java.lang.String])
     assertNotNull(TypeConverter.forType[scala.Predef.String])
@@ -590,7 +590,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testChainedConverters() {
+  def testChainedConverters(): Unit = {
     val standardConverter = TypeConverter.forType[Int]
     val extendedConverter = new TypeConverter[Int] {
       def targetTypeTag = typeTag[Int]
@@ -610,7 +610,7 @@ class TypeConverterTest {
   case class EMail(email: String)
 
   @Test
-  def testRegisterCustomConverter() {
+  def testRegisterCustomConverter(): Unit = {
     val converter = new TypeConverter[EMail] {
       def targetTypeTag = typeTag[EMail]
 
@@ -625,7 +625,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testRegisterCustomConverterExtension() {
+  def testRegisterCustomConverterExtension(): Unit = {
     val converter = new TypeConverter[Int] {
       def targetTypeTag = typeTag[Int]
 
@@ -648,7 +648,7 @@ class TypeConverterTest {
   }
 
   @Test
-  def testChainedConverterSerializability() {
+  def testChainedConverterSerializability(): Unit = {
     val chainedConverter = new ChainedTypeConverter(TypeConverter.forType[Int])
     val chainedConverter2 = SerializationUtils.roundtrip(chainedConverter)
     assertEquals(1, chainedConverter2.convert(1))

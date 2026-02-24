@@ -50,7 +50,7 @@ class UnsafeRowReader(schema: StructType)
     * @param rowMetaData column names and codec available in the `row`*/
   override def read(row: Row, rowMetaData: CassandraRowMetadata): UnsafeRow = {
     val data = CassandraRow.dataFromJavaDriverRow(row, rowMetaData)
-    val sparkRow = SparkRow(data.map(toUnsafeSqlType): _*)
+    val sparkRow = SparkRow(data.map(toUnsafeSqlType).toIndexedSeq: _*)
     val projectionDecoded = projectionDecoder(sparkRow)
     val converterOutput = converter
       .apply(projectionDecoded)
@@ -89,7 +89,7 @@ object UdtProjectionDecoder {
       val updated = Array.tabulate[Any](childEncoders.length) { idx =>
         childEncoders(idx)(row.get(idx))
       }
-      SparkRow(updated: _*)
+      SparkRow(updated.toIndexedSeq: _*)
     }
   }
 

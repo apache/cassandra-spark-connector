@@ -25,7 +25,7 @@ import org.junit.Test
 class CanBuildFromTest {
 
   @Test
-  def testBuild() {
+  def testBuild(): Unit = {
     val bf = CanBuildFrom.setCanBuildFrom[Int]
     val builder = bf.apply()
     builder += 1
@@ -35,7 +35,7 @@ class CanBuildFromTest {
   }
 
   @Test
-  def testSerializeAndBuild() {
+  def testSerializeAndBuild(): Unit = {
     val bf = CanBuildFrom.setCanBuildFrom[Int]
     val bf2 = SerializationUtils.roundtrip(bf)
     val builder = bf2.apply()
@@ -46,7 +46,7 @@ class CanBuildFromTest {
   }
 
   @Test
-  def testSerializeAndBuildWithOrdering() {
+  def testSerializeAndBuildWithOrdering(): Unit = {
     val bf = CanBuildFrom.treeSetCanBuildFrom[Int]
     val bf2 = SerializationUtils.roundtrip(bf)
     val builder = bf2.apply()

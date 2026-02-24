@@ -19,14 +19,15 @@
 package com.datastax.spark.connector.writer
 
 import java.util.concurrent.{CompletableFuture, CompletionStage, Semaphore}
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiConsumer
 import com.datastax.spark.connector.util.Logging
 
 import scala.jdk.CollectionConverters._
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
-import AsyncExecutor.Handler
-import com.datastax.oss.driver.api.core.{AllNodesFailedException, NoNodeAvailableException}
+import AsyncExecutor._
+import com.datastax.oss.driver.api.core.{AllNodesFailedException, NodeUnavailableException, NoNodeAvailableException}
 import com.datastax.oss.driver.api.core.connection.BusyConnectionException
 import com.datastax.oss.driver.api.core.servererrors.OverloadedException
 
@@ -35,7 +36,8 @@ import scala.concurrent.{Await, Future, Promise}
 
 /** Asynchronously executes tasks but blocks if the limit of unfinished tasks is reached. */
 class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTasks: Int,
-                          successHandler: Option[Handler[T]] = None, failureHandler: Option[Handler[T]]) extends Logging {
+                          successHandler: Option[Handler[T]] = None, failureHandler: Option[Handler[T]],
+                          maxRetries: Int = DefaultMaxRetries) extends Logging {
 
   private val semaphore = new Semaphore(maxConcurrentTasks)
   private val pendingFutures = new TrieMap[Future[R], Boolean]
@@ -47,6 +49,15 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
     */
   def getLatestException(): Option[Throwable] = latestException
 
+  private def isRetryable(throwable: Throwable): Boolean = throwable match {
+    case _: NoNodeAvailableException => true // must be before AllNodesFailedException (subclass)
+    case e: AllNodesFailedException =>
+      e.getAllErrors.asScala.values.flatMap(_.asScala).exists(err =>
+        err.isInstanceOf[BusyConnectionException] || err.isInstanceOf[NodeUnavailableException])
+    case _: OverloadedException => true
+    case _ => false
+  }
+
   /** Executes task asynchronously or blocks if more than `maxConcurrentTasks` limit is reached */
   def executeAsync(task: T): Future[R] = {
     val submissionTimestamp = System.nanoTime()
@@ -56,6 +67,7 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
     pendingFutures.put(promise.future, true)
 
     val executionTimestamp = System.nanoTime()
+    val retryCount = new AtomicInteger(0)
 
     def tryFuture(): Future[R] = {
       val value = Try(asyncAction(task)) recover {
@@ -66,35 +78,38 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
       }
 
       value.get.whenComplete(new BiConsumer[R, Throwable] {
-        private def release() {
+        private def release(): Unit = {
           semaphore.release()
           pendingFutures.remove(promise.future)
         }
 
-        private def onSuccess(result: R) {
+        private def onSuccess(result: R): Unit = {
           release()
           promise.success(result)
           successHandler.foreach(_ (task, submissionTimestamp, executionTimestamp))
         }
 
-        private def onFailure(throwable: Throwable) {
-          throwable match {
-            case e: AllNodesFailedException if e.getAllErrors.asScala.values.exists(_.isInstanceOf[BusyConnectionException]) =>
-              logTrace("BusyConnectionException ... Retrying")
+        private def onFailure(throwable: Throwable): Unit = {
+          if (isRetryable(throwable)) {
+            val attempt = retryCount.incrementAndGet()
+            if (attempt <= maxRetries) {
+              val delayMs = math.min(BaseRetryDelayMs * (1L << math.min(attempt - 1, MaxBackoffShift)), MaxRetryDelayMs)
+              logTrace(s"${throwable.getClass.getSimpleName} ... Retrying (attempt $attempt/$maxRetries, backoff ${delayMs}ms)")
+              Thread.sleep(delayMs)
               tryFuture()
-            case e: NoNodeAvailableException =>
-              logTrace("No Nodes Available ... Retrying")
-              tryFuture()
-            case e: OverloadedException =>
-              logTrace("Backpressure rejection ... Retrying")
-              tryFuture()
-
-            case otherException =>
-              logError("Failed to execute: " + task, otherException)
+            } else {
+              logError(s"Failed to execute after $maxRetries retries: " + task, throwable)
               latestException = Some(throwable)
               release()
               promise.failure(throwable)
               failureHandler.foreach(_ (task, submissionTimestamp, executionTimestamp))
+            }
+          } else {
+            logError("Failed to execute: " + task, throwable)
+            latestException = Some(throwable)
+            release()
+            promise.failure(throwable)
+            failureHandler.foreach(_ (task, submissionTimestamp, executionTimestamp))
           }
         }
 
@@ -118,7 +133,7 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
     /** Waits until the tasks being currently executed get completed.
     * It will not wait for tasks scheduled for execution during this method call,
     * nor tasks for which the [[executeAsync]] method did not complete. */
-  def waitForCurrentlyExecutingTasks() {
+  def waitForCurrentlyExecutingTasks(): Unit = {
     for ((future, _) <- pendingFutures.snapshot())
       Try(Await.result(future, Duration.Inf))
   }
@@ -126,4 +141,9 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
 
 object AsyncExecutor {
   type Handler[T] = (T, Long, Long) => Unit
+
+  val DefaultMaxRetries: Int = 10
+  val BaseRetryDelayMs: Long = 100
+  val MaxRetryDelayMs: Long = 5000
+  val MaxBackoffShift: Int = 6 // caps the bit shift to avoid overflow: 100 * 2^6 = 6400 -> clamped to 5000
 }

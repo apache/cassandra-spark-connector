@@ -263,9 +263,9 @@ class AnyObjectFactoryTest extends AbstractSpec {
 
 
   private def newInstance[T](factory: AnyObjectFactory[T]): T = factory.argCount match {
-    case 0 ⇒ factory.newInstance()
-    case 1 ⇒ factory.newInstance(1.asInstanceOf[AnyRef])
-    case 2 ⇒ factory.newInstance(1.asInstanceOf[AnyRef], "one")
+    case 0 =>factory.newInstance()
+    case 1 =>factory.newInstance(1.asInstanceOf[AnyRef])
+    case 2 =>factory.newInstance(1.asInstanceOf[AnyRef], "one")
   }
 
 }

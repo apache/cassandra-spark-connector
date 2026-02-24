@@ -336,11 +336,19 @@ class RDDSpec extends SparkCassandraITFlatSpecBase with DefaultCluster {
     checkArrayCassandraRow(result)
   }
 
+  // Scylla handles null partition keys silently (returns empty result) while Cassandra throws InvalidQueryException
+  // TODO: File issue to track this behavioral difference
   it should "throw a meaningful exception if partition column is null when joining with Cassandra table" in withoutLogging {
     val source = sc.parallelize(keys).map(x ⇒ new KVWithOptionRow(None))
-    val ex = the[Exception] thrownBy source.joinWithCassandraTable[(Int, Long, String)](ks, tableName).collect()
-    ex.getMessage.toLowerCase should include("invalid null value")
-    ex.getMessage.toLowerCase should include("key")
+    if (isScylla) {
+      // Scylla handles null partition keys silently - returns empty result instead of throwing
+      val result = source.joinWithCassandraTable[(Int, Long, String)](ks, tableName).collect()
+      result shouldBe empty
+    } else {
+      val ex = the[Exception] thrownBy source.joinWithCassandraTable[(Int, Long, String)](ks, tableName).collect()
+      ex.getMessage.toLowerCase should include("invalid null value")
+      ex.getMessage.toLowerCase should include("key")
+    }
   }
 
   it should "throw a meaningful exception if partition column is null when repartitioning by replica" in withoutLogging {

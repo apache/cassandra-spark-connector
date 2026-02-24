@@ -21,6 +21,7 @@ package com.datastax.spark.connector
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.rdd.reader.RowReaderFactory
 import com.datastax.spark.connector.rdd._
+import com.datastax.spark.connector.rdd.partitioner.dht.Token
 import com.datastax.spark.connector.writer.RowWriterFactory
 import org.apache.spark.SparkContext
 
@@ -65,12 +66,14 @@ class SparkContextFunctions(@transient val sc: SparkContext) extends Serializabl
     * }}}*/
   def cassandraTable[T](
     keyspace: String,
-    table: String)(
+    table: String,
+    tokenRangeFilter: (Token[_], Token[_]) => Boolean = (_, _) => true)(
   implicit
     connector: CassandraConnector = CassandraConnector(sc),
     readConf: ReadConf = ReadConf.fromSparkConf(sc.getConf),
     ct: ClassTag[T], rrf: RowReaderFactory[T],
-    ev: ValidRDDType[T]) = new CassandraTableScanRDD[T](sc, connector, keyspace, table, readConf = readConf)
+    ev: ValidRDDType[T]) = new CassandraTableScanRDD[T](sc, connector, keyspace, table,
+      readConf = readConf, tokenRangeFilter = tokenRangeFilter)
 
   /** Produces the empty CassandraRDD which does not perform any validation and it does not even
     * try to return any rows. */

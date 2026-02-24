@@ -224,12 +224,20 @@ object CassandraSourceRelation extends Logging {
   }
 
   def setDirectJoin[K: Encoder](ds: Dataset[K], directJoinSetting: DirectJoinSetting = AlwaysOn): Dataset[K] = {
-    val oldPlan = ds.queryExecution.logical
-    Dataset[K](ds.sparkSession,
+    val classicDs = ds.asInstanceOf[org.apache.spark.sql.classic.Dataset[K]]
+    val classicSession = classicDs.sparkSession
+    // In Spark 4.x, queryExecution.logical returns the unanalyzed plan (e.g. UnresolvedDataSource).
+    // We need the analyzed plan which contains the resolved DataSourceV2Relation nodes.
+    val oldPlan = classicDs.queryExecution.analyzed
+    org.apache.spark.sql.classic.Dataset[K](classicSession,
       oldPlan.transform {
-        case ds@DataSourceV2Relation(_: CassandraTable, _, _, _, options) =>
-          ds.copy(options = applyDirectJoinSetting(options, directJoinSetting))
-        case ds@DataSourceV2ScanRelation(_: CassandraTable, scan: CassandraScan, _, _, _) =>
+        case ds@DataSourceV2Relation(table: CassandraTable, _, _, _, options) =>
+          // In Spark 4.x, V2ScanRelationPushDown is an optimizer rule. It calls
+          // table.newScanBuilder(relation.options) which combines table.catalogConf with
+          // the relation options. We update both to ensure the setting propagates.
+          val newTable = table.copy(catalogConf = applyDirectJoinSetting(table.catalogConf, directJoinSetting))
+          ds.copy(table = newTable, options = applyDirectJoinSetting(options, directJoinSetting))
+        case ds@DataSourceV2ScanRelation(_: DataSourceV2Relation, scan: CassandraScan, _, _, _) =>
           ds.copy(scan = scan.copy(consolidatedConf = applyDirectJoinSetting(scan.consolidatedConf, directJoinSetting)))
       }
     )

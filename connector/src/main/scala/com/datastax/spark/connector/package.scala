@@ -79,7 +79,7 @@ package object connector {
   implicit def toRDDFunctions[T](rdd: RDD[T]): RDDFunctions[T] =
     new RDDFunctions(rdd)
 
-  implicit def toCassandraTableScanFunctions[T](rdd: CassandraTableScanRDD[T]) =
+  implicit def toCassandraTableScanFunctions[T](rdd: CassandraTableScanRDD[T]): CassandraTableScanRDDFunctions[T] =
     new CassandraTableScanRDDFunctions(rdd)
 
   implicit def toDataFrameFunctions(dataFrame: DataFrame): DatasetFunctions[Row] =
@@ -95,7 +95,7 @@ package object connector {
     rdd: CassandraTableScanRDD[(K, V)]): CassandraTableScanPairRDDFunctions[K, V] =
     new CassandraTableScanPairRDDFunctions(rdd)
 
-  implicit class ColumnNameFunctions(val columnName: String) extends AnyVal {
+  implicit class ColumnNameFunctions(private val columnName: String) extends AnyVal {
     def writeTime: WriteTime = WriteTime(columnName)
     def ttl: TTL = TTL(columnName)
   }

@@ -62,8 +62,9 @@ abstract class WritableToCassandra[T] {
   def saveToCassandra(keyspaceName: String,
                       tableName: String,
                       columnNames: ColumnSelector,
-                      writeConf: WriteConf)
-                     (implicit connector: CassandraConnector, rwf: RowWriterFactory[T])
+                      writeConf: WriteConf,
+                      tokenRangeAccumulator: Option[TokenRangeAccumulator])
+                     (implicit connector: CassandraConnector, rwf: RowWriterFactory[T]): Unit
 
   /**
     * Delete data from Cassandra table, using data from the [[org.apache.spark.rdd.RDD RDD]] as a list of primary keys.
@@ -101,6 +102,6 @@ abstract class WritableToCassandra[T] {
                           deleteColumns: ColumnSelector,
                           keyColumns: ColumnSelector,
                           writeConf: WriteConf)
-                         (implicit connector: CassandraConnector, rwf: RowWriterFactory[T])
+                         (implicit connector: CassandraConnector, rwf: RowWriterFactory[T]): Unit
 
 }

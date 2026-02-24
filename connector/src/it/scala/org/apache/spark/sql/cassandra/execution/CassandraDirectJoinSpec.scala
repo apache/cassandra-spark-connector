@@ -192,11 +192,7 @@ class CassandraDirectJoinSpec extends SparkCassandraITFlatSpecBase with DefaultC
 
 
 
-  private object testImplicits extends SQLImplicits {
-    protected override def _sqlContext: SQLContext = spark.sqlContext
-  }
-
-  import testImplicits._
+  import spark.implicits._
 
   "Cassandra Direct Joins Strategy" should "be extracted from logical plans" in {
 
@@ -757,9 +753,10 @@ class CassandraDirectJoinSpec extends SparkCassandraITFlatSpecBase with DefaultC
   }
 
   private def compareDirectOnDirectOff(test: ((SparkSession) => DataFrame)) = {
-    val sparkJoinOn = spark.cloneSession()
+    val classicSpark = spark.asInstanceOf[org.apache.spark.sql.classic.SparkSession]
+    val sparkJoinOn = classicSpark.cloneSession()
     sparkJoinOn.conf.set(DirectJoinSettingParam.name, "on")
-    val sparkJoinOff = spark.cloneSession()
+    val sparkJoinOff = classicSpark.cloneSession()
     sparkJoinOff.conf.set(DirectJoinSettingParam.name, "off")
 
     withClue(s"ON\n${planDetails(test(sparkJoinOn))} \nvs\n Off\n${planDetails(test(sparkJoinOff))}") {

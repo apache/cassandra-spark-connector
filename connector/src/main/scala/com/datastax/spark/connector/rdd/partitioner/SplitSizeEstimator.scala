@@ -24,7 +24,7 @@ import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory
 private[rdd] trait SplitSizeEstimator[R] {
   this: CassandraRDD[R] =>
 
-  @transient implicit lazy val tokenFactory = TokenFactory.forSystemLocalPartitioner(connector)
+  @transient implicit lazy val tokenFactory: TokenFactory[TokenFactory.V, TokenFactory.T] = TokenFactory.forSystemLocalPartitioner(connector)
 
   private def estimateDataSize: Long =
     new DataSizeEstimates(connector, keyspaceName, tableName).dataSizeInBytes

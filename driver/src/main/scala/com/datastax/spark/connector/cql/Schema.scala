@@ -330,7 +330,13 @@ object Schema extends Logging {
 
   private def fetchClusteringColumns(table: RelationMetadata): Seq[ColumnDef] = {
     for ((column, index) <- table.getClusteringColumns.asScala.toSeq.zipWithIndex) yield {
-      ColumnDef(column._1, ClusteringColumn(index))
+      val sortDirection = column._2 match {
+        case com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder.DESC =>
+          ClusteringColumn.Descending
+        case _ =>
+          ClusteringColumn.Ascending
+      }
+      ColumnDef(column._1, ClusteringColumn(index, sortDirection))
     }
   }
 

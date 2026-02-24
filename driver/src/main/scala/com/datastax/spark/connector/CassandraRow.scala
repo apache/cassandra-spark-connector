@@ -194,7 +194,7 @@ object CassandraRow {
     * the input `Row` in order to improve performance. Fetching column values by name is much
     * slower than fetching by index. */
   def fromJavaDriverRow(row: Row, metaData: CassandraRowMetadata): CassandraRow = {
-    new CassandraRow(metaData, CassandraRow.dataFromJavaDriverRow(row, metaData))
+    new CassandraRow(metaData, CassandraRow.dataFromJavaDriverRow(row, metaData).toIndexedSeq)
   }
 
   def dataFromJavaDriverRow(row: Row, metaData: CassandraRowMetadata): Array[Object] = {

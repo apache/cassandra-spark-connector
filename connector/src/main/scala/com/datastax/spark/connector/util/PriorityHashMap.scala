@@ -397,11 +397,11 @@ final class PriorityHashMap[K, V : Ordering](_capacity: Int) {
 
   /** Useful for iterating the map. */
   def keys: IndexedSeq[K] =
-    _keys.take(size)
+    _keys.take(size).toIndexedSeq
 
   /** Useful for iterating the map */
   def values: IndexedSeq[V] =
-    _values.take(size)
+    _values.take(size).toIndexedSeq
 
   /** Removes the entry and returns its value */
   def dequeue(): V = {

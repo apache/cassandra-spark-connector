@@ -25,7 +25,8 @@ import java.util.regex.Pattern
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
-import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils // scalastyle:ignore
+import scala.annotation.nowarn
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.cassandra.SolrConstants._
 import org.apache.spark.sql.sources._
@@ -212,6 +213,7 @@ class SolrPredicateRules(searchOptimizationEnabled: DseSearchOptimizationSetting
     * }}}
     * this method converts the values.
     */
+  @nowarn("cat=deprecation")
   private def toSolrValue(value: Any): String = StringEscapeUtils.escapeJson(
     escapeSolrCondition(
       value match {
@@ -440,7 +442,7 @@ class SolrPredicateRules(searchOptimizationEnabled: DseSearchOptimizationSetting
 
   def escapeSolrCondition(condition: String): String = {
     val matcher = escapables.matcher(condition)
-    val escaped = StringBuilder.newBuilder
+    val escaped = new StringBuilder()
     var firstUnprocessedCharPosition = 0
     while (matcher.find) {
       escaped.append(condition.substring(firstUnprocessedCharPosition, matcher.start))

@@ -34,17 +34,19 @@ class MultiThreadedSpec extends SparkCassandraITFlatSpecBase with DefaultCluster
 
   val tab = "mt_test"
 
-  conn.withSessionDo { session =>
-    createKeyspace(session)
-    val executor = getExecutor(session)
-    session.execute(s"CREATE TABLE $ks.$tab (pkey int PRIMARY KEY, value varchar)")
-    val ps = session.prepare(s"INSERT INTO $ks.$tab (pkey, value) VALUES (?, ?)")
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session)
+      val executor = getExecutor(session)
+      session.execute(s"CREATE TABLE $ks.$tab (pkey int PRIMARY KEY, value varchar)")
+      val ps = session.prepare(s"INSERT INTO $ks.$tab (pkey, value) VALUES (?, ?)")
 
-    awaitAll(
-      for (i <- 1 to count) yield
-        executor.executeAsync(ps.bind(i: java.lang.Integer, "value " + i))
-    )
-    executor.waitForCurrentlyExecutingTasks()
+      awaitAll(
+        for (i <- 1 to count) yield
+          executor.executeAsync(ps.bind(i: java.lang.Integer, "value " + i))
+      )
+      executor.waitForCurrentlyExecutingTasks()
+    }
   }
 
   "A Spark Context " should " be able to read a Cassandra table in different threads" in {

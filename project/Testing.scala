@@ -70,16 +70,53 @@ object Testing {
     version.exists(_.startsWith("dse-"))
   }
 
+  private lazy val javaMajorVersion: Int = {
+    val version = System.getProperty("java.version")
+    val major = if (version.startsWith("1.")) {
+      version.substring(2, 3).toInt
+    } else {
+      version.takeWhile(_ != '.').toInt
+    }
+    major
+  }
+
   def getCCMJvmOptions = {
-    val dbVersion = sys.env.get("CCM_CASSANDRA_VERSION")
+    // Support both environment variables (from Makefile) and system properties (from sbt -D flags)
+    val dbVersion = sys.env.get("CCM_CASSANDRA_VERSION").orElse(sys.props.get("ccm.version"))
     val ccmVersion = dbVersion.map(version => s"-Dccm.version=${version.stripPrefix("dse-")}")
     val cassandraVersion = dbVersion.map(version => s"-Dcassandra.version=${version.stripPrefix("dse-")}")
-    val ccmDse = sys.env.get("CCM_IS_DSE").map(_.toLowerCase == "true").orElse(Some(isDse(dbVersion)))
+    val ccmDse = sys.env.get("CCM_IS_DSE").map(_.toLowerCase == "true")
+      .orElse(sys.props.get("ccm.dse").map(_.toLowerCase == "true"))
+      .orElse(Some(isDse(dbVersion)))
       .map(isDSE => s"-Dccm.dse=$isDSE")
-    val cassandraDirectory = sys.env.get("CCM_INSTALL_DIR").map(dir => s"-Dcassandra.directory=$dir")
+    val ccmScylla = sys.env.get("CCM_IS_SCYLLA").map(_.toLowerCase == "true")
+      .orElse(sys.props.get("ccm.scylla").map(_.toLowerCase == "true"))
+      .map(isScylla => s"-Dccm.scylla=$isScylla")
+    val cassandraDirectory = sys.env.get("CCM_INSTALL_DIR").orElse(sys.props.get("cassandra.directory")).map(dir => s"-Dcassandra.directory=$dir")
     val ccmJava = sys.env.get("CCM_JAVA_HOME").orElse(sys.env.get("JAVA_HOME")).map(dir => s"-Dccm.java.home=$dir")
     val ccmPath = sys.env.get("CCM_JAVA_HOME").orElse(sys.env.get("JAVA_HOME")).map(dir => s"-Dccm.path=$dir/bin")
-    val options = Seq(ccmVersion, ccmDse, cassandraVersion, cassandraDirectory, ccmJava, ccmPath)
+
+    // Java 9+ module system fixes for Spark (only add for Java 9+)
+    val javaModuleOptions = if (javaMajorVersion >= 9) {
+      Seq(
+        Some("--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.lang=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.io=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.net=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.nio=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.util=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.util.concurrent=ALL-UNNAMED"),
+        Some("--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED"),
+        Some("--add-opens=java.base/sun.nio.cs=ALL-UNNAMED"),
+        Some("--add-opens=java.base/sun.security.action=ALL-UNNAMED"),
+        Some("--add-opens=java.base/sun.util.calendar=ALL-UNNAMED")
+      )
+    } else {
+      Seq.empty
+    }
+
+    val options = Seq(ccmVersion, ccmDse, ccmScylla, cassandraVersion, cassandraDirectory, ccmJava, ccmPath) ++ javaModuleOptions
     options
   }
 

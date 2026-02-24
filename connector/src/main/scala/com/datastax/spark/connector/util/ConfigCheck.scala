@@ -20,6 +20,7 @@ package com.datastax.spark.connector.util
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkConf
+import scala.annotation.nowarn
 import org.apache.spark.sql.cassandra.CassandraSourceRelation
 import com.datastax.spark.connector.cql.{AuthConfFactory, CassandraConnectionFactory, CassandraConnectorConf}
 import com.datastax.spark.connector.rdd.ReadConf
@@ -84,7 +85,7 @@ object ConfigCheck {
   def unknownProperties(conf: SparkConf, extraProps: Set[String] = Set.empty): Seq[String] = {
     val validProps = validStaticPropertyNames ++ extraProps
     val scEnv = for ((key, value) <- conf.getAll if key.startsWith(Prefix)) yield key
-    for (key <- scEnv if !validProps.contains(key)) yield key
+    (for (key <- scEnv if !validProps.contains(key)) yield key).toIndexedSeq
   }
 
   /**
@@ -105,7 +106,7 @@ object ConfigCheck {
       val knownFragments = knownProp.stripPrefix(Prefix).split("\\.")
       unknownFragments.forall { unknown =>
         knownFragments.exists { known =>
-          val matchScore = StringUtils.getJaroWinklerDistance(unknown, known)
+          val matchScore = StringUtils.getJaroWinklerDistance(unknown, known): @nowarn("cat=deprecation")
           matchScore >= MatchThreshold
         }
       }

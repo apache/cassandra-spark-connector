@@ -24,12 +24,12 @@ import org.junit.Test
 
 class TypeSerializationTest {
 
-  private def testSerialization(t: ColumnType[_]) {
+  private def testSerialization(t: ColumnType[_]): Unit = {
     assertEquals(t, SerializationUtils.roundtrip(t))
   }
 
   @Test
-  def testSerializationOfPrimitiveTypes() {
+  def testSerializationOfPrimitiveTypes(): Unit = {
     testSerialization(AsciiType)
     testSerialization(TextType)
     testSerialization(IntType)
@@ -50,7 +50,7 @@ class TypeSerializationTest {
   }
 
   @Test
-  def testSerializationOfCollectionTypes() {
+  def testSerializationOfCollectionTypes(): Unit = {
     testSerialization(ListType(IntType))
     testSerialization(ListType(ListType(IntType)))
     testSerialization(SetType(TextType))

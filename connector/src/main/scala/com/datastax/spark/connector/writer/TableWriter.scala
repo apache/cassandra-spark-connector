@@ -25,11 +25,12 @@ import com.datastax.oss.driver.api.core.CqlSession
 import com.datastax.oss.driver.api.core.cql.{DefaultBatchType, PreparedStatement, SimpleStatement}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql._
+import com.datastax.spark.connector.rdd.partitioner.{CassandraPartition, CqlTokenRange}
 import com.datastax.spark.connector.types.{ListType, MapType}
 import com.datastax.spark.connector.util.Quote._
 import com.datastax.spark.connector.util._
 import com.datastax.spark.connector.writer.AsyncExecutor.Handler
-import org.apache.spark.TaskContext
+import org.apache.spark.{Partition, TaskContext}
 import org.apache.spark.metrics.OutputMetricsUpdater
 
 import scala.collection._
@@ -43,7 +44,9 @@ class TableWriter[T] private (
     tableDef: TableDef,
     columnSelector: IndexedSeq[ColumnRef],
     rowWriter: RowWriter[T],
-    writeConf: WriteConf) extends Serializable with Logging {
+    writeConf: WriteConf,
+    partitions: Array[Partition],
+    tokenRangeAcc: Option[TokenRangeAccumulator]) extends Serializable with Logging {
 
   require(!tableDef.isView,
     s"${tableDef.name} is a Materialized View and Views are not writable")
@@ -118,7 +121,22 @@ class TableWriter[T] private (
     val setClause = (setNonCounterColumnsClause ++ setCounterColumnsClause).mkString(", ")
     val whereClause = quotedColumnNames(primaryKey).map(c => s"$c = :$c").mkString(" AND ")
 
-    s"UPDATE ${quote(keyspaceName)}.${quote(tableName)} SET $setClause WHERE $whereClause"
+    // Counter updates don't support USING TIMESTAMP.
+    // For all other UPDATEs, assign per-statement timestamps to ensure that multiple
+    // mutations to the same list within a batch get distinct timestamps. Without this,
+    // Scylla drops all but one list mutation when they share the same timestamp.
+    // See: https://github.com/scylladb/spark-scylladb-connector/issues/26
+    val usingClause = if (isCounterUpdate) {
+      ""
+    } else {
+      writeConf.timestamp match {
+        case TimestampOption(PerRowWriteOptionValue(placeholder)) => s" USING TIMESTAMP :$placeholder"
+        case TimestampOption(StaticWriteOptionValue(value)) => s" USING TIMESTAMP $value"
+        case _ => s" USING TIMESTAMP :${TableWriter.AutoTimestampParam}"
+      }
+    }
+
+    s"UPDATE ${quote(keyspaceName)}.${quote(tableName)}${usingClause} SET $setClause WHERE $whereClause"
   }
 
   private val isCounterUpdate =
@@ -197,6 +215,12 @@ class TableWriter[T] private (
   def delete(columns: ColumnSelector) (taskContext: TaskContext, data: Iterator[T]): Unit =
     writeInternal(getAsyncWriterInternal(deleteQueryTemplate(columns)), taskContext, data)
 
+  def extractTokenRange(partitionId: Int): Iterable[CqlTokenRange[_, _]] =
+    partitions.lift(partitionId) match {
+      case Some(CassandraPartition(_, _, ranges, _)) => ranges
+      case _ => List()
+    }
+
   def getAsyncWriter(): AsyncStatementWriter[T] = {
     if (isCounterUpdate || containsCollectionBehaviors) {
       getAsyncWriterInternal(queryTemplateUsingUpdate)
@@ -237,8 +261,10 @@ class TableWriter[T] private (
     }
   }
 
-  private def writeInternal(asyncStatementWriter: AsyncStatementWriter[T], taskContext: TaskContext, data: Iterator[T]) {
+  private def writeInternal(asyncStatementWriter: AsyncStatementWriter[T], taskContext: TaskContext, data: Iterator[T]): Unit = {
     val updater = OutputMetricsUpdater(taskContext, writeConf)
+    val tokenRanges = extractTokenRange(taskContext.partitionId())
+    logInfo(s"Writing ranges: ${tokenRanges}")
 
     val metricMonitoringWriter = asyncStatementWriter.copy(
         successHandler = Some(updater.batchFinished(success = true, _, _, _)),
@@ -256,6 +282,9 @@ class TableWriter[T] private (
 
     val duration = updater.finish() / 1000000000d
     logInfo(f"Wrote ${rowIterator.count} rows to $keyspaceName.$tableName in $duration%.3f s.")
+
+    tokenRangeAcc.foreach(_.add(tokenRanges.toSet))
+    logInfo("Added token ranges to accumulator")
   }
 }
 
@@ -276,7 +305,9 @@ case class AsyncStatementWriter[T](
   private val keyspaceName: String = tableDef.keyspaceName
   private val tableName: String = tableDef.tableName
 
-  private lazy val queryExecutor = new QueryExecutor(session, writeConf.parallelismLevel, successHandler, failureHandler)
+  private lazy val queryExecutor = new QueryExecutor(
+    session, writeConf.parallelismLevel, successHandler, failureHandler,
+    maxRetries = connector.conf.queryRetryMaxRetries)
 
   def write(record: T): Unit= {
     groupingBatchBuilderBase.batchRecord(record).foreach{ stmt =>
@@ -309,7 +340,10 @@ case class AsyncStatementWriter[T](
 
 object TableWriter {
 
-  private def checkMissingColumns(table: TableDef, columnNames: Seq[String]) {
+  /** Name of the auto-generated timestamp bind parameter added to UPDATE statements. */
+  private[writer] val AutoTimestampParam = "autots"
+
+  private def checkMissingColumns(table: TableDef, columnNames: Seq[String]): Unit = {
     val allColumnNames = table.columns.map(_.columnName)
     val missingColumns = columnNames.toSet -- allColumnNames
     if (missingColumns.nonEmpty)
@@ -317,7 +351,7 @@ object TableWriter {
         s"Column(s) not found: ${missingColumns.mkString(", ")}")
   }
 
-  private def checkMissingPrimaryKeyColumns(table: TableDef, columnNames: Seq[String]) {
+  private def checkMissingPrimaryKeyColumns(table: TableDef, columnNames: Seq[String]): Unit = {
     val primaryKeyColumnNames = table.primaryKey.map(_.columnName)
     val missingPrimaryKeyColumns = primaryKeyColumnNames.toSet -- columnNames
     if (missingPrimaryKeyColumns.nonEmpty)
@@ -325,7 +359,7 @@ object TableWriter {
         s"Some primary key columns are missing in RDD or have not been selected: ${missingPrimaryKeyColumns.mkString(", ")}")
   }
 
-  private def checkMissingPartitionKeyColumns(table: TableDef, columnNames: Seq[String]) {
+  private def checkMissingPartitionKeyColumns(table: TableDef, columnNames: Seq[String]): Unit = {
     val partitionKeyColumnNames = table.partitionKey.map(_.columnName)
     val missingPartitionKeyColumns = partitionKeyColumnNames.toSet -- columnNames
     if (missingPartitionKeyColumns.nonEmpty)
@@ -346,7 +380,7 @@ object TableWriter {
    * Check whether prepend is used on any Sets or Maps
    * Check whether remove is used on Maps
    */
-  private def checkCollectionBehaviors(table: TableDef, columnRefs: IndexedSeq[ColumnRef]) {
+  private def checkCollectionBehaviors(table: TableDef, columnRefs: IndexedSeq[ColumnRef]): Unit = {
     val tableCollectionColumns = table.columns.filter(cd => cd.isCollection)
     val tableCollectionColumnNames = tableCollectionColumns.map(_.columnName)
     val tableListColumnNames = tableCollectionColumns
@@ -429,10 +463,12 @@ object TableWriter {
       tableName: String,
       columnNames: ColumnSelector,
       writeConf: WriteConf,
-      checkPartitionKey: Boolean = false): TableWriter[T] = {
+      checkPartitionKey: Boolean = false,
+      partitions: Array[Partition] = Array(),
+      tokenRangeAcc: Option[TokenRangeAccumulator] = None): TableWriter[T] = {
 
     val tableDef = tableFromCassandra(connector, keyspaceName, tableName)
-    TableWriter(connector, tableDef, columnNames, writeConf, checkPartitionKey)
+    TableWriter(connector, tableDef, columnNames, writeConf, checkPartitionKey, partitions, tokenRangeAcc)
   }
 
   def apply[T : RowWriterFactory](
@@ -440,7 +476,9 @@ object TableWriter {
        tableDef: TableDef,
        columnNames: ColumnSelector,
        writeConf: WriteConf,
-       checkPartitionKey: Boolean): TableWriter[T] = {
+       checkPartitionKey: Boolean,
+       partitions: Array[Partition],
+       tokenRangeAcc: Option[TokenRangeAccumulator]): TableWriter[T] = {
 
     val optionColumns = writeConf.optionsAsColumns(tableDef.keyspaceName, tableDef.tableName)
     val tablDefWithMeta = tableDef.copy(regularColumns = tableDef.regularColumns ++ optionColumns)
@@ -451,6 +489,6 @@ object TableWriter {
     val rowWriter = implicitly[RowWriterFactory[T]].rowWriter(tablDefWithMeta, selectedColumns)
 
     checkColumns(tablDefWithMeta, selectedColumns, checkPartitionKey)
-    new TableWriter[T](connector, tablDefWithMeta, selectedColumns, rowWriter, writeConf)
+    new TableWriter[T](connector, tablDefWithMeta, selectedColumns, rowWriter, writeConf, partitions, tokenRangeAcc)
   }
 }

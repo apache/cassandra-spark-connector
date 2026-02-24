@@ -19,9 +19,9 @@
 package com.datastax.spark.connector.cql
 
 import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
-import com.datastax.spark.connector.cluster.SSLCluster
+import com.datastax.spark.connector.cluster.AuthCluster
 
-class CassandraSSLClientAuthConnectorSpec extends SparkCassandraITFlatSpecBase with SSLCluster {
+class CassandraSSLClientAuthConnectorSpec extends SparkCassandraITFlatSpecBase with AuthCluster {
 
   override lazy val conn = CassandraConnector(defaultConf)
 

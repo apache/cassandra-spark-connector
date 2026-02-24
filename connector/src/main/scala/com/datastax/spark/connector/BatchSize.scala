@@ -20,6 +20,8 @@ package com.datastax.spark.connector
 
 import com.datastax.spark.connector.writer.WriteConf
 
+import scala.language.implicitConversions
+
 sealed trait BatchSize
 
 case class RowsInBatch(batchSize: Int) extends BatchSize

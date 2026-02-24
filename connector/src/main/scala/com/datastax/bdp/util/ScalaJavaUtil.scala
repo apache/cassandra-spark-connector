@@ -30,11 +30,11 @@ import scala.language.implicitConversions
 
 object ScalaJavaUtil {
 
-  implicit class JavaDurationWrapper(val duration: JavaDuration) extends AnyVal {
+  implicit class JavaDurationWrapper(private val duration: JavaDuration) extends AnyVal {
     def asScalaDuration: ScalaDuration = ScalaDuration.fromNanos(duration.toNanos).toCoarsest
   }
 
-  implicit class ScalaDurationWrapper(val duration: ScalaDuration) extends AnyVal {
+  implicit class ScalaDurationWrapper(private val duration: ScalaDuration) extends AnyVal {
     def asJavaDuration: JavaDuration = JavaDuration.ofNanos(duration.toNanos)
   }
 

@@ -36,7 +36,7 @@ class TupleColumnMapperTest {
   private val selectedColumns = IndexedSeq(c1, c2, c3).map(_.ref)
 
   @Test
-  def testGetters() {
+  def testGetters(): Unit = {
     val columnMap = new TupleColumnMapper[(Int, String, Boolean)]
       .columnMapForWriting(tableDef, selectedColumns)
     val getters = columnMap.getters
@@ -58,7 +58,7 @@ class TupleColumnMapperTest {
   }
 
   @Test
-  def testConstructor() {
+  def testConstructor(): Unit = {
     val columnMap = new TupleColumnMapper[(Int, String, Boolean)]
       .columnMapForReading(tableDef, selectedColumns)
     assertEquals(
@@ -76,14 +76,14 @@ class TupleColumnMapperTest {
   }
 
   @Test
-  def testSerialize() {
+  def testSerialize(): Unit = {
     val columnMap = new TupleColumnMapper[(Int, String, Boolean)]
       .columnMapForReading(tableDef, selectedColumns)
     SerializationUtils.roundtrip(columnMap)
   }
 
   @Test
-  def testImplicit() {
+  def testImplicit(): Unit = {
     val columnMap = implicitly[ColumnMapper[(Int, String, Boolean)]]
       .columnMapForWriting(tableDef, selectedColumns)
     val getters = columnMap.getters

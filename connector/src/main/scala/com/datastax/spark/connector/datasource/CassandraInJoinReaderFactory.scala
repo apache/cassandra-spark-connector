@@ -76,7 +76,7 @@ abstract class CassandraBaseInJoinReader(
   protected val bsb = JoinHelper.getKeyBuilderStatementBuilder(session, rowWriter, preparedStatement, cqlQueryParts.whereClause)
   protected val rowMetadata = JoinHelper.getCassandraRowMetadata(session, preparedStatement, cqlQueryParts.selectedColumnRefs)
 
-  protected val queryExecutor = QueryExecutor(session, readConf.parallelismLevel, None, None)
+  protected val queryExecutor = QueryExecutor(session, readConf.parallelismLevel, None, None, connector.conf)
   protected val maybeRateLimit = JoinHelper.maybeRateLimit(readConf)
   protected val requestsPerSecondRateLimiter = JoinHelper.requestsPerSecondRateLimiter(readConf)
 
@@ -162,7 +162,7 @@ case class CassandraInJoinCountReader(
 
 object InClauseKeyGenerator {
   def getIterator(index: Int, totalPartitions: Int, inClauses: Seq[In]): Iterator[CassandraRow] = {
-    val values = cross(inClauses.map(_.values.toStream)) //We need to enumerate our cross product lazily
+    val values = cross(inClauses.map(_.values.to(LazyList))) //We need to enumerate our cross product lazily
     val columns = inClauses.map(_.attribute)
     val rowMetadata = CassandraRowMetadata.fromColumnNames(columns.toIndexedSeq)
     values
@@ -170,7 +170,7 @@ object InClauseKeyGenerator {
       .zipWithIndex
       .filter { case (_, dataIndex) => dataIndex % totalPartitions == index }
       .map { case (data, _) => new CassandraRow(rowMetadata, data) }
-      .toIterator
+      .iterator
   }
 
   def cross(iter: Iterable[Iterable[_]]): Iterable[List[_]] = {

@@ -42,7 +42,7 @@ class DefaultColumnMapperTest {
   private val table2 = TableDef("test", "table", Seq(c4), Seq(c2), Seq(c3))
 
   @Test
-  def testGetters1() {
+  def testGetters1(): Unit = {
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass1]()
       .columnMapForWriting(table1, table1.columnRefs)
     val getters = columnMap.getters
@@ -52,7 +52,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def testGetters2() {
+  def testGetters2(): Unit = {
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass2]()
       .columnMapForWriting(table1, table1.columnRefs)
     val getters = columnMap.getters
@@ -62,14 +62,14 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def testSetters1() {
+  def testSetters1(): Unit = {
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass1]()
       .columnMapForReading(table1, table1.columnRefs)
     assertTrue(columnMap.setters.isEmpty)
   }
 
   @Test
-  def testSetters2() {
+  def testSetters2(): Unit = {
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass2]()
       .columnMapForReading(table1, table1.columnRefs)
     val setters = columnMap.setters
@@ -79,7 +79,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def testConstructorParams1() {
+  def testConstructorParams1(): Unit = {
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass1]()
       .columnMapForReading(table1, table1.columnRefs)
     val expectedConstructor: Seq[ColumnName] = Seq(
@@ -90,7 +90,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def testConstructorParams2() {
+  def testConstructorParams2(): Unit = {
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass2]().columnMapForReading(
       table1, table1.columnRefs)
     val expectedConstructor: Seq[ColumnName] = Seq(
@@ -101,7 +101,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def columnNameOverrideGetters() {
+  def columnNameOverrideGetters(): Unit = {
     val nameOverride: Map[String, String] = Map("property1" -> c4.columnName)
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass1](nameOverride)
       .columnMapForWriting(table2, table2.columnRefs)
@@ -112,7 +112,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def columnNameOverrideSetters() {
+  def columnNameOverrideSetters(): Unit = {
     val nameOverride: Map[String, String] = Map("property1" -> c4.columnName)
     val columnMap = new DefaultColumnMapper[DefaultColumnMapperTestClass2](nameOverride)
       .columnMapForReading(table2, table2.columnRefs)
@@ -123,7 +123,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def columnNameOverrideConstructor() {
+  def columnNameOverrideConstructor(): Unit = {
     val nameOverride: Map[String, String] = Map("property1" -> "column")
     val mapper = new DefaultColumnMapper[DefaultColumnMapperTestClass1](nameOverride)
       .columnMapForReading(table2, table2.columnRefs)
@@ -135,7 +135,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def testImplicit() {
+  def testImplicit(): Unit = {
     val mapper = implicitly[ColumnMapper[DefaultColumnMapperTestClass1]]
     assertTrue(mapper.isInstanceOf[DefaultColumnMapper[_]])
   }
@@ -197,7 +197,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def testWorkWithAliases() {
+  def testWorkWithAliases(): Unit = {
     val mapper = new DefaultColumnMapper[ClassWithWeirdProps]()
     val selectedColumns = IndexedSeq(
       ColumnName("property_1").as("devil"),
@@ -208,7 +208,7 @@ class DefaultColumnMapperTest {
   }
 
   @Test
-  def testWorkWithAliasesAndHonorOverrides() {
+  def testWorkWithAliasesAndHonorOverrides(): Unit = {
     val mapper = new DefaultColumnMapper[ClassWithWeirdProps](Map("cat" -> "cat2"))
     val selectedColumns = IndexedSeq(
       ColumnName("property_1").as("devil"),

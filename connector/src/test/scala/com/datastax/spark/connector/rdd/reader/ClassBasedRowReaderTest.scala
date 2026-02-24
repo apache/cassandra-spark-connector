@@ -34,7 +34,7 @@ class ClassBasedRowReaderTest {
   private val table = TableDef("test", "table", Seq(a), Nil, Seq(b, c))
 
   @Test
-  def testSerialize() {
+  def testSerialize(): Unit = {
     val reader = new ClassBasedRowReader[TestClass](table, table.columnRefs)
     SerializationUtils.roundtrip(reader)
   }

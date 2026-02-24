@@ -18,6 +18,8 @@
 
 package com.datastax.spark.connector.types
 
+import scala.language.implicitConversions
+
 /**
   * An object representing a column which will be skipped on insert.
   */

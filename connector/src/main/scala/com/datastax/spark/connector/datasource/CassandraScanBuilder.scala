@@ -92,7 +92,7 @@ case class CassandraScanBuilder(
       DsePredicateRules,
       InClausePredicateRules) ++
       solrPredicateRules ++
-      additionalRules  :+
+      additionalRules()  :+
       TimeUUIDPredicateRules
 
     /** Apply non-basic rules **/
@@ -118,15 +118,15 @@ case class CassandraScanBuilder(
         classes
           .trim
           .split("""\s*,\s*""")
-          .map(ReflectionUtil.findGlobalObject[CassandraPredicateRules])
+          .map(ReflectionUtil.findGlobalObject[CassandraPredicateRules]).toIndexedSeq
       case None => AdditionalCassandraPushDownRulesParam.default
     }
   }
 
   private def solrPredicateRules: Option[CassandraPredicateRules] = {
-    if (searchOptimization.enabled) {
-      logDebug(s"Search Optimization Enabled - $searchOptimization")
-      Some(new SolrPredicateRules(searchOptimization))
+    if (searchOptimization().enabled) {
+      logDebug(s"Search Optimization Enabled - ${searchOptimization()}")
+      Some(new SolrPredicateRules(searchOptimization()))
     } else {
       None
     }
@@ -158,7 +158,7 @@ case class CassandraScanBuilder(
       case name@TTLCapture(column) => TTL(column, Some(name))
       case name@WriteTimeCapture(column) => WriteTime(column, Some(name))
       case column => tableDef.columnByName(column).ref
-    }
+    }.toIndexedSeq
     readSchema = requiredSchema
   }
 

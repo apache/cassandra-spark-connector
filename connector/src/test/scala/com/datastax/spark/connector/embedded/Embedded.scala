@@ -32,20 +32,19 @@ private[embedded] trait EmbeddedIO {
   import scala.io.Source
   import scala.language.reflectiveCalls
   import scala.util.Try
-  import com.google.common.io.Files
   import org.apache.commons.lang3.SystemUtils
 
   val shutdownDeletePaths = new scala.collection.mutable.HashSet[String]()
 
   /** Automatically closes resource after use. Handy for closing streams, files, sessions etc.
     * Similar to try-with-resources in Java 7. */
-  def closeAfterUse[T, C <: { def close() }](closeable: C)(code: C => T): T =
+  def closeAfterUse[T, C <: { def close(): Unit }](closeable: C)(code: C => T): T =
     try code(closeable) finally {
       closeable.close()
     }
 
   /** Copies a text file substituting every occurrence of `$ {VARIABLE}` with a value from the given map */
-  def copyTextFileWithVariableSubstitution(source: InputStream, target: OutputStream, map: String => String) {
+  def copyTextFileWithVariableSubstitution(source: InputStream, target: OutputStream, map: String => String): Unit = {
     val regex = "\\$\\{([a-zA-Z0-9_]+)\\}".r
     closeAfterUse(new PrintWriter(target)) { writer =>
       val input = Source.fromInputStream(source, "UTF-8")
@@ -57,11 +56,12 @@ private[embedded] trait EmbeddedIO {
   }
 
   def createTempDir: File = {
-    val dir = mkdir(new File(Files.createTempDir(), "spark-tmp-" + UUID.randomUUID.toString))
+    val tmpDir = java.nio.file.Files.createTempDirectory("spark").toFile
+    val dir = mkdir(new File(tmpDir, "spark-tmp-" + UUID.randomUUID.toString))
     registerShutdownDeleteDir(dir)
 
     Runtime.getRuntime.addShutdownHook(new Thread("delete Spark temp dir " + dir) {
-      override def run() {
+      override def run(): Unit = {
         if (! hasRootAsShutdownDeleteDir(dir)) deleteRecursively(dir)
       }
     })
@@ -93,7 +93,7 @@ private[embedded] trait EmbeddedIO {
   }
 
 
-  def registerShutdownDeleteDir(file: File) {
+  def registerShutdownDeleteDir(file: File): Unit = {
     shutdownDeletePaths.synchronized {
       shutdownDeletePaths += file.getAbsolutePath
     }
@@ -108,7 +108,7 @@ private[embedded] trait EmbeddedIO {
     }
   }
 
-  def deleteRecursively(file: File) {
+  def deleteRecursively(file: File): Unit = {
     if (file != null) {
       if (file.isDirectory && !isSymlink(file)) {
         for (child <- listFilesSafely(file))
@@ -131,7 +131,7 @@ private[embedded] trait EmbeddedIO {
   def listFilesSafely(file: File): Seq[File] = {
     val files = file.listFiles()
     if (files == null) throw new IOException("Failed to list files for dir: " + file)
-    files
+    files.toIndexedSeq
   }
 }
 
