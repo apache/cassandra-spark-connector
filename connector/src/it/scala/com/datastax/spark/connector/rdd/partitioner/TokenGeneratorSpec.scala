@@ -40,33 +40,35 @@ class TokenGeneratorSpec extends SparkCassandraITFlatSpecBase with DefaultCluste
   val simpleKeys = Seq(1, -500, 2801, 4000000, -95500).map(SimpleKey(_))
   val complexKey = simpleKeys.map{ case SimpleKey(x) => ComplexKey(x, x, x.toString)}
 
-  conn.withSessionDo { session =>
-    createKeyspace(session)
-    val executor = getExecutor(session)
-    awaitAll(
-      Future{session.execute(s"CREATE TABLE $ks.simple(key INT PRIMARY KEY)")},
-      Future{session.execute(s"CREATE TABLE $ks.complex(key1 INT, key2 INT, key3 text, PRIMARY KEY ((key1, key2, key3)))")}
-    )
-    val simplePS = session.prepare(s"INSERT INTO $ks.simple (key) VALUES (?)")
-    val complexPS = session.prepare(s"INSERT INTO $ks.complex (key1, key2, key3) VALUES (?, ?, ?)")
-    awaitAll {
-      simpleKeys.map(simpleKey =>
-        executor.executeAsync(simplePS.bind(simpleKey.key: java.lang.Integer))) ++
-      complexKey.map(complexKey =>
-        executor.executeAsync(complexPS.bind(
-          complexKey.key1: java.lang.Integer,
-          complexKey.key2: java.lang.Integer,
-          complexKey.key3: java.lang.String)))
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session)
+      val executor = getExecutor(session)
+      awaitAll(
+        Future{session.execute(s"CREATE TABLE $ks.simple(key INT PRIMARY KEY)")},
+        Future{session.execute(s"CREATE TABLE $ks.complex(key1 INT, key2 INT, key3 text, PRIMARY KEY ((key1, key2, key3)))")}
+      )
+      val simplePS = session.prepare(s"INSERT INTO $ks.simple (key) VALUES (?)")
+      val complexPS = session.prepare(s"INSERT INTO $ks.complex (key1, key2, key3) VALUES (?, ?, ?)")
+      awaitAll {
+        simpleKeys.map(simpleKey =>
+          executor.executeAsync(simplePS.bind(simpleKey.key: java.lang.Integer))) ++
+        complexKey.map(complexKey =>
+          executor.executeAsync(complexPS.bind(
+            complexKey.key1: java.lang.Integer,
+            complexKey.key2: java.lang.Integer,
+            complexKey.key3: java.lang.String)))
+      }
+      executor.waitForCurrentlyExecutingTasks()
     }
-    executor.waitForCurrentlyExecutingTasks()
   }
 
-  val simpleTokenMap: Map[SimpleKey, Token] = conn.withSessionDo { session =>
+  lazy val simpleTokenMap: Map[SimpleKey, Token] = conn.withSessionDo { session =>
     val resultSet = session.execute(s"SELECT key, TOKEN(key) FROM $ks.simple").all().asScala
     resultSet.map(row => SimpleKey(row.getInt("key")) -> row.getToken(1)).toMap
   }
 
-  val complexTokenMap: Map[ComplexKey, Token] = conn.withSessionDo { session =>
+  lazy val complexTokenMap: Map[ComplexKey, Token] = conn.withSessionDo { session =>
     val resultSet = session
       .execute(s"SELECT key1, key2, key3, TOKEN(key1, key2, key3) FROM $ks.complex")
       .all()
@@ -78,13 +80,13 @@ class TokenGeneratorSpec extends SparkCassandraITFlatSpecBase with DefaultCluste
     ).toMap
   }
 
-  val simpleTableDef = schemaFromCassandra(conn, Some(ks), Some("simple")).tables.head
-  val complexTableDef = schemaFromCassandra(conn, Some(ks), Some("complex")).tables.head
+  lazy val simpleTableDef = schemaFromCassandra(conn, Some(ks), Some("simple")).tables.head
+  lazy val complexTableDef = schemaFromCassandra(conn, Some(ks), Some("complex")).tables.head
 
-  val simpleRW = implicitly[RowWriterFactory[SimpleKey]]
+  lazy val simpleRW = implicitly[RowWriterFactory[SimpleKey]]
     .rowWriter(simpleTableDef, PartitionKeyColumns.selectFrom(simpleTableDef))
 
-  val complexRW = implicitly[RowWriterFactory[ComplexKey]]
+  lazy val complexRW = implicitly[RowWriterFactory[ComplexKey]]
     .rowWriter(complexTableDef, PartitionKeyColumns.selectFrom(complexTableDef))
 
   "TokenGenerators" should "be able to determine simple partition keys" in {

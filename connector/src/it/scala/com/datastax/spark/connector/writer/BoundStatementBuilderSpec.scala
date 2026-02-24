@@ -29,15 +29,17 @@ import com.datastax.spark.connector.util.schemaFromCassandra
 class BoundStatementBuilderSpec extends SparkCassandraITFlatSpecBase with DefaultCluster {
   override lazy val conn = CassandraConnector(defaultConf)
 
-  conn.withSessionDo { session =>
-    createKeyspace(session, ks)
-    session.execute( s"""CREATE TABLE IF NOT EXISTS "$ks".tab (id INT PRIMARY KEY, value TEXT)""")
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session, ks)
+      session.execute( s"""CREATE TABLE IF NOT EXISTS "$ks".tab (id INT PRIMARY KEY, value TEXT)""")
+    }
   }
 
-  val schema = schemaFromCassandra(conn, Some(ks), Some("tab"))
-  val rowWriter = RowWriterFactory.defaultRowWriterFactory[(Int, CassandraOption[String])]
+  lazy val schema = schemaFromCassandra(conn, Some(ks), Some("tab"))
+  lazy val rowWriter = RowWriterFactory.defaultRowWriterFactory[(Int, CassandraOption[String])]
     .rowWriter(schema.tables.head, IndexedSeq("id", "value"))
-  val ps = conn.withSessionDo(session =>
+  lazy val ps = conn.withSessionDo(session =>
     session.prepare( s"""INSERT INTO "$ks".tab (id, value) VALUES (?, ?) """))
 
   val PVGt4 = Seq(DefaultProtocolVersion.V4, DefaultProtocolVersion.V5, DseProtocolVersion.DSE_V1, DseProtocolVersion.DSE_V2)

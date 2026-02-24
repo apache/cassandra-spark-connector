@@ -29,45 +29,47 @@ import org.scalatest.concurrent.Eventually
 class CassandraDataFrameSelectUdtSpec extends SparkCassandraITFlatSpecBase with DefaultCluster with Eventually with Matchers {
   override lazy val conn = CassandraConnector(defaultConf)
 
-  conn.withSessionDo { session =>
-    createKeyspace(session)
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session)
 
-    session.execute(
-      s"""CREATE TYPE ${ks}.embedded(
-        |        a TEXT,
-        |        b INT
-        |    )""".stripMargin
-    )
+      session.execute(
+        s"""CREATE TYPE ${ks}.embedded(
+          |        a TEXT,
+          |        b INT
+          |    )""".stripMargin
+      )
 
-    session.execute(
-      s"""CREATE TABLE ${ks}.crash_test(
-        |        id INT,
-        |        embeddeds LIST<FROZEN<embedded>>,
-        |        single embedded,
-        |        embedded_map MAP<INT, FROZEN<embedded>>,
-        |        embedded_set SET<FROZEN<embedded>>,
-        |        simple_tuple TUPLE <TEXT, INT>,
-        |        simple_tuples LIST<FROZEN<TUPLE<TEXT, INT>>>,
-        |        PRIMARY KEY (id)
-        |    )""".stripMargin
-    )
+      session.execute(
+        s"""CREATE TABLE ${ks}.crash_test(
+          |        id INT,
+          |        embeddeds LIST<FROZEN<embedded>>,
+          |        single embedded,
+          |        embedded_map MAP<INT, FROZEN<embedded>>,
+          |        embedded_set SET<FROZEN<embedded>>,
+          |        simple_tuple TUPLE <TEXT, INT>,
+          |        simple_tuples LIST<FROZEN<TUPLE<TEXT, INT>>>,
+          |        PRIMARY KEY (id)
+          |    )""".stripMargin
+      )
 
-    session.execute(
-      s"""INSERT INTO ${ks}.crash_test JSON '{"id": 1, "embeddeds": [], "embedded_map": {}, "embedded_set": [], "simple_tuples": []}'"""
-    )
-    session.execute(
-      s"""INSERT INTO ${ks}.crash_test JSON
-         |'{
-         |  "id": 2,
-         |  "single": {"a": "a1", "b": 1},
-         |  "embeddeds": [{"a": "x1", "b": 1}, {"a": "x2", "b": 2}],
-         |  "embedded_map": {"1": {"a": "x1", "b": 1}, "2": {"a": "x2", "b": 2}},
-         |  "embedded_set": [{"a": "x1", "b": 1}, {"a": "x2", "b": 2}],
-         |  "simple_tuple": ["x1", 1],
-         |  "simple_tuples": [["x1", 1], ["x2", 2]]
-         |}'
-         |""".stripMargin
-    )
+      session.execute(
+        s"""INSERT INTO ${ks}.crash_test JSON '{"id": 1, "embeddeds": [], "embedded_map": {}, "embedded_set": [], "simple_tuples": []}'"""
+      )
+      session.execute(
+        s"""INSERT INTO ${ks}.crash_test JSON
+           |'{
+           |  "id": 2,
+           |  "single": {"a": "a1", "b": 1},
+           |  "embeddeds": [{"a": "x1", "b": 1}, {"a": "x2", "b": 2}],
+           |  "embedded_map": {"1": {"a": "x1", "b": 1}, "2": {"a": "x2", "b": 2}},
+           |  "embedded_set": [{"a": "x1", "b": 1}, {"a": "x2", "b": 2}],
+           |  "simple_tuple": ["x1", 1],
+           |  "simple_tuples": [["x1", 1], ["x2", 2]]
+           |}'
+           |""".stripMargin
+      )
+    }
   }
 
   trait Env {

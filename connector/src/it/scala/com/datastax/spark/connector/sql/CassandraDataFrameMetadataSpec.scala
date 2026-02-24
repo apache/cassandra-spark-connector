@@ -38,11 +38,12 @@ class CassandraDataFrameMetadataSpec extends SparkCassandraITFlatSpecBase with D
   override lazy val conn = CassandraConnector(defaultConf)
 
 
-  conn.withSessionDo { session =>
-    createKeyspace(session)
-    val executor = getExecutor(session)
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session)
+      val executor = getExecutor(session)
 
-    def typesToCheck = {
+      def typesToCheck = {
       val ord = implicitly[Ordering[Version]]
       import ord._
       if (cluster.getCassandraVersion > V3_6_0) {
@@ -150,14 +151,15 @@ class CassandraDataFrameMetadataSpec extends SparkCassandraITFlatSpecBase with D
       }
     )
     executor.waitForCurrentlyExecutingTasks()
+    }
   }
 
   setupCassandraCatalog
 
 
-  val dseVersion = cluster.getDseVersion.getOrElse(Version.parse("6.0.0"))
+  lazy val dseVersion = cluster.getDseVersion.getOrElse(Version.parse("6.0.0"))
 
-  val columnsToCheck = schemaFromCassandra(conn, Some(ks), Some("test_reading_types"))
+  lazy val columnsToCheck = schemaFromCassandra(conn, Some(ks), Some("test_reading_types"))
     .tables
     .head
     .regularColumns

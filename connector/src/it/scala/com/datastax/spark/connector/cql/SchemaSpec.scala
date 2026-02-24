@@ -30,55 +30,57 @@ import org.scalatest.Inspectors._
 class SchemaSpec extends SparkCassandraITWordSpecBase with DefaultCluster {
   override lazy val conn = CassandraConnector(defaultConf)
 
-  conn.withSessionDo { session =>
-    createKeyspace(session)
+  override def beforeClass: Unit = {
+    conn.withSessionDo { session =>
+      createKeyspace(session)
 
-    session.execute(
-      s"""CREATE TYPE $ks.address (street varchar, city varchar, zip int)""")
-    session.execute(
-      s"""CREATE TABLE $ks.test(
-         |  k1 int,
-         |  k2 varchar,
-         |  k3 timestamp,
-         |  c1 bigint,
-         |  c2 varchar,
-         |  c3 uuid,
-         |  d1_blob blob,
-         |  d2_boolean boolean,
-         |  d3_decimal decimal,
-         |  d4_double double,
-         |  d5_float float,
-         |  d6_inet inet,
-         |  d7_int int,
-         |  d8_list list<int>,
-         |  d9_map map<int, varchar>,
-         |  d10_set frozen<set<int>>,
-         |  d11_timestamp timestamp,
-         |  d12_uuid uuid,
-         |  d13_timeuuid timeuuid,
-         |  d14_varchar varchar,
-         |  d15_varint varint,
-         |  d16_address frozen<address>,
-         |  PRIMARY KEY ((k1, k2, k3), c1, c2, c3)
-         |)
-      """.stripMargin)
-    session.execute(
-      s"""CREATE INDEX test_d9_map_idx ON $ks.test (keys(d9_map))""")
-    session.execute(
-      s"""CREATE INDEX test_d9_m23423ap_idx ON $ks.test (full(d10_set))""")
-    session.execute(
-      s"""CREATE INDEX test_d7_int_idx ON $ks.test (d7_int)""")
-    from(Some(CcmConfig.V5_0_0), None) {
-      session.execute(s"ALTER TABLE $ks.test ADD d17_vector frozen<vector<int,3>>")
-    }
+      session.execute(
+        s"""CREATE TYPE $ks.address (street varchar, city varchar, zip int)""")
+      session.execute(
+        s"""CREATE TABLE $ks.test(
+           |  k1 int,
+           |  k2 varchar,
+           |  k3 timestamp,
+           |  c1 bigint,
+           |  c2 varchar,
+           |  c3 uuid,
+           |  d1_blob blob,
+           |  d2_boolean boolean,
+           |  d3_decimal decimal,
+           |  d4_double double,
+           |  d5_float float,
+           |  d6_inet inet,
+           |  d7_int int,
+           |  d8_list list<int>,
+           |  d9_map map<int, varchar>,
+           |  d10_set frozen<set<int>>,
+           |  d11_timestamp timestamp,
+           |  d12_uuid uuid,
+           |  d13_timeuuid timeuuid,
+           |  d14_varchar varchar,
+           |  d15_varint varint,
+           |  d16_address frozen<address>,
+           |  PRIMARY KEY ((k1, k2, k3), c1, c2, c3)
+           |)
+        """.stripMargin)
+      session.execute(
+        s"""CREATE INDEX test_d9_map_idx ON $ks.test (keys(d9_map))""")
+      session.execute(
+        s"""CREATE INDEX test_d9_m23423ap_idx ON $ks.test (full(d10_set))""")
+      session.execute(
+        s"""CREATE INDEX test_d7_int_idx ON $ks.test (d7_int)""")
+      from(Some(CcmConfig.V5_0_0), None) {
+        session.execute(s"ALTER TABLE $ks.test ADD d17_vector frozen<vector<int,3>>")
+      }
 
-    for (i <- 0 to 9) {
-      session.execute(s"insert into $ks.test (k1,k2,k3,c1,c2,c3,d10_set) " +
-        s"values ($i, 'text$i', $i, $i, 'text$i', 123e4567-e89b-12d3-a456-42661417400$i, {$i, ${i*10}})")
+      for (i <- 0 to 9) {
+        session.execute(s"insert into $ks.test (k1,k2,k3,c1,c2,c3,d10_set) " +
+          s"values ($i, 'text$i', $i, $i, 'text$i', 123e4567-e89b-12d3-a456-42661417400$i, {$i, ${i * 10}})")
+      }
     }
   }
 
-  val schema = schemaFromCassandra(conn)
+  lazy val schema = schemaFromCassandra(conn)
 
   "A Schema" should {
     "allow to get a list of keyspaces" in {
