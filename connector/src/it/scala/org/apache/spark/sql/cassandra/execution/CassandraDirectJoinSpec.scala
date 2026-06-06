@@ -29,7 +29,9 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.cassandra.CassandraSourceRelation._
 import org.apache.spark.sql.cassandra._
-import org.apache.spark.sql.execution.streaming.StreamingQueryWrapper
+// Spark 4 moved StreamingQueryWrapper and split the classic SparkSession (cloneSession) out.
+import org.apache.spark.sql.execution.streaming.runtime.StreamingQueryWrapper
+import org.apache.spark.sql.classic.{SparkSession => ClassicSparkSession}
 import org.scalatest.concurrent.Eventually
 
 
@@ -192,11 +194,9 @@ class CassandraDirectJoinSpec extends SparkCassandraITFlatSpecBase with DefaultC
 
 
 
-  private object testImplicits extends SQLImplicits {
-    protected override def _sqlContext: SQLContext = spark.sqlContext
-  }
-
-  import testImplicits._
+  // Spark 4's SQLImplicits added abstract members; use the session's own implicits instead of a
+  // hand-rolled SQLImplicits subclass (spark is a stable lazy val).
+  import spark.implicits._
 
   "Cassandra Direct Joins Strategy" should "be extracted from logical plans" in {
 
@@ -757,9 +757,9 @@ class CassandraDirectJoinSpec extends SparkCassandraITFlatSpecBase with DefaultC
   }
 
   private def compareDirectOnDirectOff(test: ((SparkSession) => DataFrame)) = {
-    val sparkJoinOn = spark.cloneSession()
+    val sparkJoinOn = spark.asInstanceOf[ClassicSparkSession].cloneSession()
     sparkJoinOn.conf.set(DirectJoinSettingParam.name, "on")
-    val sparkJoinOff = spark.cloneSession()
+    val sparkJoinOff = spark.asInstanceOf[ClassicSparkSession].cloneSession()
     sparkJoinOff.conf.set(DirectJoinSettingParam.name, "off")
 
     withClue(s"ON\n${planDetails(test(sparkJoinOn))} \nvs\n Off\n${planDetails(test(sparkJoinOff))}") {

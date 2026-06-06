@@ -19,11 +19,11 @@
 object Versions {
 
   val CommonsExec     = "1.3"
-  val CommonsIO       = "2.8.0"
+  val CommonsIO       = "2.22.0"
   val CommonsLang3    = "3.10"
   val Paranamer       = "2.8"
 
-  val CassandraJavaDriver = "4.19.2"
+  val CassandraJavaDriver = "4.19.3"
   val EsriGeometry        = "2.2.4"
 
   val ScalaCheck      = "1.14.0"

@@ -18,11 +18,14 @@
 
 package org.apache.spark.sql.datastax.test.monotonic
 
-import org.apache.spark.sql.{DataFrame, Dataset, SQLContext}
+import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.sql.classic.{Dataset => ClassicDataset, SparkSession => ClassicSparkSession}
 import org.apache.spark.sql.catalyst.types.DataTypeUtils
 import org.apache.spark.sql.catalyst.expressions.GenericInternalRow
 import org.apache.spark.sql.catalyst.plans.logical.LocalRelation
-import org.apache.spark.sql.execution.streaming.{LongOffset, Offset, SerializedOffset, Source}
+import org.apache.spark.sql.execution.streaming.{Offset, Source}
+// Spark 4 moved the streaming offset implementations into the .runtime sub-package.
+import org.apache.spark.sql.execution.streaming.runtime.{LongOffset, SerializedOffset}
 import org.apache.spark.sql.sources.StreamSourceProvider
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 
@@ -52,8 +55,8 @@ class DefaultSource extends StreamSourceProvider {
         val startValue = start match {
           case Some(ser: SerializedOffset) => FakeStreamSource.parseOffset(ser.json)
           case Some(LongOffset(x)) => x
-          case None => 0
-          case _ => -1
+          case None => 0L
+          case _ => -1L
         }
 
         val endValue = end match {
@@ -62,7 +65,8 @@ class DefaultSource extends StreamSourceProvider {
         }
         val rows = (startValue.toInt to endValue.toInt).map( value =>
           new GenericInternalRow(values = Array(value)))
-        Dataset.ofRows(spark.sparkSession, LocalRelation(DataTypeUtils.toAttributes(schema), rows, isStreaming = true))
+        ClassicDataset.ofRows(spark.sparkSession.asInstanceOf[ClassicSparkSession],
+          LocalRelation(DataTypeUtils.toAttributes(schema), rows, isStreaming = true))
       }
 
       override def stop() {}

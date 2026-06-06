@@ -20,10 +20,13 @@ package org.apache.spark.sql.datastax.test.empty
 
 import org.apache.spark.sql.catalyst.plans.logical.LocalRelation
 import org.apache.spark.sql.catalyst.types.DataTypeUtils
-import org.apache.spark.sql.execution.streaming.{LongOffset, Offset, Source}
+import org.apache.spark.sql.execution.streaming.{Offset, Source}
+// Spark 4 moved the streaming offset implementations into the .runtime sub-package.
+import org.apache.spark.sql.execution.streaming.runtime.LongOffset
 import org.apache.spark.sql.sources.StreamSourceProvider
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Dataset, SQLContext}
+import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.sql.classic.{Dataset => ClassicDataset, SparkSession => ClassicSparkSession}
 
 
 /**
@@ -52,7 +55,8 @@ class DefaultSource extends StreamSourceProvider {
     }
 
     override def getBatch(start: Option[Offset], end: Offset): DataFrame = {
-      Dataset.ofRows(sqlContext.sparkSession, LocalRelation(DataTypeUtils.toAttributes(schema), isStreaming = true))
+      ClassicDataset.ofRows(sqlContext.sparkSession.asInstanceOf[ClassicSparkSession],
+        LocalRelation(DataTypeUtils.toAttributes(schema), isStreaming = true))
     }
 
     override def stop() {}

@@ -25,7 +25,7 @@ for VERSION in $@ ;do
     for MODULE in connector driver test-support; do
         FOLDER=$SCC_HOME/$MODULE
         echo "COPYING $FOLDER to $OUTPUT/$VERSION/$MODULE"
-        cp -vr $FOLDER/target/scala-2.12/api $OUTPUT/$VERSION/$MODULE
+        cp -vr $FOLDER/target/scala-2.13/api $OUTPUT/$VERSION/$MODULE
     done
 done
 git checkout gh-pages
