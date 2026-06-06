@@ -25,6 +25,7 @@ import org.apache.hadoop.hive.conf.HiveConf
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.SparkConf
 import org.apache.spark.sql._
+import org.apache.spark.sql.classic.{Dataset => ClassicDataset, SparkSession => ClassicSparkSession}
 import org.apache.spark.sql.execution.datasources.v2.{DataSourceV2Relation, DataSourceV2ScanRelation}
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.util.CaseInsensitiveStringMap
@@ -225,9 +226,9 @@ object CassandraSourceRelation extends Logging {
 
   def setDirectJoin[K: Encoder](ds: Dataset[K], directJoinSetting: DirectJoinSetting = AlwaysOn): Dataset[K] = {
     val oldPlan = ds.queryExecution.logical
-    Dataset[K](ds.sparkSession,
+    ClassicDataset[K](ds.sparkSession.asInstanceOf[ClassicSparkSession],
       oldPlan.transform {
-        case ds@DataSourceV2Relation(_: CassandraTable, _, _, _, options) =>
+        case ds@DataSourceV2Relation(_: CassandraTable, _, _, _, options, _) =>
           ds.copy(options = applyDirectJoinSetting(options, directJoinSetting))
         case ds@DataSourceV2ScanRelation(_: CassandraTable, scan: CassandraScan, _, _, _) =>
           ds.copy(scan = scan.copy(consolidatedConf = applyDirectJoinSetting(scan.consolidatedConf, directJoinSetting)))

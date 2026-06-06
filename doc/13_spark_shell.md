@@ -13,12 +13,12 @@ If you don't include the master address below the spark shell will run in Local 
 of Scala that your Spark build uses (The "2.1X" portion of the package. If you aren't sure for Spark < 2.0 use 2.10).
 
 
-Find additional versions at [Spark Packages](https://repo1.maven.org/maven2/com/datastax/spark/spark-cassandra-connector_2.12/)
+Find additional versions at [Spark Packages](https://repo1.maven.org/maven2/com/datastax/spark/spark-cassandra-connector_2.13/)
   
 ```bash
 cd spark/install/dir
 #Include the --master if you want to run against a spark cluster and not local mode
-./bin/spark-shell [--master sparkMasterAddress] --jars yourAssemblyJar --packages com.datastax.spark:spark-cassandra-connector_2.12:3.5.1 --conf spark.cassandra.connection.host=yourCassandraClusterIp
+./bin/spark-shell [--master sparkMasterAddress] --jars yourAssemblyJar --packages com.datastax.spark:spark-cassandra-connector_2.13:4.1.0 --conf spark.cassandra.connection.host=yourCassandraClusterIp
 ```
 
 By default spark will log everything to the console and this may be a bit of an overload. To change this copy and modify the `log4j.properties` template file

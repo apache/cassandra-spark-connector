@@ -12,7 +12,7 @@ Java Driver). The resolved jars are then placed on the Spark application classpa
 there is no need to manually download SCC from a repository nor tinker with fat (uber) jar assembly process.
 
 `--packages` option with full SCC coordinate places SCC 
-[main artifact](https://search.maven.org/artifact/com.datastax.spark/spark-cassandra-connector_2.12)
+[main artifact](https://search.maven.org/artifact/com.datastax.spark/spark-cassandra-connector_2.13)
 and all of its dependencies on the app's classpath.
 ```
 spark-submit --packages com.datastax.spark:spark-cassandra-connector_<scala_version>:<scc_version> ...
@@ -29,7 +29,7 @@ Note that this approach works with `spark-shell` as well.
 Spark places jars provided with `--jars <url>` on the Spark application classpath. The jars are placed 
 on the classpath without resolving any the dependencies as jar files do not contain information about the
 dependencies. That is why using the
-[main artifact](https://search.maven.org/artifact/com.datastax.spark/spark-cassandra-connector_2.12) with 
+[main artifact](https://search.maven.org/artifact/com.datastax.spark/spark-cassandra-connector_2.13) with 
 `--jars` is not effective - additional dependencies (like Cassandra Java Driver) are crucial for SCC 
 functioning. Using `--jars` with the main artifact results in `NoClassDefFoundError`.
 
