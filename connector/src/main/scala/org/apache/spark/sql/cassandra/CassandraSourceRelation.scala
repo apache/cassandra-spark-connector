@@ -225,15 +225,17 @@ object CassandraSourceRelation extends Logging {
   }
 
   def setDirectJoin[K: Encoder](ds: Dataset[K], directJoinSetting: DirectJoinSetting = AlwaysOn): Dataset[K] = {
-    val oldPlan = ds.queryExecution.logical
-    ClassicDataset[K](ds.sparkSession.asInstanceOf[ClassicSparkSession],
-      oldPlan.transform {
+    // Spark 4's `.load()` yields a lazy UnresolvedDataSource as the parsed logical plan; the
+    // DataSourceV2Relation only exists after analysis. Transform the analyzed plan so the
+    // direct-join option is actually injected into the relation/scan.
+    val oldPlan = ds.queryExecution.analyzed
+    val newPlan = oldPlan.transform {
         case ds@DataSourceV2Relation(_: CassandraTable, _, _, _, options, _) =>
           ds.copy(options = applyDirectJoinSetting(options, directJoinSetting))
-        case ds@DataSourceV2ScanRelation(_: CassandraTable, scan: CassandraScan, _, _, _) =>
+        case ds@DataSourceV2ScanRelation(DataSourceV2Relation(_: CassandraTable, _, _, _, _, _), scan: CassandraScan, _, _, _) =>
           ds.copy(scan = scan.copy(consolidatedConf = applyDirectJoinSetting(scan.consolidatedConf, directJoinSetting)))
       }
-    )
+    ClassicDataset[K](ds.sparkSession.asInstanceOf[ClassicSparkSession], newPlan)
   }
 
   val defaultClusterName = "default"

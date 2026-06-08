@@ -427,7 +427,7 @@ class CassandraCatalog extends CatalogPlugin
   }
 }
 
-object CassandraCatalog extends Logging {
+object CassandraCatalog {
 
   private val OnlyOneNamespace = "Cassandra only supports a keyspace name of a single level (no periods in keyspace name)"
 
@@ -486,10 +486,11 @@ object CassandraCatalog extends Logging {
   def namespaceMissing(metadata: Metadata, namespace: Array[String]): NoSuchNamespaceException = {
     val suggestions = NameTools.getSuggestions(metadata, namespace.head)
     val error = NameTools.getErrorString(namespace.head, None, suggestions)
-    // Spark 4's NoSuchNamespaceException no longer accepts a free-form message, so surface the
-    // suggestion-rich error via logging while still throwing the typed exception Spark expects.
-    logError(error)
-    new NoSuchNamespaceException(namespace)
+    // Spark 4's NoSuchNamespaceException no longer accepts a free-form message; override getMessage so
+    // the suggestion-rich error is still surfaced to the user while keeping the typed exception.
+    new NoSuchNamespaceException(namespace) {
+      override def getMessage: String = error
+    }
   }
 
   private def getMetadata(connector: CassandraConnector): Metadata = {
@@ -502,8 +503,9 @@ object CassandraCatalog extends Logging {
     val suggestions = NameTools.getSuggestions(metadata, namespace.head, name)
     val error = NameTools.getErrorString(namespace.head, Some(name), suggestions)
     // See namespaceMissing: Spark 4 dropped the free-form message constructor.
-    logError(error)
-    new NoSuchTableException(Identifier.of(namespace, name))
+    new NoSuchTableException(Identifier.of(namespace, name)) {
+      override def getMessage: String = error
+    }
   }
 
 }
