@@ -19,11 +19,11 @@
 object Versions {
 
   val CommonsExec     = "1.3"
-  val CommonsIO       = "2.8.0"
+  val CommonsIO       = "2.22.0"
   val CommonsLang3    = "3.10"
   val Paranamer       = "2.8"
 
-  val CassandraJavaDriver = "4.18.1"
+  val CassandraJavaDriver = "4.19.3"
   val EsriGeometry        = "2.2.4"
 
   val ScalaCheck      = "1.14.0"
@@ -32,8 +32,8 @@ object Versions {
   val JUnitInterface  = "0.11"
   val Mockito         = "1.10.19"
 
-  val ApacheSpark     = "3.5.0"
-  val SparkJetty      = "9.4.51.v20230217"
+  val ApacheSpark     = "4.1.2"
+  val SparkJetty      = "11.0.26"
   val SolrJ           = "8.3.0"
 
   val ScalaCompat         = "2.11.0"

@@ -24,6 +24,7 @@ import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
 import com.datastax.spark.connector.cluster.DefaultCluster
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.rdd.partitioner.CassandraPartition
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.internal.SQLConf
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.time.SpanSugar._
@@ -71,6 +72,10 @@ class CassandraCatalogSpecBase
     super.beforeClass
     spark.conf.set(s"spark.sql.catalog.$defaultCatalog", classOf[CassandraCatalog].getCanonicalName)
     spark.conf.set(SQLConf.DEFAULT_CATALOG.key, "cassandra")
+    // Spark 4 no longer treats spark.sql.defaultCatalog as the *current* catalog; select it explicitly.
+    // Catalog plugin loading resolves against the active session's conf, so make `spark` active first.
+    SparkSession.setActiveSession(spark)
+    spark.sessionState.catalogManager.setCurrentCatalog(defaultCatalog)
   }
 
 

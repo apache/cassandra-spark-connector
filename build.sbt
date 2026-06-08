@@ -3,13 +3,12 @@ import sbt.Keys.parallelExecution
 import sbt.{Compile, moduleFilter, _}
 import sbtassembly.AssemblyPlugin.autoImport.assembly
 
-lazy val scala212 = "2.12.19"
-lazy val scala213 = "2.13.13"
-lazy val supportedScalaVersions = List(scala212, scala213)
+lazy val scala213 = "2.13.18"
+lazy val supportedScalaVersions = List(scala213)
 
 // factor out common settings
-ThisBuild / scalaVersion := scala212
-ThisBuild / scalacOptions ++= Seq("-target:jvm-1.8")
+ThisBuild / scalaVersion := scala213
+ThisBuild / scalacOptions ++= Seq("-release", "17")
 
 // Publishing Info
 ThisBuild / credentials ++= Publishing.Creds
@@ -54,6 +53,26 @@ lazy val assemblySettings = Seq(
   },
 )
 
+// Spark 4.x runs on Java 17, which requires these module open directives for the forked
+// (test) JVMs so Spark's use of internal JDK classes (unsafe, nio, etc.) keeps working.
+lazy val jdk17Options = Seq(
+  "--add-opens=java.base/java.lang=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+  "--add-opens=java.base/java.io=ALL-UNNAMED",
+  "--add-opens=java.base/java.net=ALL-UNNAMED",
+  "--add-opens=java.base/java.nio=ALL-UNNAMED",
+  "--add-opens=java.base/java.util=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+  "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
+  "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
+  "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+  "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED"
+)
+
 lazy val commonSettings = Seq(
   // dependency updates check
   dependencyUpdatesFailBuild := true,
@@ -61,6 +80,7 @@ lazy val commonSettings = Seq(
   fork := true,
   parallelExecution := true,
   testForkedParallel := false,
+  javaOptions ++= jdk17Options,
   testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
 )
 
@@ -70,9 +90,8 @@ val annotationProcessor = Seq(
 )
 
 def scalacVersionDependantOptions(scalaBinary: String): Seq[String] = scalaBinary match {
-  case "2.11" => Seq()
-  case "2.12" => Seq("-no-java-comments") //Scala Bug on inner classes, CassandraJavaUtil,
   case "2.13" => Seq("-no-java-comments") //Scala Bug on inner classes, CassandraJavaUtil,
+  case _ => Seq()
 }
 
 lazy val root = (project in file("."))
@@ -94,7 +113,7 @@ lazy val connector = (project in file("connector"))
     crossScalaVersions := supportedScalaVersions,
     name := "spark-cassandra-connector",
 
-    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+    javacOptions ++= Seq("-source", "17", "-target", "17"),
 
     // test grouping
     integrationTestsWithFixtures := {

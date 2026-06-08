@@ -1,6 +1,6 @@
 # Documentation
 
-## 5-minute quick start guide for Spark 3.0
+## 5-minute quick start guide for Spark 4.1
 
 In this tutorial, you'll learn how to setup a very simple Spark application for reading and writing data from/to Cassandra.
 Before you start, you need to have basic knowledge of Apache Cassandra and Apache Spark.
@@ -15,17 +15,17 @@ Configure a new Scala project with the Apache Spark and dependency.
 
 The dependencies are easily retrieved via Maven Central 
 
-    libraryDependencies += "com.datastax.spark" % "spark-cassandra-connector_2.12" % "3.5.1"
+    libraryDependencies += "com.datastax.spark" % "spark-cassandra-connector_2.13" % "4.1.0"
  
 The spark-packages libraries can also be used with spark-submit and spark shell, these
 commands will place the connector and all of its dependencies on the path of the
 Spark Driver and all Spark Executors.
    
-    $SPARK_HOME/bin/spark-shell --packages com.datastax.spark:spark-cassandra-connector_2.12:3.5.1
-    $SPARK_HOME/bin/spark-submit --packages com.datastax.spark:spark-cassandra-connector_2.12:3.5.1
+    $SPARK_HOME/bin/spark-shell --packages com.datastax.spark:spark-cassandra-connector_2.13:4.1.0
+    $SPARK_HOME/bin/spark-submit --packages com.datastax.spark:spark-cassandra-connector_2.13:4.1.0
 
 For the list of available versions, see:
-- https://repo1.maven.org/maven2/com/datastax/spark/spark-cassandra-connector_2.12/
+- https://repo1.maven.org/maven2/com/datastax/spark/spark-cassandra-connector_2.13/
  
 This Connector does not depend on the Cassandra server code.
 
@@ -42,7 +42,7 @@ and *all* of its dependencies on the Spark Class PathTo configure
 the default Spark Configuration pass key value pairs with `--conf`
 
     $SPARK_HOME/bin/spark-shell --conf spark.cassandra.connection.host=127.0.0.1 \
-                                --packages com.datastax.spark:spark-cassandra-connector_2.12:3.5.1
+                                --packages com.datastax.spark:spark-cassandra-connector_2.13:4.1.0
                                 --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions
 
 This command would set the Spark Cassandra Connector parameter 

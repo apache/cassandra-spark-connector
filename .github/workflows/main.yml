@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scala:  [2.12.19, 2.13.13]
+        scala:  [2.13.18]
         db-version: [3.11.19, 4.0.17, 4.1.8, 5.0.4, dse-6.8.44]
 
     steps:
@@ -29,8 +29,9 @@ jobs:
         with:
           distribution: "temurin"
           java-version: | # order is important, the last one is the default which will be used by SBT
-            11
             8
+            11
+            17
 
       - name: sbt tests
         env:
@@ -39,6 +40,7 @@ jobs:
           PUBLISH_VERSION: test
           JAVA8_HOME: ${{ env.JAVA_HOME_8_X64 }}
           JAVA11_HOME: ${{ env.JAVA_HOME_11_X64 }}
+          JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: sbt/sbt ++${{ matrix.scala }} test it:test
 
       - name: Publish Test Report

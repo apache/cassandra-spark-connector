@@ -25,6 +25,28 @@ import scala.util.Try
 
 object Testing {
 
+  // Apache Spark 4.x runs on Java 17, which requires these module open directives in every JVM that
+  // runs Spark. The integration-test groups below build their own ForkOptions (replacing the
+  // project's javaOptions), so the same flags must be repeated here or Spark fails with
+  // InaccessibleObjectException.
+  private val jdk17Options = Seq(
+    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+    "--add-opens=java.base/java.io=ALL-UNNAMED",
+    "--add-opens=java.base/java.net=ALL-UNNAMED",
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-opens=java.base/java.util=ALL-UNNAMED",
+    "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+    "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+    "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
+    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+    "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
+    "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
+    "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+    "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED"
+  )
+
   private def interfacesImplementingFixture(c: Class[_], fixture: Class[_]): Seq[Class[_]] = {
     c.getInterfaces.toSeq.filter(i => i != fixture && fixture.isAssignableFrom(i)) ++
       c.getInterfaces.flatMap(interfacesImplementingFixture(_, fixture)) ++
@@ -57,7 +79,7 @@ object Testing {
         Group(groupName, tests.toSeq, SubProcess(
           ForkOptions()
             .withEnvVars(envVars)
-            .withRunJVMOptions(getCCMJvmOptions.flatten.toVector)))
+            .withRunJVMOptions((getCCMJvmOptions.flatten ++ jdk17Options).toVector)))
       }
   }
 

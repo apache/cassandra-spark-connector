@@ -26,6 +26,7 @@ import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, Project}
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.v2.DataSourceV2Relation
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.classic.ColumnConversions
 import org.apache.spark.sql.{AnalysisException, SparkSession, functions}
 
 trait CassandraMetadataFunction extends UnaryExpression with Unevaluable {
@@ -89,8 +90,8 @@ object CassandraMetadataFunction {
 
   def cassandraTTLFunctionBuilder(args: Seq[Expression]): CassandraTTL = {
     if (args.length != 1) {
-      throw new AnalysisException(s"Unable to call Cassandra ttl with more than 1 argument, given" +
-        s" $args")
+      throw new AnalysisException("INTERNAL_ERROR", Map("message" ->
+        s"Unable to call Cassandra ttl with more than 1 argument, given $args"))
     }
     CassandraTTL(args.head)
   }
@@ -105,8 +106,8 @@ object CassandraMetadataFunction {
 
   def cassandraWriteTimeFunctionBuilder(args: Seq[Expression]): CassandraWriteTime = {
     if (args.length != 1) {
-      throw new AnalysisException(s"Unable to call Cassandra writetime with more than 1 argument," +
-        s" given $args")
+      throw new AnalysisException("INTERNAL_ERROR", Map("message" ->
+        s"Unable to call Cassandra writetime with more than 1 argument, given $args"))
     }
     CassandraWriteTime(args.head)
   }
@@ -129,7 +130,7 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
     val cassandraCql = s"${metaDataExpression.cql}($cassandraColumnName)"
 
     val (cassandraTable) = plan.collectFirst {
-      case DataSourceV2Relation(table: CassandraTable, _, _, _, _)
+      case DataSourceV2Relation(table: CassandraTable, _, _, _, _, _)
         if table.tableDef.columnByName.contains(cassandraColumnName) => table }
       .getOrElse(throw new IllegalArgumentException(
         s"Unable to find Cassandra Source Relation for TTL/Writetime for column $cassandraColumnName"))
@@ -137,7 +138,8 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
     val columnDef = cassandraTable.tableDef.columnByName(cassandraColumnName)
 
     if (columnDef.isPrimaryKeyColumn)
-      throw new AnalysisException(s"Unable to use ${metaDataExpression.cql} function on non-normal column ${columnDef.columnName}")
+      throw new AnalysisException("INTERNAL_ERROR", Map("message" ->
+        s"Unable to use ${metaDataExpression.cql} function on non-normal column ${columnDef.columnName}"))
 
     //Used for CassandraRelation Leaves, giving them a reference to the underlying Metadata
     val (cassandraAttributeReference, cassandraField) = if (columnDef.isMultiCell) {
@@ -152,7 +154,7 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
     val unResolvedAttributeReference =  new NullableUnresolvedAttribute(cassandraCql)
 
     //Used for any leaf nodes that do not have the ability to produce a true Metadata Value
-    val nullAttributeReference = Alias(functions.lit(null).cast(metaDataExpression.dataType).expr, cassandraCql)()
+    val nullAttributeReference = Alias(ColumnConversions.expression(functions.lit(null).cast(metaDataExpression.dataType)), cassandraCql)()
 
     // Remove Metadata Expressions
     val metadataFunctionRemovedPlan = plan.transformAllExpressions{
@@ -161,7 +163,7 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
 
     // Add Metadata to CassandraSource
     val cassandraSourceModifiedPlan = metadataFunctionRemovedPlan.transform {
-      case cassandraRelation@DataSourceV2Relation(table: CassandraTable, _, _, _, _)
+      case cassandraRelation@DataSourceV2Relation(table: CassandraTable, _, _, _, _, _)
         if table.tableDef.columnByName.contains(cassandraColumnName) =>
         val modifiedCassandraTable = table.copy(optionalSchema = Some(table.schema().add(cassandraField)))
         cassandraRelation.copy(
