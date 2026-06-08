@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scala:  [2.13.17]
+        scala:  [2.13.18]
         db-version: [3.11.19, 4.0.17, 4.1.8, 5.0.4, dse-6.8.44]
 
     steps:

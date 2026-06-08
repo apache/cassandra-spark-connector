@@ -1,6 +1,6 @@
 4.1.0
  * Add support for Apache Spark 4.1; drop Scala 2.12 and Java 8/11, require Scala 2.13 and Java 17 (CASSANALYTICS-173)
- * Upgrade Cassandra Java Driver to 4.19.2 (CASSANALYTICS-173)
+ * Upgrade Cassandra Java Driver to 4.19.3 (CASSANALYTICS-173)
 
 3.5.1
  * Support for Vector type available in Cassandra 5.0 (SPARKC-706)
