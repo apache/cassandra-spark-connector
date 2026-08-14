@@ -21,9 +21,10 @@ ThisBuild / organizationHomepage := Some(url("https://www.datastax.com"))
 ThisBuild / pomExtra := Publishing.OurDevelopers
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishMavenStyle := true
-ThisBuild / publishTo := Publishing.Repository
+ThisBuild / publishTo := Publishing.repository(version.value)
 ThisBuild / scmInfo := Publishing.OurScmInfo
-ThisBuild / version := Publishing.Version
+ThisBuild / dynverSeparator := "-"
+ThisBuild / dynverSonatypeSnapshots := true
 
 Global / resolvers ++= Seq(
   DefaultMavenRepository,

@@ -25,7 +25,7 @@ import com.datastax.oss.driver.api.core.metadata.Node
 import com.datastax.oss.driver.api.core.retry.RetryDecision
 import com.datastax.oss.driver.api.core.servererrors._
 import com.datastax.oss.driver.api.core.{DefaultConsistencyLevel, DriverException}
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers.{eq => meq, _}
 import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
@@ -83,8 +83,8 @@ class MultipleRetryPolicySpec extends FlatSpec with Matchers with MockitoSugar {
     val driverContext = mock[DriverContext]
     val driverConfig = mock[DriverConfig]
     val profile = mock[DriverExecutionProfile]
-    when(profile.getInt(org.mockito.Matchers.eq(MultipleRetryPolicy.MaxRetryCount), anyInt())).thenReturn(retries)
-    when(driverConfig.getProfile(anyString)).thenReturn(profile)
+    when(profile.getInt(meq(MultipleRetryPolicy.MaxRetryCount), anyInt())).thenReturn(retries)
+    when(driverConfig.getProfile(nullable(classOf[String]))).thenReturn(profile)
     when(driverContext.getConfig).thenReturn(driverConfig)
     new MultipleRetryPolicy(driverContext, null)
   }
