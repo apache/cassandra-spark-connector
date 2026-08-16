@@ -106,6 +106,8 @@ lazy val connector = (project in file("connector"))
     IntegrationTest / testOptions += Tests.Argument("-oF"),  // show full stack traces
 
     Test / javacOptions ++= annotationProcessor ++ Seq("-d", (classDirectory in Test).value.toString),
+    Test / javaOptions ++= Testing.sparkJavaModuleOptions,
+    IntegrationTest / javaOptions ++= Testing.sparkJavaModuleOptions,
 
     Global / concurrentRestrictions := Seq(Tags.limitAll(Testing.parallelTasks)),
 
