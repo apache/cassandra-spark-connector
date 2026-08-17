@@ -45,6 +45,6 @@ if [ ! -f ${JAR} ]; then
 fi
 printf "Launching sbt from ${JAR}\n"
 java \
-  -Xmx1200m -XX:MaxPermSize=350m -XX:ReservedCodeCacheSize=256m \
+  -Xmx1200m -XX:ReservedCodeCacheSize=256m \
   -jar ${JAR} \
   "$@"

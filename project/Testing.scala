@@ -25,6 +25,22 @@ import scala.util.Try
 
 object Testing {
 
+  def sparkJavaModuleOptions: Seq[String] = {
+    if (Runtime.version().feature() >= 17) {
+      Seq(
+        "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-exports=java.base/sun.security.action=ALL-UNNAMED",
+        "--add-exports=java.base/sun.util.calendar=ALL-UNNAMED",
+        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED")
+    } else {
+      Seq.empty
+    }
+  }
+
   private def interfacesImplementingFixture(c: Class[_], fixture: Class[_]): Seq[Class[_]] = {
     c.getInterfaces.toSeq.filter(i => i != fixture && fixture.isAssignableFrom(i)) ++
       c.getInterfaces.flatMap(interfacesImplementingFixture(_, fixture)) ++
@@ -57,7 +73,7 @@ object Testing {
         Group(groupName, tests.toSeq, SubProcess(
           ForkOptions()
             .withEnvVars(envVars)
-            .withRunJVMOptions(getCCMJvmOptions.flatten.toVector)))
+            .withRunJVMOptions((getCCMJvmOptions.flatten ++ sparkJavaModuleOptions).toVector)))
       }
   }
 

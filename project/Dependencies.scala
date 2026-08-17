@@ -56,7 +56,7 @@ object Dependencies
   }
 
   object TestCommon {
-    val mockito = "org.mockito" % "mockito-all" % Mockito
+    val mockito = "org.mockito" % "mockito-core" % Mockito
     val junit = "junit" % "junit" % JUnit
     val junitInterface = "com.novocode" % "junit-interface" % JUnitInterface
     val scalaTest = "org.scalatest" %% "scalatest" % ScalaTest
@@ -70,12 +70,16 @@ object Dependencies
     val sparkCoreT        = "org.apache.spark"        %% "spark-core"                   % ApacheSpark  % "test,it" classifier "tests"
     val sparkStreamingT   = "org.apache.spark"        %% "spark-streaming"              % ApacheSpark  % "test,it" classifier "tests"
     val solrj             = "org.apache.solr"         %  "solr-solrj"                   % SolrJ      % "test,it"
+    val testcontainers    = "org.testcontainers"      %  "testcontainers"               % "2.0.5"   % "test,it"
+    val cassandraContainer = "org.testcontainers"     %  "testcontainers-cassandra"     % "2.0.5"   % "test,it"
 
     val dependencies = Seq(
       scalaCheck,
       sparkCoreT,
       sparkStreamingT,
       solrj,
+      testcontainers,
+      cassandraContainer,
       TestCommon.driverMapperProcessor % "test,it" driverCoreExclude(),
       TestCommon.scalaTest % "test,it",
       TestCommon.mockito % "test,it",

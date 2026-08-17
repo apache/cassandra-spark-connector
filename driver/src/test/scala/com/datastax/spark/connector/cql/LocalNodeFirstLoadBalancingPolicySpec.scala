@@ -30,8 +30,8 @@ import com.datastax.oss.driver.api.core.metadata.{EndPoint, Node}
 import com.datastax.oss.driver.internal.core.context.InternalDriverContext
 import com.datastax.oss.driver.internal.core.metadata.MetadataManager
 import com.datastax.spark.connector.util.DriverUtil
+import org.mockito.ArgumentMatchers.{eq => meq, _}
 import org.mockito.Mockito._
-import org.mockito.{Matchers => m}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -72,10 +72,10 @@ class LocalNodeFirstLoadBalancingPolicySpec extends FlatSpec with Matchers with 
   private val metaManager = mock[MetadataManager]
 
   override def beforeEach() {
-    when(profile.getString(m.eq(LOAD_BALANCING_LOCAL_DATACENTER))).thenReturn(dc)
-    when(profile.getString(m.eq(LOAD_BALANCING_LOCAL_DATACENTER), m.any())).thenReturn(dc)
+    when(profile.getString(meq(LOAD_BALANCING_LOCAL_DATACENTER))).thenReturn(dc)
+    when(profile.getString(meq(LOAD_BALANCING_LOCAL_DATACENTER), any())).thenReturn(dc)
 
-    when(config.getProfile(m.eq(profileName))).thenReturn(profile)
+    when(config.getProfile(meq(profileName))).thenReturn(profile)
     when(context.getConfig).thenReturn(config)
 
     when(context.getMetadataManager).thenReturn(metaManager)
@@ -115,8 +115,8 @@ class LocalNodeFirstLoadBalancingPolicySpec extends FlatSpec with Matchers with 
   }
 
   it should "apply configured node filter" in {
-    when(profile.isDefined(m.eq(LOAD_BALANCING_FILTER_CLASS))).thenReturn(true)
-    when(profile.getString(m.eq(LOAD_BALANCING_FILTER_CLASS))).thenReturn(classOf[NodeFilter].getCanonicalName)
+    when(profile.isDefined(meq(LOAD_BALANCING_FILTER_CLASS))).thenReturn(true)
+    when(profile.getString(meq(LOAD_BALANCING_FILTER_CLASS))).thenReturn(classOf[NodeFilter].getCanonicalName)
 
     val policy = new LocalNodeFirstLoadBalancingPolicy(context, profileName)
     val reporter = mock[LoadBalancingPolicy.DistanceReporter]
