@@ -1,5 +1,6 @@
 # Apache Cassandra Spark Connector
 
+
 *Lightning-fast cluster computing with Apache Spark&trade; and Apache Cassandra&reg;.*
 
 [![CI](https://github.com/apache/cassandra-spark-connector/actions/workflows/main.yml/badge.svg?branch=trunk)](https://github.com/apache/cassandra-spark-connector/actions?query=branch%3Atrunk)
