@@ -22,6 +22,7 @@ import java.net.{InetAddress, InetSocketAddress}
 
 import scala.language.postfixOps
 import scala.reflect.runtime.universe._
+import com.datastax.oss.driver.api.core.config.{DefaultDriverOption, DriverConfigLoader}
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.spark.SparkConf
 import org.scalatest.{FlatSpec, Matchers}
@@ -151,6 +152,18 @@ class CassandraConnectorConfSpec extends FlatSpec with Matchers {
       .set(CassandraConnectorConf.JmxEnabledParam.name, "false")
     val conf = CassandraConnectorConf(sparkConf)
     conf.jmxEnabled shouldBe false
+  }
+
+  it should "configure NoopMetricsFactory when JMX reporting is disabled" in {
+    val sparkConf = new SparkConf(loadDefaults = false)
+      .set(CassandraConnectorConf.JmxEnabledParam.name, "false")
+    val conf = CassandraConnectorConf(sparkConf)
+    val profile = DefaultConnectionFactory
+      .connectorConfigBuilder(conf, DriverConfigLoader.programmaticBuilder())
+      .build()
+      .getInitialConfig
+      .getDefaultProfile
+    profile.getString(DefaultDriverOption.METRICS_FACTORY_CLASS) shouldBe "NoopMetricsFactory"
   }
 
   /*
