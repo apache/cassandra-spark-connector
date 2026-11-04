@@ -99,7 +99,7 @@ anything which could be used for any application even if Spark is not involved.
 #### test-support
 CCM Wrapper code. Much of this code is based on the Apache Cassandra Java Driver's test code. 
 Includes code for spawning CCM as well as several modes for launching clusters
-while testing. Together this also defines which tests require seperate clusters to
+while testing. Together this also defines which tests require separate clusters to
 run and the parallelization used while running tests.
 
 ### Test Parallelization
