@@ -26,7 +26,7 @@ import org.apache.spark.{SparkConf, TaskContext}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{FlatSpec, Matchers}
-import com.datastax.driver.core.RowMock
+import com.datastax.spark.connector.test.RowMock
 import com.datastax.spark.connector.rdd.ReadConf
 import com.datastax.spark.connector.util.RuntimeUtil.toParallelIterable
 import org.scalatestplus.mockito.MockitoSugar

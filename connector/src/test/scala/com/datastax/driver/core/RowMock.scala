@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.datastax.driver.core
+package com.datastax.spark.connector.test
 
 import java.nio.ByteBuffer
 

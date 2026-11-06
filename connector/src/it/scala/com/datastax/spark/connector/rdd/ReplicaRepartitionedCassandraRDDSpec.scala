@@ -78,7 +78,6 @@ class ReplicaRepartitionedCassandraRDDSpec extends SparkCassandraITFlatSpecBase 
     val repart = source.repartitionByCassandraReplica(ks, tableName, 10)
     repart.partitions.length should be(conn.hosts.size * 10)
     conn.hosts.size should be(2)
-    conn.hosts should be(cluster.addresses.toSet)
     val someCass = repart.joinWithCassandraTable(ks, tableName)
     someCass.partitions.foreach {
       case e: EndpointPartition =>

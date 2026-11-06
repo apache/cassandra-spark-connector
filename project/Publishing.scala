@@ -23,13 +23,7 @@ import sbt._
 import sbt.librarymanagement.Resolver
 import sbt.librarymanagement.ivy.Credentials
 
-import scala.sys.process._
-
 object Publishing extends sbt.librarymanagement.DependencyBuilders {
-
-  val Version: String = {
-    sys.props.get("publish.version").orElse(sys.env.get("PUBLISH_VERSION")).getOrElse("git describe --tags" !!).stripLineEnd.stripPrefix("v")
-  }
 
   val altReleaseDeploymentRepository = sys.props.get("publish.repository.name")
   val altReleaseDeploymentLocation = sys.props.get("publish.repository.location")
@@ -38,18 +32,16 @@ object Publishing extends sbt.librarymanagement.DependencyBuilders {
   val SonatypeSnapshots = Some("snapshots" at nexus + "content/repositories/snapshots")
   val SonatypeReleases = Some("releases" at nexus + "service/local/staging/deploy/maven2")
 
-  val Repository: Option[Resolver] = {
+  def repository(version: String): Option[Resolver] = {
     (altReleaseDeploymentRepository, altReleaseDeploymentLocation) match {
       case (Some(name), Some(location)) => Some(name at location)
-      case _ => if (Version.endsWith("SNAPSHOT")) {
+      case _ => if (version.endsWith("SNAPSHOT")) {
         SonatypeSnapshots
       } else {
         SonatypeReleases
       }
     }
   }
-
-  println(s"Using $Repository for publishing")
 
   lazy val inlineCredentials = for (
     realm ← sys.props.get("publish.repository.credentials.realm");

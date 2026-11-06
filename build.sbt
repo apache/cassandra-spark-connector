@@ -21,9 +21,10 @@ ThisBuild / organizationHomepage := Some(url("https://www.datastax.com"))
 ThisBuild / pomExtra := Publishing.OurDevelopers
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishMavenStyle := true
-ThisBuild / publishTo := Publishing.Repository
+ThisBuild / publishTo := Publishing.repository(version.value)
 ThisBuild / scmInfo := Publishing.OurScmInfo
-ThisBuild / version := Publishing.Version
+ThisBuild / dynverSeparator := "-"
+ThisBuild / dynverSonatypeSnapshots := true
 
 Global / resolvers ++= Seq(
   DefaultMavenRepository,
@@ -105,6 +106,8 @@ lazy val connector = (project in file("connector"))
     IntegrationTest / testOptions += Tests.Argument("-oF"),  // show full stack traces
 
     Test / javacOptions ++= annotationProcessor ++ Seq("-d", (classDirectory in Test).value.toString),
+    Test / javaOptions ++= Testing.sparkJavaModuleOptions,
+    IntegrationTest / javaOptions ++= Testing.sparkJavaModuleOptions,
 
     Global / concurrentRestrictions := Seq(Tags.limitAll(Testing.parallelTasks)),
 

@@ -30,6 +30,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
 
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 
 class CassandraStreamingSinkSpec extends SparkCassandraITFlatSpecBase with DefaultCluster with Eventually {
 
@@ -47,6 +48,14 @@ class CassandraStreamingSinkSpec extends SparkCassandraITFlatSpecBase with Defau
         Future {
           session.execute(
             s"""CREATE TABLE IF NOT EXISTS $ks.empty (key int, value int, PRIMARY KEY (key))""".stripMargin)
+        },
+        Future {
+          session.execute(
+            s"""CREATE TABLE IF NOT EXISTS $ks.update_mode (
+               |content_id int,
+               |bucket_start_time timestamp,
+               |event_count bigint,
+               |PRIMARY KEY (content_id, bucket_start_time))""".stripMargin)
         }
 
       )
@@ -116,5 +125,60 @@ class CassandraStreamingSinkSpec extends SparkCassandraITFlatSpecBase with Defau
 
     val rs = conn.withSessionDo( s => s.execute(s"SELECT Count(*) FROM $ks.empty").all() )
     rs.get(0).getLong(0) should be (0L)
+  }
+
+  it should "write changing window aggregates in update mode" in {
+    val checkpointDir = Files.createTempDirectory("ks-update")
+    val source = spark
+      .readStream
+      .format("rate")
+      .option("rowsPerSecond", "10")
+      .option("numPartitions", "1")
+      .load()
+      .selectExpr(
+        "CAST(value % 2 AS INT) AS content_id",
+        "timestamp AS event_time")
+      .withWatermark("event_time", "10 minutes")
+      .groupBy(window(col("event_time"), "10 minutes", "10 minutes"), col("content_id"))
+      .count()
+      .selectExpr(
+        "content_id",
+        "window.start AS bucket_start_time",
+        "count AS event_count")
+
+    val query = source.writeStream
+      .option("checkpointLocation", checkpointDir.toString)
+      .cassandraFormat("update_mode", ks)
+      .outputMode(OutputMode.Update())
+      .start()
+
+    try {
+      eventually(timeout(Span(45, Seconds))) {
+        query.exception should be (None)
+        val rows = conn.withSessionDo { session =>
+          session.execute(s"SELECT content_id, bucket_start_time, event_count FROM $ks.update_mode").all()
+        }
+        rows.size() should be > 0
+        rows.get(0).getLong("event_count") should be > 0L
+      }
+
+      val firstCount = conn.withSessionDo { session =>
+        session.execute(s"SELECT event_count FROM $ks.update_mode WHERE content_id = 0").all().asScala
+          .map(_.getLong("event_count"))
+          .max
+      }
+
+      eventually(timeout(Span(45, Seconds))) {
+        query.exception should be (None)
+        val latestCount = conn.withSessionDo { session =>
+          session.execute(s"SELECT event_count FROM $ks.update_mode WHERE content_id = 0").all().asScala
+            .map(_.getLong("event_count"))
+            .max
+        }
+        latestCount should be > firstCount
+      }
+    } finally {
+      query.stop()
+    }
   }
 }
