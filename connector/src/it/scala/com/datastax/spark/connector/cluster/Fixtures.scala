@@ -87,17 +87,23 @@ trait DefaultCluster extends SingleClusterFixture {
 
   private[cluster] final override val configs: Seq[CcmConfig] = Seq(defaultConfig)
 
+  override def cluster: Cluster = TestcontainersClusterHolder.get(connectionParameters)
+
+  override def cluster(c: Int): Cluster = if (c == 0) cluster else
+    throw new IllegalArgumentException(s"This provider defines only one cluster, cluster $c does not exist")
+
   private[cluster] override def connectionParameters(address: InetSocketAddress): Map[String, String] =
     DefaultCluster.defaultConnectionParameters(address)
 }
 
 object DefaultCluster {
   def defaultConnectionParameters(address: InetSocketAddress): Map[String, String] = {
-    val host = address.getAddress.getHostAddress
+    val host = address.getHostString
     val port = address.getPort.toString
     Map(
       ConnectionHostParam.name -> host,
       ConnectionPortParam.name -> port,
+      LocalDCParam.name -> "datacenter1"
     )
   }
 }
@@ -213,8 +219,21 @@ trait TwoNodeCluster extends SingleClusterFixture {
 
   private[cluster] final override val configs: Seq[CcmConfig] = Seq(defaultConfig.copy(nodes = Seq(1, 2)))
 
+  override def cluster: Cluster = TestcontainersTwoNodeClusterHolder.get(TwoNodeCluster.connectionParameters)
+
+  override def cluster(c: Int): Cluster = if (c == 0) cluster else
+    throw new IllegalArgumentException(s"This provider defines only one cluster, cluster $c does not exist")
+
   private[cluster] override def connectionParameters(address: InetSocketAddress): Map[String, String] =
     DefaultCluster.defaultConnectionParameters(address)
+}
+
+object TwoNodeCluster {
+  def connectionParameters(addresses: Seq[InetSocketAddress]): Map[String, String] = {
+    Map(
+      ConnectionHostParam.name -> addresses.map(address => s"${address.getHostString}:${address.getPort}").mkString(","),
+      LocalDCParam.name -> "datacenter1")
+  }
 }
 
 trait CETCluster extends DefaultCluster

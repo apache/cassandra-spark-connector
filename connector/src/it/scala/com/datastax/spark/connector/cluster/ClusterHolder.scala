@@ -42,7 +42,7 @@ object ClusterHolder extends Logging {
   private def close(): Unit = synchronized {
     for (testClusters <- clusters.values; cluster <- testClusters) {
       try {
-        cluster.ccmBridge.close()
+        cluster.close()
       } catch {
         case t: Throwable => logWarning(s"Closing a ${cluster.name} failed", t)
       }
@@ -62,7 +62,7 @@ object ClusterHolder extends Logging {
           logWarning("Test group should contain only tests with the same cluster fixture. Verify your test group setup. " +
             s"Stopping previous clusters and bootstrapping the new one for ${fixture.getClass.getCanonicalName}")
           for (testClusters <- clusters.values; cluster <- testClusters) {
-            cluster.ccmBridge.close()
+            cluster.close()
           }
           clusters.clear()
         }
@@ -72,7 +72,7 @@ object ClusterHolder extends Logging {
           val bridge = new CcmBridge(config)
           bridge.create(clusterName)
           bridge.start()
-          Cluster(clusterName, config, bridge, fixture.connectionParameters)
+          Cluster.fromCcm(clusterName, config, bridge, fixture.connectionParameters)
         }
       })
     }

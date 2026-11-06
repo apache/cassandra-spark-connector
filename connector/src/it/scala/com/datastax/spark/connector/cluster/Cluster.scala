@@ -26,20 +26,24 @@ import com.datastax.spark.connector.ccm.{CcmBridge, CcmConfig}
 /** Cluster facade used by test code. */
 case class Cluster(
     name: String,
-    private[cluster] val config: CcmConfig,
-    private[cluster] val ccmBridge: CcmBridge,
+    addresses: Seq[InetSocketAddress],
+    private val closeCluster: () => Unit,
+    private val flushNode: Int => Unit,
+    private val refreshSizeEstimatesForNode: Int => Unit,
+    private val cassandraVersion: () => Version,
+    private val dseVersion: () => Option[Version],
     private val nodeConnectionParams: InetSocketAddress => Map[String, String]) {
 
-  val addresses: Seq[InetSocketAddress] = config.nodeAddresses()
+  def close(): Unit = closeCluster()
 
-  def flush(): Unit = config.nodes.foreach(ccmBridge.flush)
+  def flush(): Unit = addresses.indices.foreach(i => flushNode(i + 1))
 
-  def getCassandraVersion: Version = ccmBridge.getCassandraVersion
-  def getDseVersion: Option[Version] = ccmBridge.getDseVersion
+  def getCassandraVersion: Version = cassandraVersion()
+  def getDseVersion: Option[Version] = dseVersion()
 
   def refreshSizeEstimates(): Unit = {
     flush()
-    config.nodes.foreach(ccmBridge.refreshSizeEstimates)
+    addresses.indices.foreach(i => refreshSizeEstimatesForNode(i + 1))
   }
 
   def getConnectionHost: String = addresses.head.getHostName
@@ -55,5 +59,24 @@ case class Cluster(
       nodeConnectionParams(addresses(nodeNo))
     else
       throw new IllegalArgumentException(s"Cluster $name has ${addresses.size} nodes, node $nodeNo does not exist.")
+  }
+}
+
+object Cluster {
+
+  def fromCcm(
+      name: String,
+      config: CcmConfig,
+      ccmBridge: CcmBridge,
+      nodeConnectionParams: InetSocketAddress => Map[String, String]): Cluster = {
+    Cluster(
+      name,
+      config.nodeAddresses(),
+      () => ccmBridge.close(),
+      ccmBridge.flush,
+      ccmBridge.refreshSizeEstimates,
+      () => ccmBridge.getCassandraVersion,
+      () => ccmBridge.getDseVersion,
+      nodeConnectionParams)
   }
 }
