@@ -1,17 +1,26 @@
-# Apache Cassandra Spark Connector
+# Arizona Spark Cassandra Connector
 
+An Apache-licensed fork of the Apache Cassandra Spark Connector maintained by
+Teknek under the `io.teknek.arizona.spark` project namespace.
+
+The fork preserves the Apache License 2.0, the upstream `NOTICE` file, and the
+historical attribution of the original Apache Cassandra and DataStax work. Its
+connector APIs use the `io.teknek.arizona` namespace and new Maven coordinates.
+The `org.apache.spark.sql.cassandra` integration package and `spark.cassandra.*`
+configuration keys remain unchanged where Spark compatibility requires them.
 
 *Lightning-fast cluster computing with Apache Spark&trade; and Apache Cassandra&reg;.*
 
-[![CI](https://github.com/apache/cassandra-spark-connector/actions/workflows/main.yml/badge.svg?branch=trunk)](https://github.com/apache/cassandra-spark-connector/actions?query=branch%3Atrunk)
+[![CI](https://github.com/edwardcapriolo/Arizona-cassandra-spark-connector/actions/workflows/main.yml/badge.svg?branch=update-mode)](https://github.com/edwardcapriolo/Arizona-cassandra-spark-connector/actions?query=branch%3Aupdate-mode)
 
 ## Quick Links
 
 | What       | Where                                                                                                                                                                                                                                                                                                               |
 | ---------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Community  | Chat with us at [Apache Cassandra](https://cassandra.apache.org/_/community.html#discussions)                                                                                                                                                                                                                       |
-| Scala Docs | Most Recent Release (3.5.1): [Connector API docs](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.1/connector/com/datastax/spark/connector/index.html), [Connector Driver docs](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.1/driver/com/datastax/spark/connector/index.html) |
-| Latest Production Release | [3.5.1](https://search.maven.org/artifact/com.datastax.spark/spark-cassandra-connector_2.12/3.5.1/jar)                                                                                                                                                                                                              |
+| Documentation | [User documentation](doc/0_quick_start.md), [development notes](doc/developers.md) |
+| Project Coordinates | `io.teknek.arizona.spark:arizona-spark-connector_2.12` |
+| License | [Apache License 2.0](LICENSE.txt), with project attribution in [NOTICE](NOTICE) |
 
 ## News
 ### 3.5.1
@@ -24,13 +33,14 @@ Spark RDDs and Datasets/DataFrames to Cassandra tables, and execute arbitrary CQ
 in your Spark applications.
 
  - Compatible with Apache Cassandra version 2.1 or higher (see table below)
- - Compatible with Apache Spark 1.0 through 3.5 ([see table below](#version-compatibility))
+  - Compatible with Apache Spark 3.5 ([see table below](#version-compatibility))
  - Compatible with Scala 2.11, 2.12 and 2.13
  - Exposes Cassandra tables as Spark RDDs and Datasets/DataFrames
  - Maps table rows to CassandraRow objects or tuples
  - Offers customizable object mapper for mapping rows to objects of user-defined classes
- - Saves RDDs back to Cassandra by implicit `saveToCassandra` call
- - Delete rows and columns from cassandra by implicit `deleteFromCassandra` call
+  - Saves RDDs back to Cassandra by implicit `saveToCassandra` call
+  - Supports low-latency Structured Streaming window updates with [`Update` output mode](doc/8_streaming.md#structured-streaming-update-mode)
+  - Delete rows and columns from cassandra by implicit `deleteFromCassandra` call
  - Join with a subset of Cassandra data using `joinWithCassandraTable` call for RDDs, and
    optimizes join with data in Cassandra when using Datasets/DataFrames
  - Partition RDDs according to Cassandra replication using `repartitionByCassandraReplica` call
@@ -110,8 +120,8 @@ API documentation for the Scala and Java interfaces are available online:
 * [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/2.5.2/connector/#package)
 
 ### 2.4.2
-* [Spark-Cassandra-Connector](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/spark-cassandra-connector/)
-* [Embedded-Cassandra](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/spark-cassandra-connector-embedded/)
+* [Spark-Cassandra-Connector](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/arizona-spark-connector/)
+* [Embedded-Cassandra](http://apache.github.io/cassandra-spark-connector/ApiDocs/2.4.2/arizona-spark-connector-embedded/)
 
 ## Download
 
@@ -119,7 +129,7 @@ This project is available on the Maven Central Repository.
 For SBT to download the connector binaries, sources and javadoc, put this in your project
 SBT config:
 
-    libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "3.5.1"
+    libraryDependencies += "io.teknek.arizona.spark" %% "arizona-spark-connector" % "3.5.1"
 
 * The default Scala version for Spark 3.0+ is 2.12 please choose the appropriate build. See the
 [FAQ](doc/FAQ.md) for more information.
@@ -138,7 +148,7 @@ See [Building And Artifacts](doc/12_building_and_artifacts.md)
   - [Customizing the object mapping](doc/6_advanced_mapper.md)
   - [Using Connector in Java](doc/7_java_api.md)
   - [Spark Streaming with Cassandra](doc/8_streaming.md)
-  - [The spark-cassandra-connector-embedded Artifact](doc/10_embedded.md)
+  - [The arizona-spark-connector-embedded Artifact](doc/10_embedded.md)
   - [Performance monitoring](doc/11_metrics.md)
   - [Building And Artifacts](doc/12_building_and_artifacts.md)
   - [The Spark Shell](doc/13_spark_shell.md)
@@ -210,7 +220,7 @@ Then copy the generated test jar to your Spark nodes and run:
 ## Generating Documents
 To generate the Reference Document use
 
-    ./sbt/sbt spark-cassandra-connector-unshaded/run (outputLocation)
+    ./sbt/sbt arizona-spark-connector-unshaded/run (outputLocation)
 
 outputLocation defaults to doc/reference.md
 

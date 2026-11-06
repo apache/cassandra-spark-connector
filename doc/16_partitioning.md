@@ -56,7 +56,7 @@ For a data generation sample, jump see [here](#data-generator).
 #### Keying a Table with the Partition Key Produces an RDD with a Partitioner
 
 ```scala
-import com.datastax.spark.connector._
+import io.teknek.arizona.spark.connector._
 
 val ks = "doc_example"
 val rdd = { sc.cassandraTable[(String, Int)](ks, "users")
@@ -67,17 +67,17 @@ val rdd = { sc.cassandraTable[(String, Int)](ks, "users")
 //16/04/08 11:19:52 DEBUG CassandraPartitioner: Building Partitioner with mapping
 //Vector((userid,userid))
 //for table TableDef(doc_example,users,ArrayBuffer(ColumnDef(userid,PartitionKeyColumn,IntType)),ArrayBuffer(),ArrayBuffer(ColumnDef(name,RegularColumn,VarCharType), ColumnDef(zipcode,RegularColumn,IntType)),List(),false)
-//16/04/08 11:19:52 DEBUG CassandraTableScanRDD: Made partitioner Some(com.datastax.spark.connector.rdd.partitioner.CassandraPartitioner@6709eccf) for CassandraTableScanRDD[5] at RDD at CassandraRDD.scala:15
-//16/04/08 11:19:52 DEBUG CassandraTableScanRDD: Assigning new Partitioner com.datastax.spark.connector.rdd.partitioner.CassandraPartitioner@6709eccf
+//16/04/08 11:19:52 DEBUG CassandraTableScanRDD: Made partitioner Some(io.teknek.arizona.spark.connector.rdd.partitioner.CassandraPartitioner@6709eccf) for CassandraTableScanRDD[5] at RDD at CassandraRDD.scala:15
+//16/04/08 11:19:52 DEBUG CassandraTableScanRDD: Assigning new Partitioner io.teknek.arizona.spark.connector.rdd.partitioner.CassandraPartitioner@6709eccf
 
 rdd.partitioner
-//res3: Option[org.apache.spark.Partitioner] = Some(com.datastax.spark.connector.rdd.partitioner.CassandraPartitioner@94515d3e)
+//res3: Option[org.apache.spark.Partitioner] = Some(io.teknek.arizona.spark.connector.rdd.partitioner.CassandraPartitioner@94515d3e)
 ```
 
 #### Reading a table into a (K,V) type or Not Including the Partition Key will not Create a Partitioner
 
 ```scala
-import com.datastax.spark.connector._
+import io.teknek.arizona.spark.connector._
 
 val ks = "doc_example"
 val rdd1 = sc.cassandraTable[(Int,Int)](ks, "users")
@@ -103,7 +103,7 @@ the partition key.
 #### Grouping/Reducing on out of order Clustering keys
 
 ```scala
-import com.datastax.spark.connector._
+import io.teknek.arizona.spark.connector._
 val ks = "doc_example"
 val rdd = { sc.cassandraTable[(Int, Int)](ks, "purchases")
   .select("purchaseid" as "_1", "amount" as "_2", "userid", "objectid")
@@ -163,7 +163,7 @@ would need to be shuffled. Now if the Cassandra RDD is keyed on the partition ke
 without the Cassandra RDD being shuffled.
 
 ```scala
-import com.datastax.spark.connector._
+import io.teknek.arizona.spark.connector._
 
 val ks = "doc_example"
 val rdd = { sc.cassandraTable[(String, Int)](ks, "users")
@@ -298,7 +298,7 @@ This functionality does not currently function in DataFrames.
 ### Data Generator
 ```scala
 
-import com.datastax.spark.connector._
+import io.teknek.arizona.spark.connector._
 import java.util.Random
 val ks = "doc_example"
 val r = new Random(100)

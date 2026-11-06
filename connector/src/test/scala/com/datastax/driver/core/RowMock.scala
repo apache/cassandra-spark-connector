@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.datastax.spark.connector.test
+package io.teknek.arizona.spark.connector.test
 
 import java.nio.ByteBuffer
 

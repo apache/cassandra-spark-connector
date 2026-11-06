@@ -19,8 +19,8 @@
 package org.apache.spark.sql.cassandra
 
 import com.datastax.oss.driver.api.core.{DefaultProtocolVersion, ProtocolVersion}
-import com.datastax.spark.connector.cql.TableDef
-import com.datastax.spark.connector.types.TimeUUIDType
+import _root_.io.teknek.arizona.spark.connector.cql.TableDef
+import _root_.io.teknek.arizona.spark.connector.types.TimeUUIDType
 
 /**
  *  Determines which filter predicates can be pushed down to Cassandra.

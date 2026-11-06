@@ -18,7 +18,7 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.datasource.CassandraTable
+import _root_.io.teknek.arizona.spark.connector.datasource.CassandraTable
 import org.apache.spark.sql.catalyst.FunctionIdentifier
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference, Expression, ExpressionInfo, UnaryExpression, Unevaluable}

@@ -19,11 +19,11 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.cql.TableDef
-import com.datastax.spark.connector.types.TimeUUIDType
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.cql.TableDef
+import _root_.io.teknek.arizona.spark.connector.types.TimeUUIDType
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.cassandra.PredicateOps.FilterOps
+import _root_.org.apache.spark.sql.cassandra.PredicateOps.FilterOps
 import org.apache.spark.sql.sources.Filter
 
 /** All non-equal predicates on a TimeUUID column are going to fail and fail

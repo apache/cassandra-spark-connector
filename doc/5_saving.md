@@ -11,7 +11,7 @@ It is possible to save an `RDD` to an existing Cassandra table as well
 as to let the connector create appropriate table automatically based on 
 the definition of the `RDD` item class.
 
-To save an `RDD` to an existing table, import `com.datastax.spark.connector._`
+To save an `RDD` to an existing table, import `io.teknek.arizona.spark.connector._`
 and call the `saveToCassandra` method with the keyspace name, table name 
 and a list of columns. Make sure to include at least all primary key columns.
 To save an `RDD` to a new table, instead of calling `saveToCassandra`, 
@@ -202,7 +202,7 @@ elements from them.
 
 ## Saving objects of Cassandra User Defined Types
 To save structures consisting of many fields, use a [Case Class](4_mapper.md#Mapping-User-Defined-Types) or a 
-`com.datastax.spark.connector.UDTValue` class. An instance of this class 
+`io.teknek.arizona.spark.connector.UDTValue` class. An instance of this class 
 can be easily obtained from a Scala `Map` by calling `fromMap` factory method.
 
 Assume the following table definition:
@@ -213,7 +213,7 @@ CREATE TABLE test.companies (name text PRIMARY KEY, address FROZEN<address>);
 
 #### Example Using Case Classes to Insert into a Cassandra Row With UDTs
 ```scala
-import com.datastax.spark.connector._
+import io.teknek.arizona.spark.connector._
 case class Address(city: String, street: String, number: Int)
 case class CompanyRow(name: String, address: Address)
 val address = Address(city = "Oakland", street = "Broadway", number = 3400)
@@ -223,7 +223,7 @@ sc.parallelize(Seq(CompanyRow("Paul", address))).saveToCassandra("test", "compan
 #### Example Using UDTValue.fromMap to Insert into a Cassandra Row With UDTs
 ```scala
 //In the REPL you may need to use :paste mode depending on your Spark Version for the import to be valid
-import com.datastax.spark.connector.UDTValue
+import io.teknek.arizona.spark.connector.UDTValue
 case class Company(name: String, address: UDTValue)
 val address = UDTValue.fromMap(Map("city" -> "Santa Clara", "street" -> "Freedom Circle", "number" -> 3975))
 val company = Company("DataStax", address)
@@ -238,7 +238,7 @@ for leaving parameters unbound.
 
 To take advantage of unset parameters, the Spark Cassandra Connector now provides a method for 
 taking advantage of this unbound behavior. This is done by with the 
-`com.datastax.spark.connector.types.CassandraOption` trait. 
+`io.teknek.arizona.spark.connector.types.CassandraOption` trait. 
 
 The trait has three implementations
 ```scala
@@ -310,7 +310,7 @@ This is done via `CassandraOption.deleteIfNone` and `CassandraOption.unsetIfNone
  
 #### Example of converting Scala Options to Cassandra Options
 ```scala
-import com.datastax.spark.connector.types.CassandraOption
+import io.teknek.arizona.spark.connector.types.CassandraOption
 //Setup original data (1, 1, 1) ... (6, 6, 6)
 sc.parallelize(1 to 6).map(x => (x,x,x)).saveToCassandra(ks, "tab1")
 
@@ -382,7 +382,7 @@ When the same value should be used for all the rows, one can use the following s
 
 #### Example Setting a Single Value as the TTL of All Rows
 ```scala
-import com.datastax.spark.connector.writer._
+import io.teknek.arizona.spark.connector.writer._
 ...
 rdd.saveToCassandra("test", "tab", writeConf = WriteConf(ttl = TTLOption.constant(100)))
 rdd.saveToCassandra("test", "tab", writeConf = WriteConf(timestamp = TimestampOption.constant(ts)))
@@ -403,7 +403,7 @@ When a different value of TTL or WRITETIME has to be used for each row, one can 
 
 #### Example Setting the TTL Value based on the value of an RDD Column
 ```scala
-import com.datastax.spark.connector.writer._
+import io.teknek.arizona.spark.connector.writer._
 ...
 rdd.saveToCassandra("test", "tab", writeConf = WriteConf(ttl = TTLOption.perRow("ttl")))
 rdd.saveToCassandra("test", "tab", writeConf = WriteConf(timestamp = TimestampOption.perRow("timestamp")))
@@ -434,7 +434,7 @@ CREATE TABLE IF NOT EXISTS test.tab (
 
 When we run the following command:
 ```scala
-import com.datastax.spark.connector.writer._
+import io.teknek.arizona.spark.connector.writer._
 ...
 rdd.saveToCassandra("test", "tab", writeConf = WriteConf(ttl = TTLOption.perRow("ttl")))
 ```
@@ -450,7 +450,7 @@ IF NOT EXISTS can be added as a boolean property of `WriteConf` object, which ca
 `saveToCassandra` method:
 #### Example using Cassandra Check and Set (CAS) to only write Rows if they do not already exist
 ```scala
-import com.datastax.spark.connector.writer._
+import io.teknek.arizona.spark.connector.writer._
 ...
 rdd.saveToCassandra("test", "tab", writeConf = WriteConf(ifNotExists = true))
 ```
@@ -474,8 +474,8 @@ table `words_new_2`:
 
 #### Example Creating a New Table Using the Definition of another Table
 ```scala
-import com.datastax.spark.connector.cql.{ColumnDef, RegularColumn, TableDef}
-import com.datastax.spark.connector.types.IntType
+import io.teknek.arizona.spark.connector.cql.{ColumnDef, RegularColumn, TableDef}
+import io.teknek.arizona.spark.connector.types.IntType
 case class WordCount(word: String, count: Long)
 val table1 = TableDef.fromType[WordCount]("test", "words_new")
 val table2 = TableDef("test", "words_new_2", table1.partitionKey, table1.clusteringColumns,
@@ -490,8 +490,8 @@ and clustering column keys with non-default sorting, plus additional table optio
 #### Example Creating a New Table Using a Completely Custom Definition
 
 ```scala
-import com.datastax.spark.connector.cql.{ColumnDef, RegularColumn, TableDef, ClusteringColumn, PartitionKeyColumn}
-import com.datastax.spark.connector.types._
+import io.teknek.arizona.spark.connector.cql.{ColumnDef, RegularColumn, TableDef, ClusteringColumn, PartitionKeyColumn}
+import io.teknek.arizona.spark.connector.types._
 
 // Define structure for rdd data
 case class outData(col1:UUID, col2:UUID, col3: Double, col4:Int)
@@ -589,7 +589,7 @@ cqlsh:t> select * from test.word_groups;
 #### Example Deleting Rows older than a Specified Timestamp 
 
 ```scala
-import com.datastax.spark.connector.writer._
+import io.teknek.arizona.spark.connector.writer._
 ...
 rdd.deleteFromCassandra(
   "test",

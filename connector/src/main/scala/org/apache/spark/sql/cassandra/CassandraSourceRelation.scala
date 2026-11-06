@@ -18,13 +18,13 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.cql.TableDef
-import com.datastax.spark.connector.datasource.{CassandraScan, CassandraTable}
-import com.datastax.spark.connector.util._
+import _root_.io.teknek.arizona.spark.connector.cql.TableDef
+import _root_.io.teknek.arizona.spark.connector.datasource.{CassandraScan, CassandraTable}
+import _root_.io.teknek.arizona.spark.connector.util._
 import org.apache.hadoop.hive.conf.HiveConf
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.SparkConf
-import org.apache.spark.sql._
+import _root_.org.apache.spark.sql._
 import org.apache.spark.sql.execution.datasources.v2.{DataSourceV2Relation, DataSourceV2ScanRelation}
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.util.CaseInsensitiveStringMap

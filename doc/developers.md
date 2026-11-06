@@ -146,7 +146,7 @@ you could run `publishM2` which would generate the needed artifacts and
 pom in your local cache. You can then reference this from `spark-shell`
 or `spark-submit` using the following code 
 ```bash
-./bin/spark-shell --repositories file:/Users/yourUser/.m2/repository --packages com.datastax.spark:spark-cassandra-connector_2.10:1.6.0-14-gcfca49e
+./bin/spark-shell --repositories file:/Users/yourUser/.m2/repository --packages io.teknek.arizona.spark:arizona-spark-connector_2.10:1.6.0-14-gcfca49e
 ```
 Where you would change the revision `1.6.0-14-gcfca49e` to match the output
 of your publish command. 

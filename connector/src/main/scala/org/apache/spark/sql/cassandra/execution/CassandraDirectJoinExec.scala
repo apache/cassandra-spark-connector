@@ -18,9 +18,9 @@
 
 package org.apache.spark.sql.cassandra.execution
 
-import com.datastax.spark.connector.datasource.{CassandraScan, UnsafeRowReaderFactory, UnsafeRowWriterFactory}
-import com.datastax.spark.connector.{ColumnName, SomeColumns}
-import com.datastax.spark.connector.rdd.{CassandraJoinRDD, CassandraLeftJoinRDD, CassandraTableScanRDD}
+import _root_.io.teknek.arizona.spark.connector.datasource.{CassandraScan, UnsafeRowReaderFactory, UnsafeRowWriterFactory}
+import _root_.io.teknek.arizona.spark.connector.{ColumnName, SomeColumns}
+import _root_.io.teknek.arizona.spark.connector.rdd.{CassandraJoinRDD, CassandraLeftJoinRDD, CassandraTableScanRDD}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.{And, Attribute, BindReferences, EqualTo, ExprId, Expression, GenericInternalRow, JoinedRow, Predicate, UnsafeProjection, UnsafeRow}

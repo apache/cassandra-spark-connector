@@ -18,7 +18,7 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.cql.TableDef
+import _root_.io.teknek.arizona.spark.connector.cql.TableDef
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.SparkConf
 

@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.LongAdder
 
 import com.codahale.metrics.Timer.Context
-import com.datastax.spark.connector.util.Logging
-import com.datastax.spark.connector.writer.{RichStatement, WriteConf}
+import _root_.io.teknek.arizona.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.writer.{RichStatement, WriteConf}
 import org.apache.spark.TaskContext
 import org.apache.spark.executor.OutputMetrics
 
@@ -67,7 +67,7 @@ object OutputMetricsUpdater extends Logging {
 
   /** Creates the appropriate instance of `OutputMetricsUpdater`.
     *
-    * If [[com.datastax.spark.connector.writer.WriteConf.taskMetricsEnabled WriteConf.taskWriteMetricsEnabled]]
+    * If [[io.teknek.arizona.spark.connector.writer.WriteConf.taskMetricsEnabled WriteConf.taskWriteMetricsEnabled]]
     * is `true`, the created instance will be updating task metrics so
     * that Spark will report them in the UI. Remember that this is supported for Spark 1.2+.
     *

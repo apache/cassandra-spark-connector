@@ -19,11 +19,11 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.cql.{ColumnDef, TableDef}
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.cql.{ColumnDef, TableDef}
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.cassandra.CassandraSourceRelation.InClauseToFullTableScanConversionThreshold
-import org.apache.spark.sql.cassandra.PredicateOps.FilterOps.{columnName, isInPredicate}
+import _root_.org.apache.spark.sql.cassandra.CassandraSourceRelation.InClauseToFullTableScanConversionThreshold
+import _root_.org.apache.spark.sql.cassandra.PredicateOps.FilterOps.{columnName, isInPredicate}
 import org.apache.spark.sql.sources.{Filter, In}
 
 object InClausePredicateRules extends CassandraPredicateRules with Logging {

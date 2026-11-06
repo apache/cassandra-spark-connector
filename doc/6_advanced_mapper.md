@@ -20,7 +20,7 @@ Make sure your objects are `Serializable`, otherwise Spark won't be able to send
 
 #### Example of using a new implicit Column Mapper to map a JavaBean Like Class
 ```scala
-import com.datastax.spark.connector.mapper.JavaBeanColumnMapper
+import io.teknek.arizona.spark.connector.mapper.JavaBeanColumnMapper
 class WordCount extends Serializable { 
     private var _word: String = ""
     private var _count: Int = 0
@@ -75,7 +75,7 @@ To tell the connector how to read and write fields of type `EMail`, you need to 
 type converters - from `String` to `Email` and from `Email` to `String`:
 
 ```scala
-import com.datastax.spark.connector.types._
+import io.teknek.arizona.spark.connector.types._
 import scala.reflect.runtime.universe._
 
 object StringToEMailConverter extends TypeConverter[EMail] {
@@ -123,7 +123,7 @@ Cassandra column type | Object type to convert from / to
  `varchar`            | `java.lang.String`
  `varint`             | `java.math.BigInteger`
  `vector`             | `com.datastax.oss.driver.api.core.data.CqlVector`
- user defined         | `com.datastax.spark.connector.UDTValue`
+ user defined         | `io.teknek.arizona.spark.connector.UDTValue`
 
 Custom converters for collections are not supported.
  

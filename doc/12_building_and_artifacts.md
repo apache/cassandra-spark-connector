@@ -18,8 +18,8 @@ In the root directory run:
 
 The library package jars will be generated to:
 
-    spark-cassandra-connector/connector/target/scala-{binary.version}/
-    spark-cassandra-connector/driver/target/scala-{binary.version}/
+    arizona-spark-connector/connector/target/scala-{binary.version}/
+    arizona-spark-connector/driver/target/scala-{binary.version}/
 
 The command generates also The Assembly Jar discussed below.
 
@@ -34,7 +34,7 @@ In the root directory run:
 
 A fat jar with `assembly` suffix will be generated to:
 
-    spark-cassandra-connector/connector/target/scala-{binary.version}/
+    arizona-spark-connector/connector/target/scala-{binary.version}/
 
 The jar contains the Spark Cassandra Connector and its dependencies. Some of the dependencies are shaded to avoid 
 classpath conflicts.  

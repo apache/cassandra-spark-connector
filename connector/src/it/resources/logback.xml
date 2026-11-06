@@ -31,5 +31,5 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="com.datastax.spark.connector.ccm" level="INFO"/>
+    <logger name="io.teknek.arizona.spark.connector.ccm" level="INFO"/>
 </configuration>

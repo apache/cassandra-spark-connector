@@ -21,14 +21,14 @@ package org.apache.spark.metrics
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.duration._
 import org.apache.spark.executor.TaskMetrics
-import org.apache.spark.metrics.source.Source
+import _root_.org.apache.spark.metrics.source.Source
 import org.apache.spark.{SparkConf, TaskContext}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{FlatSpec, Matchers}
-import com.datastax.spark.connector.test.RowMock
-import com.datastax.spark.connector.rdd.ReadConf
-import com.datastax.spark.connector.util.RuntimeUtil.toParallelIterable
+import _root_.io.teknek.arizona.spark.connector.test.RowMock
+import _root_.io.teknek.arizona.spark.connector.rdd.ReadConf
+import _root_.io.teknek.arizona.spark.connector.util.RuntimeUtil.toParallelIterable
 import org.scalatestplus.mockito.MockitoSugar
 
 class InputMetricsUpdaterSpec extends FlatSpec with Matchers with MockitoSugar {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.datastax.bdp.spark
+package io.teknek.arizona.spark.bdp
 /*
 TODO:
 import scala.jdk.CollectionConverters._
@@ -26,7 +26,7 @@ import org.apache.spark.SparkConf
 import org.scalatest.{FlatSpec, Matchers}
 
 import com.datastax.bdp.config.ClientConfiguration
-import com.datastax.bdp.spark.DseByosAuthConfFactory.ByosAuthConf
+import _root_.io.teknek.arizona.spark.bdp.DseByosAuthConfFactory.ByosAuthConf
 import com.datastax.bdp.test.ng.{DataGenerator, DseScalaTestBase, ToString}
 import com.datastax.bdp.transport.client.MapBasedClientConfiguration
 

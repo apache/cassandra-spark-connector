@@ -18,7 +18,7 @@ Scala version suffix to match your Scala version.
 
 ##### Spark Cassandra Connector built Against Scala 2.10
 ```xml
-<artifactId>spark-cassandra-connector_2.10</artifactId>
+<artifactId>arizona-spark-connector_2.10</artifactId>
 ```
 2.10 needs to match the Scala version of Spark and all other
 Scala libs.
@@ -29,7 +29,7 @@ In sbt `%%` means append the suffix of Scala version in use for
 compilation.
 
 ```
-  "com.datastax.spark" %% "spark-cassandra-connector" % connectorVersion % "provided"
+  "io.teknek.arizona.spark" %% "arizona-spark-connector" % connectorVersion % "provided"
 ```
 
 
@@ -59,9 +59,9 @@ fixes this in the Spark Cassandra Connector 1.6.2 and 2.0.0-M3 and
 greater releases. 
 
 The artifacts at 
-[Spark Packages](https://spark-packages.org/package/datastax/spark-cassandra-connector) 
+[Spark Packages](https://spark-packages.org/package/datastax/arizona-spark-connector) 
 and on 
-[Maven Central](https://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector_2.10)
+[Maven Central](https://mvnrepository.com/artifact/io.teknek.arizona.spark/arizona-spark-connector_2.10)
 will now automatically have Guava shaded and the driver included.
 
 If you are using these artifacts you must remove any other dependencies 
@@ -81,13 +81,13 @@ take effective.
 Since the default artifacts have the Java Driver included with shaded 
 references, it will be very difficult to use other libraries which utilize
 the Cassandra Java Driver. To enable this an additional artifact has
-been published `spark-cassandra-connector-unshaded` which can be used in
+been published `arizona-spark-connector-unshaded` which can be used in
 manually shaded projects. Using these unshaded artifacts will require you to 
  manually shade the Guava references inside your code and to launch
 with an "uber-jar." Using `--packages` will no longer work.
 
 For some hints on shading see how the Cassandra Connector does this in
-the [settings file.](https://github.com/datastax/spark-cassandra-connector/blob/v2.0.0/project/Settings.scala#L329-L347)
+the [settings file.](https://github.com/datastax/arizona-spark-connector/blob/v2.0.0/project/Settings.scala#L329-L347)
 
 ### Why is my job running on a single executor? Why am I not seeing any parallelism?
 
@@ -118,7 +118,7 @@ an `in` will also generate a single Spark Partition.
 
 ### Why can't the spark job find Spark Cassandra Connector Classes? (ClassNotFound Exceptions for SCC Classes)
 * java.lang.NoClassDefFoundError: com/twitter/jsr166e/LongAdder
-* java.lang.ClassNotFoundException: com.datastax.spark.connector.rdd.partitioner.CassandraPartition
+* java.lang.ClassNotFoundException: io.teknek.arizona.spark.connector.rdd.partitioner.CassandraPartition
 
 These errors are commonly thrown when the Spark Cassandra Connector or its dependencies are not
 on the runtime classpath of the Spark Application. This is usually caused by not using the

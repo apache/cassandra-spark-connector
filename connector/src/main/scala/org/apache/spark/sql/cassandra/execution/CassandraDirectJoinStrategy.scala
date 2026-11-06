@@ -18,11 +18,11 @@
 
 package org.apache.spark.sql.cassandra.execution
 
-import com.datastax.spark.connector.datasource.{CassandraScan, CassandraScanBuilder, CassandraTable}
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.datasource.{CassandraScan, CassandraScanBuilder, CassandraTable}
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 import org.apache.spark.sql.{SparkSession, Strategy}
-import org.apache.spark.sql.cassandra.{AlwaysOff, AlwaysOn, Automatic, CassandraSourceRelation}
-import org.apache.spark.sql.cassandra.CassandraSourceRelation._
+import _root_.org.apache.spark.sql.cassandra.{AlwaysOff, AlwaysOn, Automatic, CassandraSourceRelation}
+import _root_.org.apache.spark.sql.cassandra.CassandraSourceRelation._
 import org.apache.spark.sql.catalyst.expressions.{Alias, Attribute, AttributeReference, ExprId, Expression, NamedExpression}
 import org.apache.spark.sql.catalyst.planning.{ExtractEquiJoinKeys, PhysicalOperation}
 import org.apache.spark.sql.catalyst.plans.logical._

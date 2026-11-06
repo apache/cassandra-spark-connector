@@ -6,15 +6,15 @@ This section describes how to access the functionality of Connector when
 you write your program in Java. It is assumed that you already 
 familiarized yourself with the previous sections and you understand how 
 Connector works. The Java API is included in the standard
-`spark-cassandra-connector` artifact.
+`arizona-spark-connector` artifact.
 
 ### Prerequisites 
 
 #### Spark Cassandra Connector < 2.0
-In order to use Java API, you need to add the spark-cassandra-connector to the list of dependencies:
+In order to use Java API, you need to add the arizona-spark-connector to the list of dependencies:
 
 ```scala
-libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "1.6.0" 
+libraryDependencies += "io.teknek.arizona.spark" %% "arizona-spark-connector" % "1.6.0" 
 ```
 
 #### Spark Cassandra Connector >= 2.0
@@ -28,7 +28,7 @@ The best way to use Connector Java API is to import statically all the methods i
 This utility class is the main entry point for Connector Java API.
 
 ```java
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.*;
+import static io.teknek.arizona.spark.connector.japi.CassandraJavaUtil.*;
 ```
 
 The code snippets below work with a sample keyspace `ks` and table `people`. From the CQLSH shell, create 

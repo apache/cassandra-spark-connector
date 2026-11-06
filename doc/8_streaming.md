@@ -40,7 +40,7 @@ Now let's add the Cassandra-specific functions on the `StreamingContext` and `RD
 and we simply replace the print to console with pipe the output to Cassandra:
  
 ```scala
-    import com.datastax.spark.connector.streaming._
+    import io.teknek.arizona.spark.connector.streaming._
     wordCounts.saveToCassandra("streaming_test", "words")
 ```
 
@@ -59,7 +59,7 @@ This `Duration` is not to be confused with the [scala.concurrent.duration.Durati
 
 #### Creating A Stream
 Create any of the available or custom Spark streams. The connector supports Akka Actor streams so far, but 
-will be supporting many more in the next release. You can extend the provided `import com.datastax.spark.connector.streaming.TypedStreamingActor`:
+will be supporting many more in the next release. You can extend the provided `import io.teknek.arizona.spark.connector.streaming.TypedStreamingActor`:
 
 Kafka Stream: creates an input stream that pulls messages from a Kafka Broker
 
@@ -79,9 +79,45 @@ Actor Stream
 Enable Cassandra-specific functions on the `StreamingContext`, `DStream` and `RDD`:
 
 ```scala
-    import com.datastax.spark.connector.streaming._
+    import io.teknek.arizona.spark.connector.streaming._
 ```
- 
+
+<a id="structured-streaming-update-mode"></a>
+
+### Structured Streaming Update Mode
+
+The connector supports Spark Structured Streaming `Update` output mode for
+stateful aggregations. Changed aggregate rows are written on each microbatch,
+so windowed metrics do not need to wait for the watermark to close the window.
+
+```scala
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.streaming.OutputMode
+
+val metrics = events
+  .withWatermark("event_time", "10 minutes")
+  .groupBy(window(col("event_time"), "10 minutes"), col("content_id"))
+  .count()
+
+metrics.writeStream
+  .format("org.apache.spark.sql.cassandra")
+  .option("keyspace", "streaming_metrics")
+  .option("table", "clickstream_metrics")
+  .option("checkpointLocation", "/var/lib/spark/checkpoints/clickstream-metrics")
+  .outputMode(OutputMode.Update())
+  .start()
+```
+
+Rows are written as Cassandra upserts. The Cassandra primary key must identify
+the aggregate row, typically the grouping key plus the window start time. A
+later update for the same key replaces the prior aggregate values. Repeated
+writes are expected while a window remains active and within the watermark.
+
+If multiple streaming queries write different metrics into the same Cassandra
+row, each query should include the primary-key columns and only the regular
+columns it owns. Omitted columns are preserved; null columns require the
+connector's null-handling option to be configured appropriately.
+
 ##### Writing to Cassandra From A Stream
 Where `streaming_test` is the keyspace name and `words` is the table name:
 
@@ -109,4 +145,4 @@ For a more detailed description as well as tuning writes, see [Saving Data to Ca
 ### Find out more
 https://spark.apache.org/docs/latest/streaming-programming-guide.html
 
-[Next - The spark-cassandra-connector-embedded Artifact](10_embedded.md)
+[Next - The arizona-spark-connector-embedded Artifact](10_embedded.md)

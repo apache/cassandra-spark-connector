@@ -20,7 +20,7 @@ The Spark Cassandra Connector includes a variety of catalyst rules which rewrite
 Spark plans and provide unique C* specific optimizations. To load these rules you can either
 directly add the extensions to your Spark environment or they can be added via a configuration property
 
-```spark.sql.extensions``` to ```com.datastax.spark.connector.CassandraSparkExtensions```
+```spark.sql.extensions``` to ```io.teknek.arizona.spark.connector.CassandraSparkExtensions```
 
 This can also be done programmatically in most Spark Language implementations
 
@@ -45,7 +45,7 @@ perform DDL on the underlying Cluster**
 
 To set up a catalog put the following configuration into your SparkSession configuration (or any other Spark Configuration file or Object)
 
-```spark.sql.catalog.casscatalog``` to  ```com.datastax.spark.connector.datasource.CassandraCatalog```
+```spark.sql.catalog.casscatalog``` to  ```io.teknek.arizona.spark.connector.datasource.CassandraCatalog```
 
 This will set up an identifier of "casscatalog" to point to the catalog for the default Cassandra Cluster
 For information on configuring Cassandra Catalogs see [documentation on Connecting](1_connecting.md)

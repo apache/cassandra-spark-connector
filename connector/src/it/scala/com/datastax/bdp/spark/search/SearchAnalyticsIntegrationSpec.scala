@@ -16,18 +16,18 @@
  * limitations under the License.
  */
 
-package com.datastax.bdp.spark.search
+package io.teknek.arizona.spark.bdp.search
 
 import java.lang.{Integer => JInt}
 
-import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
-import com.datastax.spark.connector.cluster.DseSearchAnalyticsCluster
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.datasource.{CassandraCatalog, CassandraScan}
-import com.datastax.spark.connector.rdd.{CqlWhereClause}
+import _root_.io.teknek.arizona.spark.connector.SparkCassandraITFlatSpecBase
+import _root_.io.teknek.arizona.spark.connector.cluster.DseSearchAnalyticsCluster
+import _root_.io.teknek.arizona.spark.connector.cql.CassandraConnector
+import _root_.io.teknek.arizona.spark.connector.datasource.{CassandraCatalog, CassandraScan}
+import _root_.io.teknek.arizona.spark.connector.rdd.{CqlWhereClause}
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.cassandra.CassandraSourceRelation.SearchPredicateOptimizationParam
-import org.apache.spark.sql.cassandra._
+import _root_.org.apache.spark.sql.cassandra.CassandraSourceRelation.SearchPredicateOptimizationParam
+import _root_.org.apache.spark.sql.cassandra._
 import org.apache.spark.sql.execution.datasources.v2.BatchScanExec
 import org.apache.spark.sql.{DataFrame, _}
 

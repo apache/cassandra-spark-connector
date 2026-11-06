@@ -18,13 +18,13 @@
 
 package org.apache.spark.sql
 
-import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
-import com.datastax.spark.connector.cluster.DefaultCluster
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.datasource.CassandraCatalog
-import com.datastax.spark.connector.rdd.ReadConf
-import com.datastax.spark.connector.util.CatalystUtil._
-import org.apache.spark.sql.cassandra._
+import _root_.io.teknek.arizona.spark.connector.SparkCassandraITFlatSpecBase
+import _root_.io.teknek.arizona.spark.connector.cluster.DefaultCluster
+import _root_.io.teknek.arizona.spark.connector.cql.CassandraConnector
+import _root_.io.teknek.arizona.spark.connector.datasource.CassandraCatalog
+import _root_.io.teknek.arizona.spark.connector.rdd.ReadConf
+import _root_.io.teknek.arizona.spark.connector.util.CatalystUtil._
+import _root_.org.apache.spark.sql.cassandra._
 import org.apache.spark.sql.internal.SQLConf
 
 import scala.concurrent.Future

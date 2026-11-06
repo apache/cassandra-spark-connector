@@ -14,8 +14,8 @@ shell similarly to how the spark shell is started. The preferred method is now t
 
 ```bash
 ./bin/pyspark \
-  --packages com.datastax.spark:spark-cassandra-connector_2.12:3.5.1 \
-  --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions
+  --packages io.teknek.arizona.spark:arizona-spark-connector_2.12:3.5.1 \
+  --conf spark.sql.extensions=io.teknek.arizona.spark.connector.CassandraSparkExtensions
 ```
 
 ### Catalogs
@@ -29,7 +29,7 @@ For a short intro and more details about Catalogs see [Quick Start](0_quick_star
 Loading a data set with DatasourceV2 requires creating a Catalog Reference to your Cassandra Cluster.
 
 ```python
-spark.conf.set("spark.sql.catalog.myCatalog", "com.datastax.spark.connector.datasource.CassandraCatalog")
+spark.conf.set("spark.sql.catalog.myCatalog", "io.teknek.arizona.spark.connector.datasource.CassandraCatalog")
 spark.read.table("myCatalog.myKs.myTab").show()
 ```
 

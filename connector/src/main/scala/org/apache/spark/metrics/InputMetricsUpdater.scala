@@ -25,10 +25,10 @@ import scala.concurrent.duration.{FiniteDuration, _}
 import org.apache.spark.TaskContext
 import org.apache.spark.executor.InputMetrics
 import org.apache.spark.util.ThreadUtils
-import com.datastax.spark.connector.cql._
+import _root_.io.teknek.arizona.spark.connector.cql._
 
 import com.datastax.oss.driver.api.core.cql.Row
-import com.datastax.spark.connector.rdd.ReadConf
+import _root_.io.teknek.arizona.spark.connector.rdd.ReadConf
 
 /** A trait that provides a method to update read metrics which are collected for connector related tasks.
   * The appropriate instance is created by the companion object.
@@ -57,7 +57,7 @@ object InputMetricsUpdater {
 
   /** Creates the appropriate instance of `InputMetricsUpdater`.
     *
-    * If [[com.datastax.spark.connector.rdd.ReadConf.taskMetricsEnabled ReadConf.taskMetricsEnabled]]
+    * If [[io.teknek.arizona.spark.connector.rdd.ReadConf.taskMetricsEnabled ReadConf.taskMetricsEnabled]]
     * is `true`, the created instance will be updating task metrics so
     * that Spark will report them in the UI. Remember that this is supported for Spark 1.2+.
     *

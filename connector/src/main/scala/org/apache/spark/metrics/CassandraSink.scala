@@ -23,11 +23,11 @@ import java.util.concurrent.{Executors, TimeUnit}
 import java.util.function.BiConsumer
 
 import com.codahale.metrics.{Counting, Gauge, Metered, Metric, MetricRegistry, Sampling}
-import org.apache.spark.metrics.sink.Sink
+import _root_.org.apache.spark.metrics.sink.Sink
 import org.apache.spark.{SecurityManager, SparkConf, SparkEnv}
 import com.datastax.oss.driver.api.core.cql.{AsyncResultSet, ResultSet}
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.cql.CassandraConnector
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 import scala.jdk.CollectionConverters._
 
 class CassandraSink(val properties: Properties, val registry: MetricRegistry, securityMgr: SecurityManager)

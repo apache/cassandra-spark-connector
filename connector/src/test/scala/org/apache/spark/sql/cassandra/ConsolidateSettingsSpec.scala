@@ -18,11 +18,11 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.TableRef
+import _root_.io.teknek.arizona.spark.connector.TableRef
 import org.apache.spark.SparkConf
-import com.datastax.spark.connector.datasource.CassandraSourceUtil.consolidateConfs
+import _root_.io.teknek.arizona.spark.connector.datasource.CassandraSourceUtil.consolidateConfs
 import org.scalatest.{FlatSpec, Matchers}
-import com.datastax.spark.connector.rdd.ReadConf
+import _root_.io.teknek.arizona.spark.connector.rdd.ReadConf
 import org.apache.spark.sql.catalyst.util.CaseInsensitiveMap
 
 class ConsolidateSettingsSpec extends FlatSpec with Matchers {

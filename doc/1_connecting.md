@@ -13,7 +13,7 @@ can be done in the SparkConf, SparkSession, spark-defaults file or individually 
 be accessed through both SparkSql and DataFrames to read from, write to, create, and drop Cassandra tables.
 
 While setting up a Catalog can be done before starting your application it can also be done at 
-runtime by setting  ```spark.sql.catalog.anyname``` to  ```com.datastax.spark.connector.datasource.CassandraCatalog```
+runtime by setting  ```spark.sql.catalog.anyname``` to  ```io.teknek.arizona.spark.connector.datasource.CassandraCatalog```
 In your SparkSession. The "anyname" portion can be any name you would like to specify for this 
 particular catalog.
 
@@ -23,7 +23,7 @@ Then any parameter for that catalog can be set by just appending the parameter n
 Example: Manually configuring a Catalog named Cass100
 
 ```scala
-spark.conf.set(s"spark.sql.catalog.cass100", "com.datastax.spark.connector.datasource.CassandraCatalog")
+spark.conf.set(s"spark.sql.catalog.cass100", "io.teknek.arizona.spark.connector.datasource.CassandraCatalog")
 spark.conf.set(s"spark.sql.catalog.cass100.spark.cassandra.connection.host", "127.0.0.100")
 ```
 
@@ -36,11 +36,11 @@ Using multiple clusters can be done by setting up one catalog per underlying clu
 
 ```scala
 //Catalog Cass100 for Cluster at 127.0.0.100
-spark.conf.set(s"spark.sql.catalog.cass100", "com.datastax.spark.connector.datasource.CassandraCatalog")
+spark.conf.set(s"spark.sql.catalog.cass100", "io.teknek.arizona.spark.connector.datasource.CassandraCatalog")
 spark.conf.set(s"spark.sql.catalog.cass100.spark.cassandra.connection.host", "127.0.0.100")
 
 //Catalog Cass200 for Cluster at 127.0.0.200
-spark.conf.set(s"spark.sql.catalog.cass200", "com.datastax.spark.connector.datasource.CassandraCatalog")
+spark.conf.set(s"spark.sql.catalog.cass200", "io.teknek.arizona.spark.connector.datasource.CassandraCatalog")
 spark.conf.set(s"spark.sql.catalog.cass200.spark.cassandra.connection.host", "127.0.0.200")
 
 spark.sql("INSERT INTO cass200.ks.tab SELECT * from cass100.ks.tab")
@@ -131,7 +131,7 @@ Assuming an appropriately configured `SparkConf` object is stored
 in the `conf` variable, the following code creates a keyspace and a table:
 
 ```scala
-import com.datastax.spark.connector.cql.CassandraConnector
+import io.teknek.arizona.spark.connector.cql.CassandraConnector
 
 CassandraConnector(conf).withSessionDo { session =>
   session.execute("CREATE KEYSPACE test2 WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1 }")

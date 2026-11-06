@@ -29,9 +29,9 @@ import com.datastax.dse.driver.api.core.data.time.DateRange
 import com.datastax.oss.driver.api.core.`type`.codec.TypeCodecs
 import com.datastax.oss.driver.api.core.cql.Row
 import com.datastax.oss.driver.api.core.data.CqlDuration
-import com.datastax.spark.connector.rdd.reader.{RowReader, ThisRowReaderAsFactory}
-import com.datastax.spark.connector.types.TypeConverter
-import com.datastax.spark.connector.{CassandraRow, CassandraRowMetadata, GettableData, TupleValue, UDTValue}
+import _root_.io.teknek.arizona.spark.connector.rdd.reader.{RowReader, ThisRowReaderAsFactory}
+import _root_.io.teknek.arizona.spark.connector.types.TypeConverter
+import _root_.io.teknek.arizona.spark.connector.{CassandraRow, CassandraRowMetadata, GettableData, TupleValue, UDTValue}
 import org.apache.spark.sql.types.Decimal
 import org.apache.spark.sql.{Row => SparkRow}
 

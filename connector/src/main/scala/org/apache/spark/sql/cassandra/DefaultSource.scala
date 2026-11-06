@@ -18,15 +18,15 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.TableRef
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.datasource.CassandraSourceUtil.consolidateConfs
-import com.datastax.spark.connector.datasource.{CassandraCatalog, CassandraTable}
+import _root_.io.teknek.arizona.spark.connector.TableRef
+import _root_.io.teknek.arizona.spark.connector.cql.CassandraConnector
+import _root_.io.teknek.arizona.spark.connector.datasource.CassandraSourceUtil.consolidateConfs
+import _root_.io.teknek.arizona.spark.connector.datasource.{CassandraCatalog, CassandraTable}
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, DataSourceRegister, RelationProvider, SchemaRelationProvider, StreamSinkProvider}
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode, SparkSession}
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 import org.apache.spark.sql.connector.catalog.{Identifier, Table, TableProvider}
 import org.apache.spark.sql.connector.expressions.Transform
 import org.apache.spark.sql.execution.streaming.Sink

@@ -18,11 +18,11 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.cql._
-import com.datastax.spark.connector.types.{IntType, TextType}
+import _root_.io.teknek.arizona.spark.connector.cql._
+import _root_.io.teknek.arizona.spark.connector.types.{IntType, TextType}
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.cassandra.CassandraSourceRelation.InClauseToFullTableScanConversionThreshold
-import org.apache.spark.sql.cassandra.PredicateOps.FilterOps.columnName
+import _root_.org.apache.spark.sql.cassandra.CassandraSourceRelation.InClauseToFullTableScanConversionThreshold
+import _root_.org.apache.spark.sql.cassandra.PredicateOps.FilterOps.columnName
 import org.apache.spark.sql.sources._
 import org.scalatest.{FlatSpec, Matchers}
 

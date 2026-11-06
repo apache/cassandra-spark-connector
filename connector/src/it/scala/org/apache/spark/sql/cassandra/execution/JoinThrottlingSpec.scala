@@ -18,13 +18,13 @@
 
 package org.apache.spark.sql.cassandra.execution
 
-import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
-import com.datastax.spark.connector.cluster.DefaultCluster
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.embedded.SparkTemplate
-import com.datastax.spark.connector.rdd.ReadConf
-import org.apache.spark.sql.cassandra.CassandraSourceRelation.DirectJoinSettingParam
-import org.apache.spark.sql.cassandra._
+import _root_.io.teknek.arizona.spark.connector.SparkCassandraITFlatSpecBase
+import _root_.io.teknek.arizona.spark.connector.cluster.DefaultCluster
+import _root_.io.teknek.arizona.spark.connector.cql.CassandraConnector
+import _root_.io.teknek.arizona.spark.connector.embedded.SparkTemplate
+import _root_.io.teknek.arizona.spark.connector.rdd.ReadConf
+import _root_.org.apache.spark.sql.cassandra.CassandraSourceRelation.DirectJoinSettingParam
+import _root_.org.apache.spark.sql.cassandra._
 import org.scalatest.concurrent.Eventually
 
 import scala.concurrent.Future

@@ -18,10 +18,10 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.cql._
-import com.datastax.spark.connector.types._
+import _root_.io.teknek.arizona.spark.connector.cql._
+import _root_.io.teknek.arizona.spark.connector.types._
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.cassandra.SolrConstants._
+import _root_.org.apache.spark.sql.cassandra.SolrConstants._
 import org.apache.spark.sql.sources._
 import org.scalatest.{FlatSpec, Matchers}
 

@@ -19,7 +19,7 @@
 package org.apache.spark.metrics
 
 import com.codahale.metrics
-import org.apache.spark.metrics.source.Source
+import _root_.org.apache.spark.metrics.source.Source
 
 /** This class is a Source implementation for Cassandra Connector related Codahale metrics. It is
   * automatically instantiated and registered by Spark metrics system if this source is specified in

@@ -27,15 +27,15 @@ import scala.util.{Failure, Success, Try}
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.cassandra.SolrConstants._
+import _root_.org.apache.spark.sql.cassandra.SolrConstants._
 import org.apache.spark.sql.sources._
 
 import com.datastax.dse.driver.api.core.metadata.DseNodeProperties
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption
 import com.datastax.oss.driver.api.core.cql.SimpleStatement
 import com.datastax.oss.driver.api.core.loadbalancing.NodeDistance
-import com.datastax.spark.connector.cql.{CassandraConnector, TableDef}
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.cql.{CassandraConnector, TableDef}
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 
 class SolrPredicateRules(searchOptimizationEnabled: DseSearchOptimizationSetting)
   extends CassandraPredicateRules

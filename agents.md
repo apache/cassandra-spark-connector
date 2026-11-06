@@ -33,7 +33,7 @@ start-rootless-docker env \
   PATH=/usr/lib/jvm/java-17-openjdk/bin:$PATH \
   TESTCONTAINERS_HOST_OVERRIDE=127.0.0.1 \
   ./sbt/sbt \
-  "connector/Test/testOnly com.datastax.spark.connector.sql.CassandraUpdateModeStreamingSinkSpec"
+  "connector/IntegrationTest/testOnly io.teknek.arizona.spark.connector.sql.CassandraStreamingSinkSpec"
 ```
 
 The update-mode streaming sink test is expected to fail until update-mode support is implemented in the connector. A failure like `does not support Update mode` means the environment reached Spark and Cassandra successfully.

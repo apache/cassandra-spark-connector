@@ -48,7 +48,7 @@ object Testing {
   }
 
   def testsWithFixtures(cl: ClassLoader, tests: Seq[TestDefinition]): Map[TestDefinition, Seq[String]] = {
-    val fixture = cl.loadClass("com.datastax.spark.connector.cluster.Fixture")
+    val fixture = cl.loadClass("io.teknek.arizona.spark.connector.cluster.Fixture")
     tests.map { testDefinition =>
       val c = cl.loadClass(testDefinition.name)
       (testDefinition, interfacesImplementingFixture(c, fixture).map(_.getSimpleName).distinct.sorted)

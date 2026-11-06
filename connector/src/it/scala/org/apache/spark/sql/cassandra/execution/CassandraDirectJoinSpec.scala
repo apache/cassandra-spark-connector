@@ -22,13 +22,13 @@ import java.sql.Timestamp
 import java.time.Instant
 
 import com.datastax.oss.driver.api.core.DefaultProtocolVersion._
-import com.datastax.spark.connector.cluster.DefaultCluster
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.{SparkCassandraITFlatSpecBase, _}
+import _root_.io.teknek.arizona.spark.connector.cluster.DefaultCluster
+import _root_.io.teknek.arizona.spark.connector.cql.CassandraConnector
+import _root_.io.teknek.arizona.spark.connector.{SparkCassandraITFlatSpecBase, _}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.cassandra.CassandraSourceRelation._
-import org.apache.spark.sql.cassandra._
+import _root_.org.apache.spark.sql.cassandra.CassandraSourceRelation._
+import _root_.org.apache.spark.sql.cassandra._
 import org.apache.spark.sql.execution.streaming.StreamingQueryWrapper
 import org.scalatest.concurrent.Eventually
 

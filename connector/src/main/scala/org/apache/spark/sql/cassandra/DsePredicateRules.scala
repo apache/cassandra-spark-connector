@@ -18,11 +18,11 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector.cql.{IndexDef, TableDef}
-import com.datastax.spark.connector.types._
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector.cql.{IndexDef, TableDef}
+import _root_.io.teknek.arizona.spark.connector.types._
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.cassandra.PredicateOps.FilterOps
+import _root_.org.apache.spark.sql.cassandra.PredicateOps.FilterOps
 import org.apache.spark.sql.sources.{EqualTo, Filter, IsNotNull}
 import scala.collection.compat._
 

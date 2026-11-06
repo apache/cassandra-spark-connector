@@ -19,7 +19,7 @@
 package org.apache.spark.sql
 
 import scala.language.implicitConversions
-import com.datastax.spark.connector.util.{ConfigParameter, DeprecatedConfigParameter}
+import _root_.io.teknek.arizona.spark.connector.util.{ConfigParameter, DeprecatedConfigParameter}
 import org.apache.spark.sql.streaming.DataStreamWriter
 
 package object cassandra {
@@ -151,7 +151,7 @@ package object cassandra {
   @deprecated("Use SparkSession instead of SQLContext", "2.0.0")
   implicit class CassandraSQLContextFunctions(val sqlContext: SQLContext) extends AnyVal {
 
-    import org.apache.spark.sql.cassandra.CassandraSQLContextParams._
+    import _root_.org.apache.spark.sql.cassandra.CassandraSQLContextParams._
 
     /** Set current used cluster name */
     @deprecated("Use SparkSession instead of SQLContext", "2.0.0")
@@ -214,7 +214,7 @@ package object cassandra {
 
   implicit class CassandraSparkSessionFunctions(val sparkSession: SparkSession) extends AnyVal {
 
-    import org.apache.spark.sql.cassandra.CassandraSQLContextParams._
+    import _root_.org.apache.spark.sql.cassandra.CassandraSQLContextParams._
 
     /** Set current used cluster name */
     def setCluster(cluster: String): SparkSession = {

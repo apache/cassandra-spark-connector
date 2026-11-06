@@ -21,9 +21,9 @@ package org.apache.spark.metrics
 import java.io.File
 import java.nio.charset.{Charset, StandardCharsets}
 
-import com.datastax.spark.connector.SparkCassandraITFlatSpecBase
-import com.datastax.spark.connector.cluster.{DefaultCluster, SeparateJVM}
-import com.datastax.spark.connector.embedded.SparkTemplate
+import _root_.io.teknek.arizona.spark.connector.SparkCassandraITFlatSpecBase
+import _root_.io.teknek.arizona.spark.connector.cluster.{DefaultCluster, SeparateJVM}
+import _root_.io.teknek.arizona.spark.connector.embedded.SparkTemplate
 import org.apache.commons.io.FileUtils
 import org.apache.spark.{SparkContext, TaskContext}
 

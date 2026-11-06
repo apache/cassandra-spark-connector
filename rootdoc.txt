@@ -1,2 +1,2 @@
 Apache Spark Connector for Apache Cassandra.
-See documentation of package [[com.datastax.spark.connector]].
+See documentation of package [[io.teknek.arizona.spark.connector]].

@@ -11,7 +11,7 @@ To get a Spark RDD that represents a Cassandra table,
 call the `cassandraTable` method on the `SparkContext` object.
 
 ```scala
-import com.datastax.spark.connector._ //Loads implicit functions
+import io.teknek.arizona.spark.connector._ //Loads implicit functions
 sc.cassandraTable("keyspace name", "table name")
 ```    
 
@@ -39,7 +39,7 @@ Now you can read that table as `RDD`:
 
 ```scala
 val rdd = sc.cassandraTable("test", "words")
-// rdd: com.datastax.spark.connector.rdd.CassandraRDD[com.datastax.spark.connector.rdd.reader.CassandraRow] = CassandraRDD[0] at RDD at CassandraRDD.scala:41
+// rdd: io.teknek.arizona.spark.connector.rdd.CassandraRDD[io.teknek.arizona.spark.connector.rdd.reader.CassandraRow] = CassandraRDD[0] at RDD at CassandraRDD.scala:41
 
 rdd.toArray.foreach(println)
 // CassandraRow{word: bar, count: 20}
@@ -82,7 +82,7 @@ Store the first item of the rdd in the firstRow value.
 
 ```scala
 val firstRow = rdd.first
-// firstRow: com.datastax.spark.connector.rdd.reader.CassandraRow = CassandraRow{word: bar, count: 20}
+// firstRow: io.teknek.arizona.spark.connector.rdd.reader.CassandraRow = CassandraRow{word: bar, count: 20}
 ```
 
 Get the number of columns and column names:
@@ -142,7 +142,7 @@ Then in your application, retrieve the first row:
 
 ```scala
 val row = sc.cassandraTable("test", "users").first
-// row: com.datastax.spark.connector.rdd.reader.CassandraRow = CassandraRow{username: someone, emails: [someone@email.com, s@email.com]}
+// row: io.teknek.arizona.spark.connector.rdd.reader.CassandraRow = CassandraRow{username: someone, emails: [someone@email.com, s@email.com]}
 ```
 
 Query the collection set in Cassandra from Spark:
@@ -166,7 +166,7 @@ therefore you don't need to use `get[Option[...]]`
 with collections.
 
 ### Reading columns of Cassandra User Defined Types from a CassandraRow
-UDT column values are represented by `com.datastax.spark.connector.UDTValue` type.
+UDT column values are represented by `io.teknek.arizona.spark.connector.UDTValue` type.
 The same set of getters is available on `UDTValue` as on `CassandraRow`. UDT's can
 also be mapped to Scala classes see [Mapping section](4_mapper.md)  
 
@@ -206,7 +206,7 @@ Then in your application, retrieve the first row:
 
 ```scala
 val row = sc.cassandraTable("test", "things").first
-// row: com.datastax.spark.connector.CassandraRow = CassandraRow{id: 2, features: [2.2, 2.1, 2.0], name: b}
+// row: io.teknek.arizona.spark.connector.CassandraRow = CassandraRow{id: 2, features: [2.2, 2.1, 2.0], name: b}
 ```
 
 Query the vectors in Cassandra from Spark:
@@ -286,9 +286,9 @@ val repartitioned =  idsOfInterest.repartitionByCassandraReplica("test", "shoppi
 repartitioned.partitions
 //res0: Array[org.apache.spark.Partition] = Array(ReplicaPartition(0,Set(/127.0.0.1)), ...)
 repartitioned.partitioner
-//res1: Option[org.apache.spark.Partitioner] = Some(com.datastax.spark.connector.rdd.partitioner.ReplicaPartitioner@4484d6c2)
+//res1: Option[org.apache.spark.Partitioner] = Some(io.teknek.arizona.spark.connector.rdd.partitioner.ReplicaPartitioner@4484d6c2)
 scala> repartitioned
-//res2: com.datastax.spark.connector.rdd.partitioner.CassandraPartitionedRDD[CustomerID] = CassandraPartitionedRDD[5] at RDD at CassandraPartitionedRDD.scala:12
+//res2: io.teknek.arizona.spark.connector.rdd.partitioner.CassandraPartitionedRDD[CustomerID] = CassandraPartitionedRDD[5] at RDD at CassandraPartitionedRDD.scala:12
 ```
 
 
@@ -393,7 +393,7 @@ object ReadConfigurationOne {
 import ReadConfigurationOne._
 val rdd = sc.cassandraTable("write_test","collections")
 rdd.readConf
-//com.datastax.spark.connector.rdd.ReadConf = ReadConf(100,100,LOCAL_ONE,true)
+//io.teknek.arizona.spark.connector.rdd.ReadConf = ReadConf(100,100,LOCAL_ONE,true)
 ```
    
 Or you can define them implicitly in the same block as the `cassandraTable` call
@@ -402,7 +402,7 @@ Or you can define them implicitly in the same block as the `cassandraTable` call
 implicit val anotherConf = ReadConf(200,200)
 val rddWithADifferentConf = sc.cassandraTable("write_test","collections")
 rddWithADifferentConf.readConf
-//com.datastax.spark.connector.rdd.ReadConf = ReadConf(200,200,LOCAL_ONE,true)
+//io.teknek.arizona.spark.connector.rdd.ReadConf = ReadConf(200,200,LOCAL_ONE,true)
 ```
 
 [Next - Server-side data selection and filtering](3_selection.md)

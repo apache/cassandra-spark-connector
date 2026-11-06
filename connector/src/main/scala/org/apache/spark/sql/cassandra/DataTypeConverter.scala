@@ -18,10 +18,10 @@
 
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector
-import com.datastax.spark.connector.cql.ColumnDef
-import com.datastax.spark.connector.types.{TupleFieldDef, UDTFieldDef}
-import com.datastax.spark.connector.util.Logging
+import _root_.io.teknek.arizona.spark.connector
+import _root_.io.teknek.arizona.spark.connector.cql.ColumnDef
+import _root_.io.teknek.arizona.spark.connector.types.{TupleFieldDef, UDTFieldDef}
+import _root_.io.teknek.arizona.spark.connector.util.Logging
 import org.apache.spark.sql.{types => catalystTypes}
 
 /** Convert Cassandra data type to Catalyst data type */

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.datastax.spark.connector.types
+package io.teknek.arizona.spark.connector.types
 
 import scala.collection.immutable.{TreeMap, TreeSet}
 import scala.collection.mutable

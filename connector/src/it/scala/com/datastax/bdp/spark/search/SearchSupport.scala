@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.datastax.bdp.spark.search
+package io.teknek.arizona.spark.bdp.search
 
 import java.net.InetAddress
 

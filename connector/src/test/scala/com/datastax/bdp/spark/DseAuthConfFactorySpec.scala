@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.datastax.bdp.spark
+package io.teknek.arizona.spark.bdp
 /**
 TODO:
 import org.apache.commons.lang3.SerializationUtils
@@ -24,7 +24,7 @@ import org.apache.spark.SparkConf
 import org.scalatest.{FlatSpec, Matchers}
 
 import com.datastax.bdp.config.{ClientConfigurationFactory, YamlClientConfiguration}
-import com.datastax.bdp.spark.DseAuthConfFactory.DsePasswordAuthConf
+import _root_.io.teknek.arizona.spark.bdp.DseAuthConfFactory.DsePasswordAuthConf
 import com.datastax.bdp.test.ng.{DataGenerator, DseScalaTestBase, ToString, YamlProvider}
 
 class DseAuthConfFactorySpec extends FlatSpec with Matchers with DseScalaTestBase {

@@ -20,8 +20,8 @@ package org.apache.spark.sql.cassandra
 
 import com.datastax.oss.driver.api.core.{DefaultProtocolVersion, ProtocolVersion}
 import org.scalatest.{FlatSpec, Matchers}
-import com.datastax.spark.connector.cql._
-import com.datastax.spark.connector.types.{IntType, TimeUUIDType}
+import _root_.io.teknek.arizona.spark.connector.cql._
+import _root_.io.teknek.arizona.spark.connector.types.{IntType, TimeUUIDType}
 
 class PredicatePushDownSpec extends FlatSpec with Matchers {
 

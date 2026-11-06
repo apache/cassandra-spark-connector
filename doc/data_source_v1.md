@@ -40,8 +40,8 @@ remembering the above syntax:
 ```scala
 import org.apache.spark.sql.cassandra._
 
-import com.datastax.spark.connector.cql.CassandraConnectorConf
-import com.datastax.spark.connector.rdd.ReadConf
+import io.teknek.arizona.spark.connector.cql.CassandraConnectorConf
+import io.teknek.arizona.spark.connector.rdd.ReadConf
 
 // set params for all clusters and keyspaces
 spark.setCassandraConf(CassandraConnectorConf.KeepAliveMillisParam.option(10000))
@@ -267,7 +267,7 @@ sorting direction for clustering columns, and additional table options.
 #### Example Creating a Cassandra Table from a Dataset
 ```scala
 // Add spark connector specific methods to Dataset
-import com.datastax.spark.connector._
+import io.teknek.arizona.spark.connector._
 
 val df = spark
   .read
@@ -318,7 +318,7 @@ Spark plans and provide unique C* specific optimizations. To load these rules yo
 directly add the extensions to your Spark environment or they can be added via a configuration property
 
 ```
-spark.sql.extensions = com.datastax.spark.connector.CassandraSparkExtensions
+spark.sql.extensions = io.teknek.arizona.spark.connector.CassandraSparkExtensions
 ```
 
 Within this file are the triggers for handling `ttl`, `writetime` functions (`ttl` and
