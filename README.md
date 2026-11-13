@@ -19,6 +19,7 @@ configuration keys remain unchanged where Spark compatibility requires them.
 | ---------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Community  | Chat with us at [Apache Cassandra](https://cassandra.apache.org/_/community.html#discussions)                                                                                                                                                                                                                       |
 | Documentation | [User documentation](doc/0_quick_start.md), [development notes](doc/developers.md) |
+| Publishing | [Sonatype Central publishing](doc/publishing.md) |
 | Project Coordinates | `io.teknek.arizona.spark:arizona-spark-connector_2.12` |
 | License | [Apache License 2.0](LICENSE.txt), with project attribution in [NOTICE](NOTICE) |
 

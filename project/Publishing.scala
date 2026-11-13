@@ -20,28 +20,9 @@ import java.io.File
 
 import sbt.Path
 import sbt._
-import sbt.librarymanagement.Resolver
 import sbt.librarymanagement.ivy.Credentials
 
 object Publishing extends sbt.librarymanagement.DependencyBuilders {
-
-  val altReleaseDeploymentRepository = sys.props.get("publish.repository.name")
-  val altReleaseDeploymentLocation = sys.props.get("publish.repository.location")
-
-  val nexus = "https://oss.sonatype.org/"
-  val SonatypeSnapshots = Some("snapshots" at nexus + "content/repositories/snapshots")
-  val SonatypeReleases = Some("releases" at nexus + "service/local/staging/deploy/maven2")
-
-  def repository(version: String): Option[Resolver] = {
-    (altReleaseDeploymentRepository, altReleaseDeploymentLocation) match {
-      case (Some(name), Some(location)) => Some(name at location)
-      case _ => if (version.endsWith("SNAPSHOT")) {
-        SonatypeSnapshots
-      } else {
-        SonatypeReleases
-      }
-    }
-  }
 
   lazy val inlineCredentials = for (
     realm ← sys.props.get("publish.repository.credentials.realm");
