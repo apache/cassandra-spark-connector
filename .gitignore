@@ -23,5 +23,6 @@ metastore_db
 *.ipr
 *.iws
 *.iml
+*.bsp
 
 checkpoint
