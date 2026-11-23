@@ -196,7 +196,7 @@ Old issues from before the donation to the ASF and the Apache Cassandra project 
 To run unit and integration tests:
 
     ./sbt/sbt test
-    ./sbt/sbt it:test
+    ./sbt/sbt connectorIt/test
 
 Note that the integration tests require [CCM](https://github.com/apache/cassandra-ccm) to be installed on your machine.
 See [Tips for Developing the Spark Cassandra Connector](doc/developers.md) for details.
@@ -210,7 +210,7 @@ First, prepare a jar with testing code:
 Then copy the generated test jar to your Spark nodes and run:    
 
     export IT_TEST_SPARK_MASTER=<Spark Master URL>
-    ./sbt/sbt it:test
+    ./sbt/sbt connectorIt/test
 
 ## Generating Documents
 To generate the Reference Document use

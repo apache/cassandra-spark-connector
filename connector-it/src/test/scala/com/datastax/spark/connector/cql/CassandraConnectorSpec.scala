@@ -211,12 +211,29 @@ class CassandraConnectorSpec extends SparkCassandraITFlatSpecBase with DefaultCl
     }
   }
 
+  // Test resources are not necessarily on the JVM system classpath (e.g. when the tests are run by sbt 2),
+  // so they are looked up through the classloader of this class.
+  private def testConfUrl: java.net.URL = {
+    val url = getClass.getClassLoader.getResource("test.conf")
+    require(url != null, "test.conf not found on the test classpath")
+    url
+  }
+
+  // sc.addFile needs a real file, the resource may be packed in a jar
+  private def testConfFile: java.io.File = {
+    val file = java.nio.file.Files.createTempDirectory("test-conf").resolve("test.conf")
+    val in = testConfUrl.openStream()
+    try java.nio.file.Files.copy(in, file) finally in.close()
+    file.toFile.deleteOnExit()
+    file.toFile
+  }
+
   /*
   Check to see whether a parameter set in our "test-conf" is actually read, we do this by trying to
   connect using the file and making sure the invalid ip is used.
    */
   it should "accept a driver profile file added to --files" in {
-    sc.addFile(ClassLoader.getSystemResource("test.conf").getFile)
+    sc.addFile(testConfFile.getAbsolutePath)
     val conf = sc.getConf
       .set(CassandraConnectorConf.ProfileFileBasedConfigurationParam.name, "test.conf")
     val conn = CassandraConnector(conf)
@@ -229,7 +246,7 @@ class CassandraConnectorSpec extends SparkCassandraITFlatSpecBase with DefaultCl
   }
 
   it should "use a driver profile file accessed via URL" in {
-    val url = ClassLoader.getSystemResource("test.conf")
+    val url = testConfUrl
 
     val conf = sc.getConf
       .set(CassandraConnectorConf.ProfileFileBasedConfigurationParam.name, url.toString)
@@ -248,7 +265,7 @@ class CassandraConnectorSpec extends SparkCassandraITFlatSpecBase with DefaultCl
     * invalid bundle and just make sure it is loaded.
     */
   it should "use a cloud connect bundle added to --files" in {
-    sc.addFile(ClassLoader.getSystemResource("test.conf").getFile)
+    sc.addFile(testConfFile.getAbsolutePath)
 
     val conf = sc.getConf
       .set(CassandraConnectorConf.CloudBasedConfigurationParam.name, "test.conf")
@@ -264,7 +281,7 @@ class CassandraConnectorSpec extends SparkCassandraITFlatSpecBase with DefaultCl
 
 
   it should "use a cloud connect bundle added to URL" in {
-    val url = ClassLoader.getSystemResource("test.conf")
+    val url = testConfUrl
 
     val conf = sc.getConf
       .set(CassandraConnectorConf.CloudBasedConfigurationParam.name, url.toString)

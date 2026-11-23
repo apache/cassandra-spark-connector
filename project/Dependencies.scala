@@ -65,23 +65,23 @@ object Dependencies
   }
 
   object TestConnector {
-    val commonsIO         = "commons-io"              %  "commons-io"                   % CommonsIO    % "test,it"       // ApacheV2
-    val scalaCheck        = "org.scalacheck"          %% "scalacheck"                   % ScalaCheck   % "test,it"      // BSD
-    val sparkCoreT        = "org.apache.spark"        %% "spark-core"                   % ApacheSpark  % "test,it" classifier "tests"
-    val sparkStreamingT   = "org.apache.spark"        %% "spark-streaming"              % ApacheSpark  % "test,it" classifier "tests"
-    val solrj             = "org.apache.solr"         %  "solr-solrj"                   % SolrJ      % "test,it"
+    val commonsIO         = "commons-io"              %  "commons-io"                   % CommonsIO    % "test"       // ApacheV2
+    val scalaCheck        = "org.scalacheck"          %% "scalacheck"                   % ScalaCheck   % "test"      // BSD
+    val sparkCoreT        = ("org.apache.spark"        %% "spark-core"                   % ApacheSpark  % "test").classifier("tests")
+    val sparkStreamingT   = ("org.apache.spark"        %% "spark-streaming"              % ApacheSpark  % "test").classifier("tests")
+    val solrj             = "org.apache.solr"         %  "solr-solrj"                   % SolrJ      % "test"
 
     val dependencies = Seq(
       scalaCheck,
       sparkCoreT,
       sparkStreamingT,
       solrj,
-      TestCommon.driverMapperProcessor % "test,it" driverCoreExclude(),
-      TestCommon.scalaTest % "test,it",
-      TestCommon.mockito % "test,it",
-      TestCommon.junit % "test,it",
-      TestCommon.junitInterface % "test,it",
-      TestCommon.esriGeometry % "test,it").map(_.logbackExclude())
+      (TestCommon.driverMapperProcessor % "test").driverCoreExclude(),
+      TestCommon.scalaTest % "test",
+      TestCommon.mockito % "test",
+      TestCommon.junit % "test",
+      TestCommon.junitInterface % "test",
+      TestCommon.esriGeometry % "test").map(_.logbackExclude())
   }
 
   // Required for metrics
@@ -93,8 +93,8 @@ object Dependencies
   }
 
   object Driver {
-    val driverCore = "org.apache.cassandra" % "java-driver-core-shaded" % CassandraJavaDriver driverCoreExclude()
-    val driverMapper = "org.apache.cassandra" % "java-driver-mapper-runtime" % CassandraJavaDriver driverCoreExclude()
+    val driverCore = ("org.apache.cassandra" % "java-driver-core-shaded" % CassandraJavaDriver).driverCoreExclude()
+    val driverMapper = ("org.apache.cassandra" % "java-driver-mapper-runtime" % CassandraJavaDriver).driverCoreExclude()
 
     val commonsLang3 = "org.apache.commons" % "commons-lang3" % Versions.CommonsLang3
     val paranamer = "com.thoughtworks.paranamer" % "paranamer" % Versions.Paranamer
@@ -121,7 +121,7 @@ object Dependencies
       TestCommon.mockito % "test",
       TestCommon.junit % "test",
       TestCommon.junitInterface % "test",
-      TestCommon.driverMapperProcessor % "test" driverCoreExclude()
+      (TestCommon.driverMapperProcessor % "test").driverCoreExclude()
     )
   }
 

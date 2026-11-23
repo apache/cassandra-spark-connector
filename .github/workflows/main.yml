@@ -41,11 +41,11 @@ jobs:
           JAVA8_HOME: ${{ env.JAVA_HOME_8_X64 }}
           JAVA11_HOME: ${{ env.JAVA_HOME_11_X64 }}
           JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
-        run: sbt/sbt ++${{ matrix.scala }} test it:test
+        run: sbt/sbt "++${{ matrix.scala }} ; testFull ; connectorIt/testFull ; shutdown"
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v6
         if: always()
         with:
-          report_paths: '**/target/test-reports/*.xml'
+          report_paths: '**/target/out/**/test-reports/*.xml'
           annotate_only: true

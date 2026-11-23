@@ -47,7 +47,7 @@ object Testing {
     "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED"
   )
 
-  private def interfacesImplementingFixture(c: Class[_], fixture: Class[_]): Seq[Class[_]] = {
+  private def interfacesImplementingFixture(c: Class[?], fixture: Class[?]): Seq[Class[?]] = {
     c.getInterfaces.toSeq.filter(i => i != fixture && fixture.isAssignableFrom(i)) ++
       c.getInterfaces.flatMap(interfacesImplementingFixture(_, fixture)) ++
       Option(c.getSuperclass).map(x => interfacesImplementingFixture(x, fixture)).getOrElse(Seq())
