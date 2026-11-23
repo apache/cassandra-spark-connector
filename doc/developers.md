@@ -39,7 +39,7 @@ done; done; done
 ```
 
 The SSL and authentication integration tests use the connector's default `TLS_RSA_*`
-cipher suites, which recent JDK 17 updates disable in `jdk.tls.disabledAlgorithms`.
+cipher suites, which [recent JDK 17 updates disable in `jdk.tls.disabledAlgorithms`](https://www.oracle.com/java/technologies/javase/17all-relnotes.html).
 They fail on such JDKs regardless of the connector code.
  
 The most common commands to use when developing the connector are
@@ -171,7 +171,7 @@ you could run `publishM2` which would generate the needed artifacts and
 pom in your local cache. You can then reference this from `spark-shell`
 or `spark-submit` using the following code 
 ```bash
-./bin/spark-shell --repositories file:/Users/yourUser/.m2/repository --packages com.datastax.spark:spark-cassandra-connector_2.10:1.6.0-14-gcfca49e
+./bin/spark-shell --repositories file:/Users/yourUser/.m2/repository --packages com.datastax.spark:spark-cassandra-connector_2.13:1.6.0-14-gcfca49e
 ```
 Where you would change the revision `1.6.0-14-gcfca49e` to match the output
 of your publish command. 
@@ -179,6 +179,60 @@ of your publish command.
 This same method should work with `publishLocal`
 after the merging of [SPARK-12666](https://issues.apache.org/jira/browse/SPARK-12666)
 
+> [!NOTE]
+> Jars produced (each under its module's `target/scala-2.13/`):
+> | Module | JAR Name Example (having suffix as `<last tag>-<commits since>-g<sha>`) |
+> | --- | ---: |
+> | connector | `spark-cassandra-connector_2.13-3.5.1-19-g37de9b97.jar` |
+> | connector | `spark-cassandra-connector-assembly-3.5.1-19-g37de9b97.jar` |
+> | driver | `spark-cassandra-connector-driver_2.13-3.5.1-19-g37de9b97.jar` |
+> | test-support | `spark-cassandra-connector-test-support_2.13-3.5.1-19-g37de9b97.jar` |
+> | root | `root_2.13-3.5.1-19-g37de9b97.jar` |
+
+<details>
+<summary>Expand/Collapse to view Troubleshooting steps</summary>
+#### Troubleshooting `--packages` with `publishM2`
+
+* `Provided Maven Coordinates must be in the form 'groupId:artifactId:version'`: `--packages`
+  takes Maven coordinates, not a jar file name. Pass
+  `com.datastax.spark:spark-cassandra-connector_2.13:<revision>` (the revision is the
+  `<last tag>-<commits since>-g<sha>` suffix printed by `publishM2`), without the `.jar`.
+
+* `download failed: org.slf4j#slf4j-api;...!slf4j-api.jar` (or another dependency), with
+  `[NOT FOUND ] ... local-m2-cache: tried file:/.../.m2/repository/...jar`: Spark's default Ivy
+  settings look in `~/.m2/repository` first. If that directory holds only the `.pom` of a
+  dependency (no `.jar`, for example left behind by a Maven build that only read its POM),
+  Spark stops there instead of falling back to Maven Central. Either delete the offending
+  `<artifact>/<version>` directory from `~/.m2/repository` (Maven re-downloads it when needed), or tell
+  Spark to take only the connector from `~/.m2` and everything else from Maven Central, by
+  creating an Ivy settings file such as `/tmp/ivysettings.xml`:
+
+  ```xml
+  <ivysettings>
+    <settings defaultResolver="central"/>
+    <resolvers>
+      <ibiblio name="central" m2compatible="true"/>
+      <ibiblio name="local-ours" m2compatible="true" root="file:///Users/yourUser/.m2/repository"/>
+    </resolvers>
+    <modules>
+      <module organisation="com.datastax.spark" resolver="local-ours"/>
+    </modules>
+  </ivysettings>
+  ```
+
+  and starting the shell with `--conf spark.jars.ivySettings=/tmp/ivysettings.xml` in place of
+  `--repositories` (keep the same `--packages`).
+
+* The same `download failed ... [NOT FOUND ] ... local-m2-cache` error keeps appearing after
+  you deleted the POM-only directories from `~/.m2/repository`: Spark's Ivy cache remembers
+  which resolver it used for each dependency
+  (`~/.ivy2.5.2/cache/<groupId>/<artifactId>/ivydata-<version>.properties` contains
+  `resolver=local-m2-cache`; the cache directory name depends on the Spark version, for
+  example `~/.ivy2` for older releases) and keeps trying it. Delete the cache directories of the
+  affected dependencies (for example `~/.ivy2.5.2/cache/org.slf4j/slf4j-api` and
+  `~/.ivy2.5.2/cache/org.apache.commons/commons-lang3`), or start the shell with a fresh cache
+  directory for a one-off check, for example `--conf spark.jars.ivy=/tmp/ivy-clean`.
+</details>
 
 ### Publishing ScalaDocs
 
