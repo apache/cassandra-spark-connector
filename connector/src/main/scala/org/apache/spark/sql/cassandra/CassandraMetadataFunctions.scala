@@ -204,7 +204,8 @@ object CassandraMetaDataRule extends Rule[LogicalPlan] {
   def findMetadataExpressions(logicalPlan: LogicalPlan): Seq[CassandraMetadataFunction] = {
     def findMetadataExpressions(expressions: Seq[Expression]): Seq[CassandraMetadataFunction] = {
       expressions.collect{
-        case metadata: CassandraMetadataFunction => Seq(metadata)
+        // Spark 4 may run this rule before the column reference is resolved; skip until it is.
+        case metadata: CassandraMetadataFunction if metadata.child.resolved => Seq(metadata)
         case parent: Expression => findMetadataExpressions(parent.children)
       }.flatten
     }
