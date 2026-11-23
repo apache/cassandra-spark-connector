@@ -144,6 +144,11 @@ lazy val connectorIt = (project in file("connector-it"))
     // integration tests talk to external Cassandra clusters: never serve results from the test cache
     Test / test / cacheStores := Nil,
 
+    // sbt 2.1 splits the test classes of a subproject over two worker JVMs by default. The suites of a fixture group
+    // share one Cassandra cluster and must run one after another in one JVM, like they did with sbt 1 (e.g.
+    // ThrottlingSpec starves the driver connection pool and breaks suites running at the same time).
+    Test / testTopology := TestTopology.subprojectExclusive,
+
     // test grouping
     integrationTestsWithFixtures := Def.uncached {
       Testing.testsWithFixtures((Test / testLoader).value, (Test / definedTests).value)
