@@ -13,9 +13,34 @@ Help](https://help.github.com/articles/cloning-a-repository/).
 
 Once in the sbt shell you will be able to build and run tests for the
 connector without any Spark or Cassandra nodes running. The integration tests 
-require a valid path to java home set in the `JAVA_HOME` env variable and 
-[CCM](https://github.com/riptano/ccm) to be installed on your machine. 
-This can be accomplished with `pip install ccm`.
+require a JDK 17 set in the `JAVA_HOME` env variable (the `java` on your `PATH` must be 
+the same version) and [CCM](https://github.com/apache/cassandra-ccm) to be installed 
+on your machine. The test framework needs a CCM version that supports `--jvm-version`, 
+which the PyPI release does not, so install it from trunk, as CI does:
+`pip install git+https://github.com/apache/cassandra-ccm.git@trunk`.
+CCM must be on the `PATH` of the shell running sbt.
+
+For Cassandra 5.0 the tests start the nodes on Java 11, so also set `JAVA11_HOME`
+to a JDK 11. For example:
+
+```shell
+JAVA_HOME=/path/to/jdk17 JAVA11_HOME=/path/to/jdk11 CCM_CASSANDRA_VERSION=5.0.9 ./sbt/sbt it:test
+```
+
+Each parallel test group starts its nodes on its own loopback range
+(`127.<group>.0.<node>`). Linux accepts the whole `127.0.0.0/8` range, but macOS only
+configures `127.0.0.1`, so add the aliases first (they are removed on reboot):
+
+```shell
+for g in $(seq 0 12); do for c in 0 1; do for n in 1 2 3 4; do
+  [ "$g.$c.$n" = "0.0.1" ] && continue
+  sudo ifconfig lo0 alias 127.$g.$c.$n up
+done; done; done
+```
+
+The SSL and authentication integration tests use the connector's default `TLS_RSA_*`
+cipher suites, which recent JDK 17 updates disable in `jdk.tls.disabledAlgorithms`.
+They fail on such JDKs regardless of the connector code.
  
 The most common commands to use when developing the connector are
 
