@@ -13,7 +13,7 @@ ThisBuild / scalacOptions ++= Seq("-release", "17")
 // Publishing Info
 ThisBuild / credentials ++= Publishing.Creds
 ThisBuild / homepage := Some(url("https://github.com/datastax/spark-cassandra-connector"))
-ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt") )
+ThisBuild / licenses := List("Apache 2" -> java.net.URI.create("http://www.apache.org/licenses/LICENSE-2.0.txt").toURL )
 ThisBuild / organization := "com.datastax.spark"
 ThisBuild / organizationName := "Datastax"
 ThisBuild / organizationHomepage := Some(url("https://www.datastax.com"))
@@ -42,10 +42,10 @@ lazy val assemblySettings = Seq(
     case PathList("META-INF", xs @ _*) => MergeStrategy.last
     case "module-info.class" => MergeStrategy.discard
     case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(x)
   },
-  assembly / assemblyOption := (assemblyOption in assembly).value.copy(includeScala = false),
+  assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
   assembly / assemblyShadeRules := {
     Seq(
       ShadeRule.rename("com.typesafe.config.**" -> s"shade.com.datastax.spark.connector.@0").inAll
@@ -117,13 +117,13 @@ lazy val connector = (project in file("connector"))
 
     // test grouping
     integrationTestsWithFixtures := {
-      Testing.testsWithFixtures((testLoader in IntegrationTest).value, (definedTests in IntegrationTest).value)
+      Testing.testsWithFixtures((IntegrationTest / testLoader).value, (IntegrationTest / definedTests).value)
     },
 
     IntegrationTest / testGrouping := Testing.makeTestGroups(integrationTestsWithFixtures.value),
     IntegrationTest / testOptions += Tests.Argument("-oF"),  // show full stack traces
 
-    Test / javacOptions ++= annotationProcessor ++ Seq("-d", (classDirectory in Test).value.toString),
+    Test / javacOptions ++= annotationProcessor ++ Seq("-d", (Test / classDirectory).value.toString),
 
     Global / concurrentRestrictions := Seq(Tags.limitAll(Testing.parallelTasks)),
 
@@ -132,7 +132,7 @@ lazy val connector = (project in file("connector"))
       ++ Dependencies.TestConnector.dependencies
       ++ Dependencies.Jetty.dependencies,
 
-    scalacOptions in (Compile, doc) ++= scalacVersionDependantOptions(scalaBinaryVersion.value)
+    Compile / doc / scalacOptions ++= scalacVersionDependantOptions(scalaBinaryVersion.value)
   )
   .dependsOn(
     testSupport % "test",
@@ -170,5 +170,5 @@ lazy val publishableAssembly = project
   .settings(
     crossScalaVersions := supportedScalaVersions,
     name := "spark-cassandra-connector-assembly",
-    Compile / packageBin := (assembly in (connector, Compile)).value
+    Compile / packageBin := (connector / Compile / assembly).value
   )
