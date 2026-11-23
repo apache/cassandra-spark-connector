@@ -62,7 +62,7 @@ New features can be considered for 2.5 as long as they do not break apis.
 Once a feature is ready for b2.5, create a feature branch for b3.0 and merge
 b2.5 feature branch to b3.0 feature branch. Repeat for b3.1, b3.2, b3.3, b3.4 and trunk. 
 
-Example for imaginary SPARKC-9999.
+Example for imaginary CASSANALYTICS-9999.
 
 Let's assume that `apache` is `git@github.com:apache/cassandra-spark-connector.git` remote 
 and origin is your personal clone.
@@ -77,32 +77,32 @@ Here is what the work should look like.
 
 ```shell
 git fetch apache
-git checkout -b SPARKC-9999-b2.5 apache/b2.5
+git checkout -b CASSANALYTICS-9999-b2.5 apache/b2.5
 # do the work, commit
-git push origin SPARKC-9999-b2.5
+git push origin CASSANALYTICS-9999-b2.5
  
 # Forward merge on the next version:
-git checkout -b SPARKC-9999-b3.0 apache/b3.0
-git merge SPARKC-9999-b2.5
+git checkout -b CASSANALYTICS-9999-b3.0 apache/b3.0
+git merge CASSANALYTICS-9999-b2.5
 # Resolve conflict, if any
 # Push the new feature branch:
-git push origin SPARKC-9999-b3.0
+git push origin CASSANALYTICS-9999-b3.0
 
 # Forward merge on the next version:
-git checkout -b SPARKC-9999-b3.1 apache/b3.1
-git merge SPARKC-9999-b3.0
+git checkout -b CASSANALYTICS-9999-b3.1 apache/b3.1
+git merge CASSANALYTICS-9999-b3.0
 # Resolve conflict, if any
 # Push the new feature branch:
-git push origin SPARKC-9999-b3.1
+git push origin CASSANALYTICS-9999-b3.1
 
 # Repeat for b3.2, b3.3, b3.4
  
 # Forward merge on the next version:
-git checkout -b SPARKC-9999-trunk apache/trunk
-git merge SPARKC-9999-b3.2
+git checkout -b CASSANALYTICS-9999-trunk apache/trunk
+git merge CASSANALYTICS-9999-b3.2
 # Resolve conflict, if any
 # Push the new feature branch:
-git push origin SPARKC-9999-trunk
+git push origin CASSANALYTICS-9999-trunk
 ```
 Repeat for b3.3, b3.4, etc
 
@@ -130,10 +130,10 @@ run and the parallelization used while running tests.
 ### Test Parallelization
 
 In order to limit the number of test groups running simultaneously use the
-`TEST_PARALLEL_TASKS` environment variable. Only applies to `sbt test` tasks.
+`TEST_PARALLEL_TASKS` environment variable. Only applies to `sbt test` & `sbt it:test` tasks.
 
 ### Set Cassandra Test Target
-Our CI Build runs through the Datastax Infrastructure and tests on all the builds
+Our CI Build runs through the GitHub Actions Infrastructure and tests on all the builds
 listed in build.yaml. In addition, the _test-support_ module supports Cassandra
 or other CCM Compatible installations.
 
@@ -239,7 +239,7 @@ after the merging of [SPARK-12666](https://issues.apache.org/jira/browse/SPARK-1
 Run the generateDocs script with all the versions to generate docs for
 
 ```bash
-./generateDocs Version Version Version Version
+./generateDocs.sh Version Version Version Version
 ```
 Which will checkout those tags v$Version and run sbt doc for each of them.
 The output files will eventually be moved to the gh-pages branch. After the

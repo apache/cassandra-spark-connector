@@ -3,7 +3,7 @@
 ## Building
 
 ### Scala Versions
-You can choose to build, assemble and run both Spark and the Spark Cassandra Connector against Scala 2.12 or 2.13.
+You can choose to build, assemble and run both Spark and the Spark Cassandra Connector against Scala 2.13.
 
 As of Spark Cassandra Connector 4.1 (Apache Spark 4.x) the build supports Scala 2.13 only and requires
 Java 17; Spark 4.x dropped Scala 2.12 and Java 8/11 support. Earlier connector releases (3.x) default to

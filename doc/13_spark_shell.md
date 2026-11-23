@@ -2,7 +2,7 @@
 
 ## Using the Spark Cassandra Connector with the Spark Shell 
 
-These instructions were last confirmed with Cassandra 3.0.9, Spark 2.0.2 and Connector 2.0.6.
+These instructions were last confirmed with Cassandra 5.0.9, Spark 4.1.4 and Connector 4.1.0.
 
 For this guide, we assume an existing Cassandra deployment, running either locally or on a cluster, a local installation of Spark and an optional Spark cluster. For detail setup instructions see [setup spark-shell](13_1_setup_spark_shell.md)   
 
