@@ -44,15 +44,15 @@ object Dependencies
 
   implicit class Exclude(module: ModuleID) {
     def logbackExclude(): ModuleID = module
-      .exclude("ch.qos.logback", "logback-classic")
-      .exclude("ch.qos.logback", "logback-core")
-      .exclude("org.slf4j", "log4j-over-slf4j")
+      .exclude("ch.qos.logback" % "logback-classic")
+      .exclude("ch.qos.logback" % "logback-core")
+      .exclude("org.slf4j" % "log4j-over-slf4j")
 
     def driverCoreExclude(): ModuleID = module
-      .exclude("org.apache.cassandra", "java-driver-core") // doesn't shade guava
-      .exclude("org.apache.tinkerpop", "*")
+      .exclude("org.apache.cassandra" % "java-driver-core") // doesn't shade guava
+      .exclude("org.apache.tinkerpop" % "*")
       // until SPARK-20075 is fixed we fallback to java workarounds for native calls
-      .exclude("com.github.jnr", "jnr-posix")
+      .exclude("com.github.jnr" % "jnr-posix")
   }
 
   object TestCommon {
