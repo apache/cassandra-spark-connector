@@ -45,7 +45,7 @@ lazy val assemblySettings = Seq(
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(x)
   },
-  assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
+  assemblyPackageScala / assembleArtifact := false,
   assembly / assemblyShadeRules := {
     Seq(
       ShadeRule.rename("com.typesafe.config.**" -> s"shade.com.datastax.spark.connector.@0").inAll
