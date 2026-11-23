@@ -32,7 +32,7 @@ object Versions {
   val JUnitInterface  = "0.11"
   val Mockito         = "1.10.19"
 
-  val ApacheSpark     = "4.1.2"
+  val ApacheSpark     = "4.1.4"
   val SparkJetty      = "11.0.26"
   val SolrJ           = "8.3.0"
 

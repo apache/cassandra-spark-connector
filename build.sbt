@@ -15,7 +15,7 @@ ThisBuild / credentials ++= Publishing.Creds
 ThisBuild / homepage := Some(url("https://github.com/datastax/spark-cassandra-connector"))
 ThisBuild / licenses := List("Apache 2" -> java.net.URI.create("http://www.apache.org/licenses/LICENSE-2.0.txt").toURL )
 ThisBuild / organization := "com.datastax.spark"
-ThisBuild / organizationName := "Datastax"
+ThisBuild / organizationName := "DataStax"
 ThisBuild / organizationHomepage := Some(url("https://www.datastax.com"))
 ThisBuild / pomExtra := Publishing.OurDevelopers
 ThisBuild / pomIncludeRepository := { _ => false }
