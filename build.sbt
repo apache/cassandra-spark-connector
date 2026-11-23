@@ -25,8 +25,7 @@ ThisBuild / scmInfo := Publishing.OurScmInfo
 ThisBuild / version := Publishing.Version
 
 Global / resolvers ++= Seq(
-  DefaultMavenRepository,
-  Resolver.sonatypeRepo("public")
+  DefaultMavenRepository
 )
 
 lazy val IntegrationTest = config("it") extend Test

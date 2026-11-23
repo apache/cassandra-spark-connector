@@ -21,14 +21,13 @@ import java.io.File
 import sbt.Path
 import sbt._
 import sbt.librarymanagement.Resolver
-import sbt.librarymanagement.ivy.Credentials
 
 import scala.sys.process._
 
 object Publishing extends sbt.librarymanagement.DependencyBuilders {
 
   val Version: String = {
-    sys.props.get("publish.version").orElse(sys.env.get("PUBLISH_VERSION")).getOrElse("git describe --tags" !!).stripLineEnd.stripPrefix("v")
+    sys.props.get("publish.version").orElse(sys.env.get("PUBLISH_VERSION")).getOrElse("git describe --tags".!!).stripLineEnd.stripPrefix("v")
   }
 
   val altReleaseDeploymentRepository = sys.props.get("publish.repository.name")
@@ -52,10 +51,10 @@ object Publishing extends sbt.librarymanagement.DependencyBuilders {
   println(s"Using $Repository for publishing")
 
   lazy val inlineCredentials = for (
-    realm ← sys.props.get("publish.repository.credentials.realm");
-    host ← sys.props.get("publish.repository.credentials.host");
-    user ← sys.props.get("publish.repository.credentials.user");
-    password ← sys.props.get("publish.repository.credentials.password")
+    realm <- sys.props.get("publish.repository.credentials.realm");
+    host <- sys.props.get("publish.repository.credentials.host");
+    user <- sys.props.get("publish.repository.credentials.user");
+    password <- sys.props.get("publish.repository.credentials.password")
   ) yield Credentials(realm, host, user, password)
 
   val Creds: Seq[Credentials] = {
