@@ -53,26 +53,6 @@ lazy val assemblySettings = Seq(
   },
 )
 
-// Spark 4.x runs on Java 17, which requires these module open directives for the forked
-// (test) JVMs so Spark's use of internal JDK classes (unsafe, nio, etc.) keeps working.
-lazy val jdk17Options = Seq(
-  "--add-opens=java.base/java.lang=ALL-UNNAMED",
-  "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-  "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
-  "--add-opens=java.base/java.io=ALL-UNNAMED",
-  "--add-opens=java.base/java.net=ALL-UNNAMED",
-  "--add-opens=java.base/java.nio=ALL-UNNAMED",
-  "--add-opens=java.base/java.util=ALL-UNNAMED",
-  "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
-  "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
-  "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
-  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
-  "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
-  "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
-  "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
-  "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED"
-)
-
 lazy val commonSettings = Seq(
   // dependency updates check
   dependencyUpdatesFailBuild := true,
@@ -80,7 +60,7 @@ lazy val commonSettings = Seq(
   fork := true,
   parallelExecution := true,
   testForkedParallel := false,
-  javaOptions ++= jdk17Options,
+  javaOptions ++= JdkOptions.addOpens, // see project/JdkOptions.scala
   testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
   // sbt 2 enforces eviction errors in the Test configuration. ScalaTest 3.0.8 depends on scala-xml 1.x while Spark
   // brings 2.x. Remove once ScalaTest is upgraded.
