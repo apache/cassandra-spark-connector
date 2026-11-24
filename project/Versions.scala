@@ -36,5 +36,5 @@ object Versions {
   val SolrJ           = "8.3.0"
 
   val ScalaCompat         = "2.11.0"
-  val ParallelCollections = "1.0.4"
+  val ParallelCollections = "1.3.0"
 }
