@@ -269,7 +269,9 @@ class CassandraCatalogTableSpec extends CassandraCatalogSpecBase {
     for ((key, value) <- expectedPartitionColumns) {
       afterPartitionInformationMap.get(key) should be(Some(value))
     }
-    afterDetailedTableInformationMap.get("Name") should be(Some("testTable"))
+    // Spark 4.3 replaced the "Name" row of DESCRIBE EXTENDED for v2 tables with Catalog/Namespace/Database/Table rows
+    afterDetailedTableInformationMap.get("Table") should be(Some("testTable"))
+    afterDetailedTableInformationMap.get("Namespace") should be(Some(defaultKs))
   }
 
   it should "describe table properties" in {
