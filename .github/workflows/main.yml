@@ -7,6 +7,13 @@ on:
 
   workflow_dispatch:
 
+# A newer commit on the same branch/PR makes the still running CI of the older commit pointless, cancel it.
+# The group is per event type so a push run and a pull_request run of one commit do not cancel each other, and
+# manually dispatched runs (e.g. for flakiness comparisons) are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'ci' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
