@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         scala:  [2.13.18]
-        db-version: [3.11.19, 4.0.21, 4.1.12, 5.0.9, dse-6.8.44]
+        db-version: [3.11.19, 4.0.21, 4.1.12, 5.0.9] # dse-6.8.44 removing as DSE is now only available via IBM Fix Central
 
     steps:
       - uses: actions/checkout@v7
@@ -24,12 +24,30 @@ jobs:
         #  and temporarily switch this to @cassandra-test or @<sha> where sha is the last known working ccm commit
         run: pip install git+https://github.com/apache/cassandra-ccm.git@trunk
 
-      - name: Setup Java
+      # JDK 8 is only used by ccm to start Cassandra < 5 nodes (see ClusterModeExecutor.javaVersion). The ubuntu-latest
+      # image has no JDK 8, so it is downloaded and the download is sometimes corrupted ("Checksum verification
+      # failed"). Retry with another distribution (downloaded from a different host) when that happens.
+      - name: Setup Java 8
+        id: java8
+        if: ${{ !startsWith(matrix.db-version, '5.') }}
+        continue-on-error: true
+        uses: actions/setup-java@v6
+        with:
+          distribution: "temurin"
+          java-version: 8
+
+      - name: Setup Java 8 (fallback)
+        if: ${{ !startsWith(matrix.db-version, '5.') && steps.java8.outcome == 'failure' }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: "zulu"
+          java-version: 8
+
+      - name: Setup Java 11 and 17
         uses: actions/setup-java@v6
         with:
           distribution: "temurin"
           java-version: | # order is important, the last one is the default which will be used by SBT
-            8
             11
             17
 
