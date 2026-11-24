@@ -28,7 +28,7 @@ object Versions {
 
   val ScalaCheck      = "1.14.0"
   val ScalaTest       = "3.0.8"
-  val JUnit           = "4.12"
+  val JUnit           = "4.13.2"
   val JUnitInterface  = "0.11"
   val Mockito         = "1.10.19"
 
