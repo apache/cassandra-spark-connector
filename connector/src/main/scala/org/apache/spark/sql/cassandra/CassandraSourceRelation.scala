@@ -232,7 +232,7 @@ object CassandraSourceRelation extends Logging {
     val newPlan = oldPlan.transform {
         case ds@DataSourceV2Relation(_: CassandraTable, _, _, _, options, _) =>
           ds.copy(options = applyDirectJoinSetting(options, directJoinSetting))
-        case ds@DataSourceV2ScanRelation(DataSourceV2Relation(_: CassandraTable, _, _, _, _, _), scan: CassandraScan, _, _, _) =>
+        case ds@DataSourceV2ScanRelation(DataSourceV2Relation(_: CassandraTable, _, _, _, _, _), scan: CassandraScan, _, _, _, _, _) =>
           ds.copy(scan = scan.copy(consolidatedConf = applyDirectJoinSetting(scan.consolidatedConf, directJoinSetting)))
       }
     ClassicDataset[K](ds.sparkSession.asInstanceOf[ClassicSparkSession], newPlan)

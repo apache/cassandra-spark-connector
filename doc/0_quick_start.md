@@ -1,6 +1,6 @@
 # Documentation
 
-## 5-minute quick start guide for Spark 4.1
+## 5-minute quick start guide for Spark 4.3
 
 In this tutorial, you'll learn how to setup a very simple Spark application for reading and writing data from/to Cassandra.
 Before you start, you need to have basic knowledge of Apache Cassandra and Apache Spark.

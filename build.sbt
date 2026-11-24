@@ -76,7 +76,7 @@ lazy val jdk17Options = Seq(
 lazy val commonSettings = Seq(
   // dependency updates check
   dependencyUpdatesFailBuild := true,
-  dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang" | "org.eclipse.jetty"),
+  dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang"),
   fork := true,
   parallelExecution := true,
   testForkedParallel := false,
@@ -120,8 +120,7 @@ lazy val connector = (project in file("connector"))
 
     libraryDependencies ++= Dependencies.Spark.dependencies
       ++ Dependencies.Compatibility.dependencies(scalaVersion.value)
-      ++ Dependencies.TestConnector.dependencies
-      ++ Dependencies.Jetty.dependencies,
+      ++ Dependencies.TestConnector.dependencies,
 
     Compile / doc / scalacOptions ++= scalacVersionDependantOptions(scalaBinaryVersion.value)
   )

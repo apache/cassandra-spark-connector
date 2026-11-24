@@ -84,14 +84,6 @@ object Dependencies
       TestCommon.esriGeometry % "test").map(_.logbackExclude())
   }
 
-  // Required for metrics
-  object Jetty {
-    val jettyServer       = "org.eclipse.jetty"       % "jetty-server"            % SparkJetty % "provided"
-    val jettyServlet      = "org.eclipse.jetty"       % "jetty-servlet"           % SparkJetty % "provided"
-
-    val dependencies = Seq(jettyServer, jettyServlet)
-  }
-
   object Driver {
     val driverCore = ("org.apache.cassandra" % "java-driver-core-shaded" % CassandraJavaDriver).driverCoreExclude()
     val driverMapper = ("org.apache.cassandra" % "java-driver-mapper-runtime" % CassandraJavaDriver).driverCoreExclude()
