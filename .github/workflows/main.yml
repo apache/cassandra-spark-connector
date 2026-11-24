@@ -14,7 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         scala:  [2.13.18]
-        db-version: [3.11.19, 4.0.21, 4.1.12, 5.0.9] # dse-6.8.44 removing as DSE is now only available via IBM Fix Central
+        db-version: [4.0.21, 4.1.12, 5.0.9]
+        # dropped support for 3.11.19 in CI as OSS C* 5.0 release made 3.x releases EOL
+        # dse-6.8.44 removing as DSE is now only available via IBM Fix Central
 
     steps:
       - uses: actions/checkout@v7

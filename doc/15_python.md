@@ -14,7 +14,7 @@ shell similarly to how the spark shell is started. The preferred method is now t
 
 ```bash
 ./bin/pyspark \
-  --packages com.datastax.spark:spark-cassandra-connector_2.13:4.1.0 \
+  --packages com.datastax.spark:spark-cassandra-connector_2.13:4.3.0 \
   --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions
 ```
 

@@ -49,7 +49,7 @@ corresponds to the 1.6 release. The "trunk" branch will normally contain
 development for the next connector release in progress.
 
 Currently, the following branches are actively supported: 
-4.1.x ([b4.1](https://github.com/apache/cassandra-spark-connector/tree/b4.1)),
+4.3.x ([b4.3](https://github.com/apache/cassandra-spark-connector/tree/b4.3)),
 3.5.x ([trunk](https://github.com/apache/cassandra-spark-connector/tree/trunk)),
 3.4.x ([b3.4](https://github.com/apache/cassandra-spark-connector/tree/b3.4)),
 3.3.x ([b3.2](https://github.com/apache/cassandra-spark-connector/tree/b3.3)),
@@ -60,7 +60,7 @@ Currently, the following branches are actively supported:
 
 | Connector | Spark         | Cassandra                  | Cassandra Java Driver | Minimum Java Version | Supported Scala Versions |
 |-----------|---------------|----------------------------|-----------------------|----------------------|--------------------------|
-| 4.1       | 4.1           | 2.1.5*, 2.2, 3.x, 4.x, 5.0 | 4.19.4                | 17                   | 2.13                     |
+| 4.3       | 4.3           | 2.1.5*, 2.2, 3.x, 4.x, 5.0 | 4.19.4                | 17                   | 2.13                     |
 | 3.5.1     | 3.5           | 2.1.5*, 2.2, 3.x, 4.x, 5.0 | 4.18.1                | 8                    | 2.12, 2.13               |  
 | 3.5       | 3.5           | 2.1.5*, 2.2, 3.x, 4.x      | 4.13                  | 8                    | 2.12, 2.13               |  
 | 3.4       | 3.4           | 2.1.5*, 2.2, 3.x, 4.x      | 4.13                  | 8                    | 2.12, 2.13               |
@@ -86,9 +86,9 @@ Currently, the following branches are actively supported:
 ## Hosted API Docs
 API documentation for the Scala and Java interfaces are available online:
 
-### 4.1.0
-* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/4.1.0/connector/com/datastax/spark/connector/index.html)
-* [Connector Driver](https://apache.github.io/cassandra-spark-connector/ApiDocs/4.1.0/driver/com/datastax/spark/connector/index.html)
+### 4.3.0
+* [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/4.3.0/connector/com/datastax/spark/connector/index.html)
+* [Connector Driver](https://apache.github.io/cassandra-spark-connector/ApiDocs/4.3.0/driver/com/datastax/spark/connector/index.html)
 
 ### 3.5.1
 * [Spark-Cassandra-Connector](https://apache.github.io/cassandra-spark-connector/ApiDocs/3.5.1/connector/com/datastax/spark/connector/index.html)
