@@ -18,18 +18,24 @@
 
 package com.datastax.spark.connector.writer
 
+import com.datastax.oss.driver.api.core.{AllNodesFailedException, NodeUnavailableException}
 import com.datastax.oss.driver.api.core.cql.{AsyncResultSet, SimpleStatement, Statement}
+import com.datastax.oss.driver.api.core.metadata.Node
 
+import java.util.AbstractMap.SimpleEntry
+import java.util.Map.{Entry => JEntry}
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Callable, CompletableFuture, CompletionStage, Executors, TimeUnit}
 
 import org.junit.Assert._
 import org.junit.Test
+import org.mockito.Mockito.mock
 import org.scalatest.Matchers._
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.jdk.CollectionConverters._
+import scala.util.{Failure, Success, Try}
 
 class AsyncExecutorTest {
 
@@ -125,6 +131,47 @@ class AsyncExecutorTest {
     val all = Future { (1 to 5).map(executor.executeAsync).foreach(f => Await.result(f, 10.seconds)) }
     Await.result(all, 20.seconds)
     executor.waitForCurrentlyExecutingTasks()
+  }
+
+  private def allNodesFailed(errors: (Node, Throwable)*): AllNodesFailedException =
+    AllNodesFailedException.fromErrors(
+      errors.map { case (n, e) => new SimpleEntry[Node, Throwable](n, e): JEntry[Node, Throwable] }.asJava)
+
+  /** Fails the first `failures` calls synchronously, like session.executeAsync does when the pool is full. */
+  private def failingFirst(failures: Int, error: => Throwable, calls: AtomicInteger)
+      : Int => CompletionStage[String] = { _ =>
+    if (calls.incrementAndGet() <= failures) {
+      val f = new CompletableFuture[String]()
+      f.completeExceptionally(error)
+      f
+    } else completedLater(Right("ok"))
+  }
+
+  // Since driver 4.14 (JAVA-2959) a node whose connections are all busy is reported as NodeUnavailableException
+  // ("No connection was available to ..."). It means "try again later", like the NoNodeAvailableException that
+  // older drivers threw in the same situation, and must not fail the task.
+  @Test
+  def testRetriesWhenNoConnectionIsAvailable() {
+    val node = mock(classOf[Node])
+    val calls = new AtomicInteger()
+    val executor = new AsyncExecutor[Int, String](
+      failingFirst(50, allNodesFailed(node -> new NodeUnavailableException(node)), calls), 1, None, None)
+    Await.result(executor.executeAsync(1), 10.seconds) shouldBe "ok"
+    calls.get() shouldBe 51
+    executor.getLatestException() shouldBe None
+  }
+
+  // Only a pure "no capacity" failure is retried: a real error from another node still fails the request.
+  @Test
+  def testDoesNotRetryWhenAnotherNodeReallyFailed() {
+    val (busyNode, failedNode) = (mock(classOf[Node]), mock(classOf[Node]))
+    val calls = new AtomicInteger()
+    val error = allNodesFailed(
+      busyNode -> new NodeUnavailableException(busyNode), failedNode -> new IllegalStateException("broken"))
+    val executor = new AsyncExecutor[Int, String](failingFirst(1, error, calls), 1, None, None)
+    Try(Await.result(executor.executeAsync(1), 10.seconds)) shouldBe Failure(error)
+    calls.get() shouldBe 1
+    executor.getLatestException() shouldBe Some(error)
   }
 
   @Test

@@ -18,7 +18,7 @@
 
 package com.datastax.spark.connector.writer
 
-import java.util.concurrent.{CompletableFuture, CompletionStage, Semaphore}
+import java.util.concurrent.{CompletableFuture, CompletionStage, ScheduledThreadPoolExecutor, Semaphore, ThreadFactory}
 import java.util.function.BiConsumer
 import com.datastax.spark.connector.util.Logging
 
@@ -27,7 +27,7 @@ import scala.collection.concurrent.TrieMap
 import scala.util.Try
 import scala.util.control.NonFatal
 import AsyncExecutor.Handler
-import com.datastax.oss.driver.api.core.{AllNodesFailedException, NoNodeAvailableException}
+import com.datastax.oss.driver.api.core.{AllNodesFailedException, NoNodeAvailableException, NodeUnavailableException}
 import com.datastax.oss.driver.api.core.connection.BusyConnectionException
 import com.datastax.oss.driver.api.core.servererrors.OverloadedException
 
@@ -91,21 +91,15 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
         }
 
         private def onFailure(throwable: Throwable) {
-          throwable match {
-            case e: AllNodesFailedException if e.getAllErrors.asScala.values.exists(_.isInstanceOf[BusyConnectionException]) =>
-              logTrace("BusyConnectionException ... Retrying")
-              tryFuture()
-            case e: NoNodeAvailableException =>
-              logTrace("No Nodes Available ... Retrying")
-              tryFuture()
-            case e: OverloadedException =>
-              logTrace("Backpressure rejection ... Retrying")
-              tryFuture()
-
-            case otherException =>
-              logError("Failed to execute: " + task, otherException)
-              latestException = Some(throwable)
-              runHandlerThenComplete(failureHandler)(promise.failure(throwable))
+          if (AsyncExecutor.isRetryable(throwable)) {
+            logTrace(s"Retrying after ${throwable.getClass.getSimpleName}: $task")
+            // The driver often fails such requests synchronously, inside executeAsync. Retrying on this stack would
+            // recurse and spin for as long as the pool stays busy, so retry a little later on another thread.
+            AsyncExecutor.retryLater(() => tryFuture())
+          } else {
+            logError("Failed to execute: " + task, throwable)
+            latestException = Some(throwable)
+            runHandlerThenComplete(failureHandler)(promise.failure(throwable))
           }
         }
 
@@ -137,4 +131,33 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
 
 object AsyncExecutor {
   type Handler[T] = (T, Long, Long) => Unit
+
+  private val RetryDelayMillis = 1L
+
+  private lazy val retryScheduler = new ScheduledThreadPoolExecutor(1, new ThreadFactory {
+    override def newThread(r: Runnable): Thread = {
+      val thread = new Thread(r, "spark-cassandra-connector-async-executor-retry")
+      thread.setDaemon(true)
+      thread
+    }
+  })
+
+  private def retryLater(retry: () => Unit): Unit =
+    retryScheduler.schedule(new Runnable { override def run(): Unit = retry() }, RetryDelayMillis, MILLISECONDS)
+
+  /** True for failures that mean "no capacity right now" rather than "this request failed".
+    *
+    * Since Java driver 4.14 (JAVA-2959) a node whose connections have no free stream id is reported as a
+    * NodeUnavailableException inside an AllNodesFailedException; older drivers threw NoNodeAvailableException.
+    * Only an AllNodesFailedException made solely of such errors is retried, so a real error from any node still
+    * fails the request. */
+  private[writer] def isRetryable(throwable: Throwable): Boolean = throwable match {
+    case _: NoNodeAvailableException => true
+    case _: OverloadedException => true
+    case e: AllNodesFailedException =>
+      val errors = e.getAllErrors.asScala.values.flatMap(_.asScala)
+      errors.exists(_.isInstanceOf[BusyConnectionException]) ||
+        (errors.nonEmpty && errors.forall(_.isInstanceOf[NodeUnavailableException]))
+    case _ => false
+  }
 }
