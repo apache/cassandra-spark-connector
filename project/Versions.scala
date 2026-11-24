@@ -18,7 +18,7 @@
 
 object Versions {
 
-  val CommonsExec     = "1.3"
+  val CommonsExec     = "1.6.0"
   val CommonsIO       = "2.22.0"
   val CommonsLang3    = "3.10"
   val Paranamer       = "2.8"
