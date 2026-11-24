@@ -65,6 +65,19 @@ jobs:
             11
             17
 
+      # sbt/sbt downloads the launcher jar from Maven Central, which answers HTTP 429 to bursts of CI jobs. Keep the jar in
+      # the cache (keyed by the sbt version in sbt/sbt) so only a cold cache has to download it.
+      - name: Read the sbt launcher version
+        id: sbt-version
+        run: echo "version=$(sed -n 's/^SBT_VERSION=//p' sbt/sbt | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the sbt launcher
+        id: sbt-launcher
+        uses: actions/cache/restore@v6
+        with:
+          path: sbt/sbt-launch-*.jar
+          key: sbt-launch-${{ steps.sbt-version.outputs.version }}
+
       - name: sbt tests
         env:
           TEST_PARALLEL_TASKS: 1
@@ -79,8 +92,16 @@ jobs:
           PRESERVE_LOGS: ccm-logs
         run: sbt/sbt "++${{ matrix.scala }} ; testFull ; connectorIt/testFull ; shutdown"
 
+      - name: Save the sbt launcher
+        if: always() && steps.sbt-launcher.outputs.cache-hit != 'true' && hashFiles('sbt/sbt-launch-*.jar') != ''
+        uses: actions/cache/save@v6
+        with:
+          path: sbt/sbt-launch-*.jar
+          key: sbt-launch-${{ steps.sbt-version.outputs.version }}
+
+      # Only when a node actually started: if the job failed before the tests (e.g. no launcher jar) there is no ccm-logs
       - name: Upload Cassandra node logs
-        if: failure()
+        if: failure() && hashFiles('**/ccm-logs/**/logs/system.log') != ''
         uses: actions/upload-artifact@v7
         with:
           name: cassandra-logs-${{ matrix.db-version }}
