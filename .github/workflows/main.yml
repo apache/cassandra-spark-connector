@@ -1,8 +1,13 @@
 name: CI
 
 on:
-  # Triggers the workflow on push or pull request events but only for the trunk branch
+  # Push runs are only needed for the long-lived branches (they test what was merged into them). Every other branch is
+  # tested through its pull request, running both would run the same commit twice.
   push:
+    branches:
+      - trunk
+      - master
+      - 'b[0-9]*'
   pull_request:
 
   workflow_dispatch:
