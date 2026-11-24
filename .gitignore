@@ -26,3 +26,4 @@ metastore_db
 *.bsp
 
 checkpoint
+ccm-logs/

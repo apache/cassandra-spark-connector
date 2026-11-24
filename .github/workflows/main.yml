@@ -59,7 +59,22 @@ jobs:
           JAVA8_HOME: ${{ env.JAVA_HOME_8_X64 }}
           JAVA11_HOME: ${{ env.JAVA_HOME_11_X64 }}
           JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          # Debug mode stops the ccm nodes at the end of a test group but keeps their directories; PRESERVE_LOGS puts
+          # them under <working dir>/ccm-logs/ccm_127_<group> so the failure upload below can collect the node logs.
+          CCM_CLUSTER_MODE: Debug
+          PRESERVE_LOGS: ccm-logs
         run: sbt/sbt "++${{ matrix.scala }} ; testFull ; connectorIt/testFull ; shutdown"
+
+      - name: Upload Cassandra node logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cassandra-logs-${{ matrix.db-version }}
+          path: |
+            **/ccm-logs/**/logs/**
+            **/ccm-logs/**/conf/**
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v6
