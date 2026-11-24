@@ -25,6 +25,7 @@ import com.datastax.spark.connector.util.Logging
 import scala.jdk.CollectionConverters._
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
+import scala.util.control.NonFatal
 import AsyncExecutor.Handler
 import com.datastax.oss.driver.api.core.{AllNodesFailedException, NoNodeAvailableException}
 import com.datastax.oss.driver.api.core.connection.BusyConnectionException
@@ -71,10 +72,22 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
           pendingFutures.remove(promise.future)
         }
 
+        // The handler runs before the future completes and leaves pendingFutures, so whoever waits for the future
+        // (e.g. TableWriter via waitForCurrentlyExecutingTasks) also sees the handler's effects, such as the
+        // output metrics of the batch. Otherwise a task could end before its last batch was counted.
+        private def runHandlerThenComplete(handler: Option[Handler[T]])(complete: => Unit) {
+          try {
+            handler.foreach(_ (task, submissionTimestamp, executionTimestamp))
+          } catch {
+            case NonFatal(e) => logError("Handler failed for: " + task, e)
+          } finally {
+            release()
+            complete
+          }
+        }
+
         private def onSuccess(result: R) {
-          release()
-          promise.success(result)
-          successHandler.foreach(_ (task, submissionTimestamp, executionTimestamp))
+          runHandlerThenComplete(successHandler)(promise.success(result))
         }
 
         private def onFailure(throwable: Throwable) {
@@ -92,9 +105,7 @@ class AsyncExecutor[T, R](asyncAction: T => CompletionStage[R], maxConcurrentTas
             case otherException =>
               logError("Failed to execute: " + task, otherException)
               latestException = Some(throwable)
-              release()
-              promise.failure(throwable)
-              failureHandler.foreach(_ (task, submissionTimestamp, executionTimestamp))
+              runHandlerThenComplete(failureHandler)(promise.failure(throwable))
           }
         }
 

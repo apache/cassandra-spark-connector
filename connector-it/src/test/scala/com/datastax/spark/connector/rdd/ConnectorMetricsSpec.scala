@@ -149,15 +149,16 @@ class ConnectorMetricsSpec extends SparkCassandraITFlatSpecBase with DefaultClus
     stagesMetrics.clear()
     val rdd = ourSc.makeRDD(1 to 200, 16).map(x => (x, x))
     rdd.saveToCassandra(ks, "leftjoin")
-    Eventually.eventually {
+    Eventually.eventually(Eventually.timeout(Span(20, Seconds))) {
       stagesMetrics.size() should be(1)
     }
 
-    Eventually.eventually(Eventually.timeout(Span(20, Seconds))) {
-      val metrics = stagesMetrics.poll()
-      metrics.outputMetrics.recordsWritten should be(200)
-      metrics.outputMetrics.bytesWritten should be(200 * 8)
-    }
+    // Take the stage metrics once: polling inside the retry loop removed them on the first attempt, so a wrong
+    // value showed up as a NullPointerException instead of the actual numbers. The values are final when the stage
+    // completes (AsyncExecutor runs the metrics handler before a write counts as done).
+    val metrics = stagesMetrics.poll()
+    metrics.outputMetrics.recordsWritten should be(200)
+    metrics.outputMetrics.bytesWritten should be(200 * 8)
   }
 }
 
