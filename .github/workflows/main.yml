@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         scala:  [2.13.18]
-        db-version: [4.0.21, 4.1.12, 5.0.9]
+        db-version: [3.11.19, 4.0.21, 4.1.12, 5.0.9]
         # JDK that runs sbt, the connector and Spark (Cassandra nodes use their own JDK through ccm)
         java: [17]
         # Spark 4.3 supports Java 17, 21 and 25: also run everything on the newer JDKs, against one Cassandra version
@@ -37,7 +37,6 @@ jobs:
           - scala: 2.13.18
             db-version: 5.0.9
             java: 25
-        # dropped support for 3.11.19 in CI as OSS C* 5.0 release made 3.x releases EOL
         # dse-6.8.44 removing as DSE is now only available via IBM Fix Central
 
     steps:
