@@ -55,6 +55,13 @@ probably be the first place to look for anyone considering adding code.
 There are many examples of executing a feature of the connector with
 Cassandra and Spark nodes and are the core of our test coverage.
 
+### Benchmark
+
+`testing/benchmark/` holds an end-to-end benchmark (writes, scans, pushdown, joins, cache and shuffle of
+Cassandra rows) that runs in `spark-shell` against one local Cassandra node. Use it to compare two builds,
+Spark versions, JDKs or settings on the same machine before and after a performance-related change; see
+`testing/benchmark/README.md` for how to run it and how to read the results.
+
 ### Merge Path
 
 b2.5 => b3.0 => b3.1 => b3.2 => b3.3 => b3.4 => trunk

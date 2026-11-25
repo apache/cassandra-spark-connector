@@ -27,3 +27,4 @@ metastore_db
 
 checkpoint
 ccm-logs/
+benchmark-results/
