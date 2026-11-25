@@ -253,8 +253,8 @@ columname will be used to set the writetime for that row.</td>
 </tr>
 <tr>
   <td><code>spark.cassandra.connection.ssl.enabledAlgorithms</code></td>
-  <td>Set(TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_256_CBC_SHA)</td>
-  <td>SSL cipher suites</td>
+  <td>ListSet(TLS_AES_256_GCM_SHA384, TLS_AES_128_GCM_SHA256, TLS_CHACHA20_POLY1305_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)</td>
+  <td>SSL cipher suites, comma separated, in order of preference. The default covers TLS 1.3 and TLS 1.2 (ECDHE with ECDSA or RSA certificates)</td>
 </tr>
 <tr>
   <td><code>spark.cassandra.connection.ssl.keyStore.password</code></td>

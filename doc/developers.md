@@ -38,9 +38,10 @@ for g in $(seq 0 12); do for c in 0 1; do for n in 1 2 3 4; do
 done; done; done
 ```
 
-The SSL and authentication integration tests use the connector's default `TLS_RSA_*`
-cipher suites, which [recent JDK 17 updates disable in `jdk.tls.disabledAlgorithms`](https://www.oracle.com/java/technologies/javase/17all-relnotes.html).
-They fail on such JDKs regardless of the connector code.
+The SSL and authentication integration tests use the connector's default cipher suites (TLS 1.3 and
+TLS 1.2 ECDHE GCM suites). The former default `TLS_RSA_*` suites are disabled by
+[current JDK 17 updates in `jdk.tls.disabledAlgorithms`](https://www.oracle.com/java/technologies/javase/17all-relnotes.html), which is why
+they are no longer the default.
  
 The most common commands to use when developing the connector are
 

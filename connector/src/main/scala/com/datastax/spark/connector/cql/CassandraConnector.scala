@@ -68,7 +68,7 @@ import scala.language.reflectiveCalls
   *   - `spark.cassandra.connection.ssl.trustStore.password`:  trust store password
   *   - `spark.cassandra.connection.ssl.trustStore.type`:      trust store type (default JKS)
   *   - `spark.cassandra.connection.ssl.protocol`:              SSL protocol (default TLS)
-  *   - `spark.cassandra.connection.ssl.enabledAlgorithms`:         SSL cipher suites (default TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_256_CBC_SHA)
+  *   - `spark.cassandra.connection.ssl.enabledAlgorithms`:         SSL cipher suites (default: the TLS 1.3 suites, then TLS_ECDHE_{ECDSA,RSA}_WITH_AES_{256,128}_GCM_*)
   */
 class CassandraConnector(val conf: CassandraConnectorConf)
   extends Serializable with Logging {

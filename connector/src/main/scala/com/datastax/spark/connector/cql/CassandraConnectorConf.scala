@@ -20,6 +20,7 @@ package com.datastax.spark.connector.cql
 
 import java.net.{InetAddress, InetSocketAddress}
 
+import scala.collection.immutable.ListSet
 import scala.language.postfixOps
 import scala.util.control.NonFatal
 import org.apache.commons.lang3.builder.{EqualsBuilder, HashCodeBuilder}
@@ -107,11 +108,23 @@ object CassandraConnectorConf extends Logging {
     trustStorePassword: Option[String] = None,
     trustStoreType: String = "JKS",
     protocol: String = "TLS",
-    enabledAlgorithms: Set[String] = Set("TLS_RSA_WITH_AES_128_CBC_SHA", "TLS_RSA_WITH_AES_256_CBC_SHA"),
+    enabledAlgorithms: Set[String] = DefaultSSLEnabledAlgorithms,
     clientAuthEnabled: Boolean = false,
     keyStorePath: Option[String] = None,
     keyStorePassword: Option[String] = None,
     keyStoreType: String = "JKS")
+
+  /** Default SSL cipher suites: the TLS 1.3 suites first, then the TLS 1.2 ECDHE GCM suites for ECDSA and RSA
+    * certificates, in this order of preference. The former default (`TLS_RSA_*`) is disabled by current JDKs.
+    * Only suites that the JDK and the server both support are used. */
+  val DefaultSSLEnabledAlgorithms: Set[String] = ListSet(
+    "TLS_AES_256_GCM_SHA384",
+    "TLS_AES_128_GCM_SHA256",
+    "TLS_CHACHA20_POLY1305_SHA256",
+    "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+    "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256")
 
   val ReferenceSection = "Cassandra Connection Parameters"
 
@@ -324,7 +337,7 @@ object CassandraConnectorConf extends Logging {
     name = "spark.cassandra.connection.ssl.enabledAlgorithms",
     section = ReferenceSectionSSL,
     default = DefaultCassandraSSLConf.enabledAlgorithms,
-    description = """SSL cipher suites""")
+    description = """SSL cipher suites, comma separated, in order of preference. The default covers TLS 1.3 and TLS 1.2 (ECDHE with ECDSA or RSA certificates)""")
 
   val SSLClientAuthEnabledParam = ConfigParameter[Boolean](
     name = "spark.cassandra.connection.ssl.clientAuth.enabled",
@@ -404,7 +417,7 @@ object CassandraConnectorConf extends Logging {
     val sslTrustStoreType = conf.get(SSLTrustStoreTypeParam.name, SSLTrustStoreTypeParam.default)
     val sslProtocol = conf.get(SSLProtocolParam.name, SSLProtocolParam.default)
     val sslEnabledAlgorithms = conf.getOption(SSLEnabledAlgorithmsParam.name)
-      .map(_.split(",").map(_.trim).toSet).getOrElse(SSLEnabledAlgorithmsParam.default)
+      .map(_.split(",").map(_.trim).filter(_.nonEmpty).to(ListSet)).getOrElse(SSLEnabledAlgorithmsParam.default)
     val sslClientAuthEnabled = conf.getBoolean(SSLClientAuthEnabledParam.name, SSLClientAuthEnabledParam.default)
     val sslKeyStorePath = conf.getOption(SSLKeyStorePathParam.name).orElse(SSLKeyStorePathParam.default)
     val sslKeyStorePassword = conf.getOption(SSLKeyStorePasswordParam.name).orElse(SSLKeyStorePasswordParam.default)

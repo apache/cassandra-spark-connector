@@ -57,7 +57,10 @@ class CassandraConnectorConfSpec extends AnyFlatSpec with Matchers {
     connConf.cassandraSSLConf.trustStorePassword shouldBe empty
     connConf.cassandraSSLConf.trustStoreType shouldBe "JKS"
     connConf.cassandraSSLConf.protocol shouldBe "TLS"
-    connConf.cassandraSSLConf.enabledAlgorithms should contain theSameElementsAs Set("TLS_RSA_WITH_AES_128_CBC_SHA", "TLS_RSA_WITH_AES_256_CBC_SHA")
+    connConf.cassandraSSLConf.enabledAlgorithms.toSeq shouldBe Seq(
+      "TLS_AES_256_GCM_SHA384", "TLS_AES_128_GCM_SHA256", "TLS_CHACHA20_POLY1305_SHA256",
+      "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+      "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256")
     connConf.cassandraSSLConf.clientAuthEnabled shouldBe false
     connConf.cassandraSSLConf.keyStorePath shouldBe empty
     connConf.cassandraSSLConf.keyStorePassword shouldBe empty
@@ -90,6 +93,19 @@ class CassandraConnectorConfSpec extends AnyFlatSpec with Matchers {
     connConf.cassandraSSLConf.keyStorePath shouldBe Some("/etc/keys/.keystore")
     connConf.cassandraSSLConf.keyStorePassword shouldBe Some("secret")
     connConf.cassandraSSLConf.keyStoreType shouldBe "JCEKS"
+  }
+
+  it should "keep the order of the provided SSL cipher suites" in {
+    val suites = Seq(
+      "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+      "TLS_AES_256_GCM_SHA384", "TLS_CHACHA20_POLY1305_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256")
+    val sparkConf = new SparkConf(loadDefaults = false)
+    sparkConf.set(CassandraConnectorConf.SSLEnabledAlgorithmsParam.name, suites.mkString(" , ") + ",")
+
+    val connConf = CassandraConnectorConf(sparkConf)
+      .contactInfo
+      .asInstanceOf[IpBasedContactInfo]
+    connConf.cassandraSSLConf.enabledAlgorithms.toList shouldBe suites
   }
 
   it should "produce serializedConfString that disregards names in hosts" in {

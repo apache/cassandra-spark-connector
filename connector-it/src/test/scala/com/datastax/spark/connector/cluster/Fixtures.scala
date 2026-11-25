@@ -125,8 +125,6 @@ object SSLCluster {
       SSLEnabledParam.name -> "true",
       SSLTrustStorePasswordParam.name -> CcmConfig.DEFAULT_CLIENT_TRUSTSTORE_PASSWORD,
       SSLTrustStorePathParam.name -> CcmConfig.DEFAULT_CLIENT_TRUSTSTORE_FILE.getPath,
-      // The connector's default TLS_RSA_* suites are disabled by recent JDK 17 updates, use ECDHE suites instead
-      SSLEnabledAlgorithmsParam.name -> "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
       SSLClientAuthEnabledParam.name -> "true",
       SSLKeyStorePasswordParam.name -> CcmConfig.DEFAULT_CLIENT_KEYSTORE_PASSWORD,
       SSLKeyStorePathParam.name -> CcmConfig.DEFAULT_CLIENT_KEYSTORE_FILE.getPath
