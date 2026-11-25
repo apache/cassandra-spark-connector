@@ -58,7 +58,7 @@ object Dependencies
   object TestCommon {
     val mockito = "org.mockito" % "mockito-all" % Mockito
     val junit = "junit" % "junit" % JUnit
-    val junitInterface = "com.novocode" % "junit-interface" % JUnitInterface
+    val junitInterface = "com.github.sbt" % "junit-interface" % JUnitInterface
     val scalaTest = "org.scalatest" %% "scalatest" % ScalaTest
     val driverMapperProcessor = "org.apache.cassandra" % "java-driver-mapper-processor" % CassandraJavaDriver
     val esriGeometry = "com.esri.geometry" % "esri-geometry-api" % EsriGeometry
