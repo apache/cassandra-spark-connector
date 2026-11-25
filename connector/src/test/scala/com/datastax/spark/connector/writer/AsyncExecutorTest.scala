@@ -155,9 +155,9 @@ class AsyncExecutorTest {
     val node = mock(classOf[Node])
     val calls = new AtomicInteger()
     val executor = new AsyncExecutor[Int, String](
-      failingFirst(50, allNodesFailed(node -> new NodeUnavailableException(node)), calls), 1, None, None)
+      failingFirst(20, allNodesFailed(node -> new NodeUnavailableException(node)), calls), 1, None, None)
     Await.result(executor.executeAsync(1), 10.seconds) shouldBe "ok"
-    calls.get() shouldBe 51
+    calls.get() shouldBe 21
     executor.getLatestException() shouldBe None
   }
 
@@ -172,6 +172,36 @@ class AsyncExecutorTest {
     Try(Await.result(executor.executeAsync(1), 10.seconds)) shouldBe Failure(error)
     calls.get() shouldBe 1
     executor.getLatestException() shouldBe Some(error)
+  }
+
+  // A node that never gets a free connection must not make the task retry forever: after the retry limit the
+  // request fails with an error that says why, and the last driver error as its cause.
+  @Test
+  def testGivesUpWithAClearErrorWhenNoNodeCanTakeTheRequest() {
+    val node = mock(classOf[Node])
+    val calls = new AtomicInteger()
+    val busy = allNodesFailed(node -> new NodeUnavailableException(node))
+    val executor = new AsyncExecutor[Int, String](
+      failingFirst(Int.MaxValue, busy, calls), 1, None, None, maxRetryWait = 300.millis)
+    val started = System.nanoTime()
+    val result = Try(Await.result(executor.executeAsync(1), 10.seconds))
+    val elapsedMillis = (System.nanoTime() - started) / 1000000
+
+    val error = result.failed.get
+    error shouldBe a[AsyncExecutor.RetriesExhaustedException]
+    error.getMessage should include("no Cassandra node could take the request")
+    error.getMessage should include("limit 300 milliseconds")
+    error.getCause shouldBe busy
+    executor.getLatestException() shouldBe Some(error)
+    calls.get() should be > 2
+    elapsedMillis should be >= 300L
+    elapsedMillis should be < 5000L
+  }
+
+  @Test
+  def testRetryDelayGrowsAndIsCapped() {
+    (1 to 10).map(AsyncExecutor.retryDelayMillis) shouldBe Seq(1, 2, 4, 8, 16, 32, 64, 100, 100, 100)
+    AsyncExecutor.retryDelayMillis(1000) shouldBe 100
   }
 
   @Test

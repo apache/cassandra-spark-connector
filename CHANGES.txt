@@ -4,7 +4,7 @@
  * Upgrade Cassandra Java Driver to 4.19.4 (CASSANALYTICS-173)
  * Upgrade the build to sbt 2.1.1; integration tests moved to the `connectorIt` sbt project, run them with `connectorIt/test` instead of `it:test` (CASSANALYTICS-173)
  * Fix: output metrics (records and bytes written) could under-count the last batch of a write task (CASSANALYTICS-173)
- * Fix: writes and joins failed with "No connection was available" (NodeUnavailableException) instead of waiting when all connections to a node were busy (CASSANALYTICS-173)
+ * Fix: writes and joins failed with "No connection was available" (NodeUnavailableException) instead of waiting when all connections to a node were busy; such requests are now retried with a growing delay for up to 30 seconds and then fail with a RetriesExhaustedException that names the cause (CASSANALYTICS-173)
 
 3.5.1
  * Support for Vector type available in Cassandra 5.0 (SPARKC-706)
