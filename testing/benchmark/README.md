@@ -15,6 +15,8 @@ everything runs on one host, so only relative differences between runs mean some
 | `df_in_pushdown_5k` | `k IN (5000 keys)` pushed down to Cassandra |
 | `df_direct_join`, `rdd_join_with_cassandra` | 50k keys (with the default 500k rows) joined to the table: DataFrame direct join and `joinWithCassandraTable` |
 | `df_limit_100` | `limit(100)` |
+| `df_semi_join_100`, `df_semi_join_5k`, `df_semi_join_50k` | semi join (`k IN (SELECT ...)`) with 100, 5k and 50k local keys: runtime filtering (compare with `--conf spark.sql.optimizer.dynamicPartitionPruning.enabled=false`) |
+| `df_broadcast_join_5k_no_direct_join` | inner join with 5k broadcast keys and `directJoinSetting=off`: runtime filtering |
 | `rdd_cache_ser_build_and_read` | cache the table as `MEMORY_ONLY_SER` and read it back (affected by `spark.rdd.compress`) |
 | `rdd_shuffle_reduce_by_key`, `df_shuffle_group_by` | a shuffle of Cassandra rows |
 

@@ -26,7 +26,7 @@ import scala.jdk.CollectionConverters._
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.sql.cassandra._
-import org.apache.spark.sql.functions.sum
+import org.apache.spark.sql.functions.{broadcast, sum}
 import org.apache.spark.storage.StorageLevel
 
 val benchTag = sys.env.getOrElse("BENCH_TAG", "local").replaceAll("[^A-Za-z0-9_]", "_")
@@ -95,6 +95,17 @@ time("rdd_join_with_cassandra") {
   sc.parallelize(keys.toSeq, 8).map(Tuple1(_)).joinWithCassandraTable(ks, "kv").count()
 }
 time("df_limit_100") { kv.limit(100).collect() }
+
+// Runtime filtering: joins on the partition key with a small broadcast side that the direct join does not cover
+// (semi joins, or direct join off). Spark prunes the scan at runtime; compare with
+// --conf spark.sql.optimizer.dynamicPartitionPruning.enabled=false
+for ((n, label) <- Seq(100 -> "100", 5000 -> "5k", 50000 -> "50k")) {
+  val semiKeys = spark.createDataFrame(keys.take(n).toSeq.map(Tuple1(_))).toDF("k")
+  time(s"df_semi_join_$label") { kv.join(semiKeys, Seq("k"), "left_semi").count() }
+}
+val kvNoDirectJoin = spark.read.cassandraFormat("kv", ks).option("directJoinSetting", "off").load()
+val keys5k = spark.createDataFrame(keys.take(5000).toSeq.map(Tuple1(_))).toDF("k")
+time("df_broadcast_join_5k_no_direct_join") { kvNoDirectJoin.join(broadcast(keys5k), "k").count() }
 
 // Cache and shuffle of Cassandra rows: spark.rdd.compress only affects serialized storage levels
 time("rdd_cache_ser_build_and_read") {
