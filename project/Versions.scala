@@ -37,6 +37,5 @@ object Versions {
   val ApacheSpark     = "4.3.0"
   val SolrJ           = "8.3.0"
 
-  val ScalaCompat         = "2.11.0"
   val ParallelCollections = "1.3.0"
 }

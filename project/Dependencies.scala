@@ -101,13 +101,12 @@ object Dependencies
   }
 
   object Compatibility {
-    val scalaCompat = "org.scala-lang.modules" %% "scala-collection-compat" % Versions.ScalaCompat
     val parallelCollections = "org.scala-lang.modules" %% "scala-parallel-collections" % Versions.ParallelCollections
 
     def dependencies(version: String): Seq[ModuleID] = {
       CrossVersion.partialVersion(version) match {
-        case Some((2, scalaMajor)) if scalaMajor == 13 => Seq(scalaCompat, parallelCollections)
-        case _ => Seq(scalaCompat)
+        case Some((2, scalaMajor)) if scalaMajor == 13 => Seq(parallelCollections)
+        case _ => Seq()
       }
     }
   }

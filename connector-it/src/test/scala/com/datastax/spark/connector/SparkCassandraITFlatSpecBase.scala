@@ -48,7 +48,6 @@ import org.scalatest.concurrent.Eventually._
 import org.scalatest.time.{Seconds, Span}
 
 import scala.jdk.CollectionConverters._
-import scala.collection.compat._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
