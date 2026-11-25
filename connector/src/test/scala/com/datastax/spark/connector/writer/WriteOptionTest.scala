@@ -23,11 +23,12 @@ import java.util.concurrent.TimeUnit
 
 import org.apache.spark.streaming.{Duration => SparkDuration}
 import org.joda.time.{DateTime, Duration => JodaDuration}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration.{Duration => ScalaDuration}
 
-class WriteOptionTest extends FlatSpec with Matchers {
+class WriteOptionTest extends AnyFlatSpec with Matchers {
 
   "TTLOption" should "properly create constant write option with duration in seconds" in {
     val option = TTLOption.constant(5)

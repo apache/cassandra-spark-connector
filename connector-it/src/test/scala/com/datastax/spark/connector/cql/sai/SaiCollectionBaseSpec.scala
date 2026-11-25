@@ -21,13 +21,13 @@ package com.datastax.spark.connector.cql.sai
 import com.datastax.spark.connector.ccm.CcmConfig.DSE_V6_8_3
 import org.apache.spark.sql.functions.{array_contains, col}
 import org.apache.spark.sql.sources.EqualTo
-import org.scalatest.WordSpec
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.collection.mutable
 
 
 trait SaiCollectionBaseSpec extends SaiBaseSpec {
-  this: WordSpec =>
+  this: AnyWordSpec =>
 
   def indexOnANonFrozenCollection(table: String, column: String): Unit = {
     "allow for contains predicate push down" in dseFrom(DSE_V6_8_3) {

@@ -18,9 +18,10 @@
 
 package com.datastax.spark.connector.rdd.partitioner.dht
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class Murmur3TokenFactorySpec extends FlatSpec with Matchers {
+class Murmur3TokenFactorySpec extends AnyFlatSpec with Matchers {
 
   val factory = TokenFactory.Murmur3TokenFactory
   

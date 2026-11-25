@@ -20,14 +20,16 @@ package com.datastax.spark.connector.rdd.partitioner
 
 import java.net.InetAddress
 
-import org.scalatest.{Matchers, _}
+import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory.RandomPartitionerTokenFactory
 import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory.RandomPartitionerTokenFactory.{minToken, totalTokenCount}
 import com.datastax.spark.connector.rdd.partitioner.dht.{BigIntToken, TokenRange}
 
 class RandomPartitionerTokenRangeSplitterSpec
-  extends FlatSpec
+  extends AnyFlatSpec
     with SplitterBehaviors[BigInt, BigIntToken]
     with Matchers {
 

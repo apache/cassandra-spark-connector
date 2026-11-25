@@ -56,10 +56,13 @@ object Dependencies
   }
 
   object TestCommon {
-    val mockito = "org.mockito" % "mockito-all" % Mockito
+    val mockito = "org.mockito" % "mockito-core" % Mockito
     val junit = "junit" % "junit" % JUnit
     val junitInterface = "com.github.sbt" % "junit-interface" % JUnitInterface
     val scalaTest = "org.scalatest" %% "scalatest" % ScalaTest
+    // ScalaTest 3.2 moved its Mockito and ScalaCheck integration (MockitoSugar, ScalaCheckPropertyChecks) out
+    val scalaTestPlusMockito = "org.scalatestplus" %% "mockito-5-18" % ScalaTestPlusMockito
+    val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-20" % ScalaTestPlusScalaCheck
     val driverMapperProcessor = "org.apache.cassandra" % "java-driver-mapper-processor" % CassandraJavaDriver
     val esriGeometry = "com.esri.geometry" % "esri-geometry-api" % EsriGeometry
   }
@@ -78,6 +81,8 @@ object Dependencies
       solrj,
       (TestCommon.driverMapperProcessor % "test").driverCoreExclude(),
       TestCommon.scalaTest % "test",
+      TestCommon.scalaTestPlusMockito % "test",
+      TestCommon.scalaTestPlusScalaCheck % "test",
       TestCommon.mockito % "test",
       TestCommon.junit % "test",
       TestCommon.junitInterface % "test",
@@ -110,6 +115,7 @@ object Dependencies
   object TestDriver {
     val dependencies = Seq(
       TestCommon.scalaTest % "test",
+      TestCommon.scalaTestPlusMockito % "test",
       TestCommon.mockito % "test",
       TestCommon.junit % "test",
       TestCommon.junitInterface % "test",

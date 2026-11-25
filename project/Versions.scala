@@ -26,11 +26,13 @@ object Versions {
   val CassandraJavaDriver = "4.19.4"
   val EsriGeometry        = "2.2.4"
 
-  val ScalaCheck      = "1.14.0"
-  val ScalaTest       = "3.0.8"
+  val ScalaCheck      = "1.20.0"
+  val ScalaTest       = "3.2.20"
+  val ScalaTestPlusScalaCheck = "3.2.20.0" // scalatestplus scalacheck-1-20
+  val ScalaTestPlusMockito    = "3.2.19.0" // scalatestplus mockito-5-18 (latest)
   val JUnit           = "4.13.2"
   val JUnitInterface  = "0.13.3"
-  val Mockito         = "1.10.19"
+  val Mockito         = "5.24.0"
 
   val ApacheSpark     = "4.3.0"
   val SolrJ           = "8.3.0"

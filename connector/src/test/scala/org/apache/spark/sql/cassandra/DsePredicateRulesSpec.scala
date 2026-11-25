@@ -21,9 +21,10 @@ package org.apache.spark.sql.cassandra
 import com.datastax.spark.connector.cql.TableDef
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.sources._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DsePredicateRulesSpec extends FlatSpec with Matchers {
+class DsePredicateRulesSpec extends AnyFlatSpec with Matchers {
 
   val fakeTableDef = TableDef(
     "fake",

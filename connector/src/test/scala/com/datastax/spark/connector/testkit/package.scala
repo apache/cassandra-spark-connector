@@ -18,12 +18,13 @@
 
 package com.datastax.spark.connector
 
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 package object testkit {
 
   /** Basic unit test abstraction. */
-  trait AbstractSpec extends WordSpecLike with Matchers
+  trait AbstractSpec extends AnyWordSpecLike with Matchers
 
   val dataSeq = Seq (
     Seq("1first", "1round", "1words"),

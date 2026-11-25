@@ -23,7 +23,7 @@ import com.datastax.spark.connector.cluster.DefaultCluster
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.functions.col
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.Eventually
 
 class CassandraDataFrameSelectUdtSpec extends SparkCassandraITFlatSpecBase with DefaultCluster with Eventually with Matchers {

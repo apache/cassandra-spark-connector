@@ -18,12 +18,13 @@
 
 package com.datastax.spark.connector.util
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
-class PriorityHashMapSpec extends WordSpec with Matchers {
+class PriorityHashMapSpec extends AnyWordSpec with Matchers {
 
   private def putItems(m: PriorityHashMap[Int, Int], keys: Seq[Int], values: Seq[Int]): Unit = {
     for ((k, v) <- keys zip values) {

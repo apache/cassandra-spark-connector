@@ -29,7 +29,7 @@ import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.cassandra._
 import org.apache.spark.sql.catalyst.FunctionIdentifier
 import org.apache.spark.sql.functions._
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.Eventually
 
 import scala.concurrent.Future

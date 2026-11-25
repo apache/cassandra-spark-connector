@@ -30,7 +30,7 @@ import java.util.concurrent.{Callable, CompletableFuture, CompletionStage, Execu
 import org.junit.Assert._
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}

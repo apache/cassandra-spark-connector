@@ -27,10 +27,10 @@ import com.datastax.spark.connector.SparkCassandraITSpecBase
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
 trait CassandraDataFrameDateBehaviors extends SparkCassandraITSpecBase {
-  this: FlatSpec =>
+  this: AnyFlatSpec =>
 
   override lazy val conn = CassandraConnector(defaultConf)
 

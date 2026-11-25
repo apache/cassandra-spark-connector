@@ -62,9 +62,6 @@ lazy val commonSettings = Seq(
   testForkedParallel := false,
   javaOptions ++= JdkOptions.addOpens, // see project/JdkOptions.scala
   testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
-  // sbt 2 enforces eviction errors in the Test configuration. ScalaTest 3.0.8 depends on scala-xml 1.x while Spark
-  // brings 2.x. Remove once ScalaTest is upgraded.
-  libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
 )
 
 

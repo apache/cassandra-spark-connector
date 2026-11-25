@@ -29,7 +29,7 @@ import org.apache.spark.sql.catalyst.expressions.AttributeReference
 import org.apache.spark.sql.execution.datasources.v2.BatchScanExec
 import org.apache.spark.sql.execution.{FilterExec, ProjectExec, SparkPlan}
 import org.apache.spark.sql.sources.{EqualTo, Filter, GreaterThan, GreaterThanOrEqual, In, LessThan, LessThanOrEqual}
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 
 trait SaiBaseSpec extends Matchers with SparkCassandraITSpecBase {
   override lazy val conn = CassandraConnector(defaultConf)

@@ -24,13 +24,14 @@ import scala.language.postfixOps
 import scala.reflect.runtime.universe._
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.spark.SparkConf
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 //import com.datastax.bdp.test.ng.{DataGenerator, ToString}
 //import com.datastax.spark.connector.rdd.DummyFactory
 import com.datastax.spark.connector.util.CustomConnectionFactory
 
-class CassandraConnectorConfSpec extends FlatSpec with Matchers {
+class CassandraConnectorConfSpec extends AnyFlatSpec with Matchers {
 
   it should "be serializable" in {
     val conf = CassandraConnectorConf(new SparkConf)

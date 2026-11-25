@@ -21,9 +21,10 @@ package com.datastax.spark.connector.doc
 import java.io.File
 
 import com.datastax.spark.connector.util.{ConfigCheck, RefBuilder}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DocCheck extends FlatSpec with Matchers {
+class DocCheck extends AnyFlatSpec with Matchers {
 
   val subprojectRoot = System.getenv("PWD") + "/spark-connector"
 

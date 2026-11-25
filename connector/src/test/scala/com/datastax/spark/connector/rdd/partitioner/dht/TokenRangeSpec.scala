@@ -18,10 +18,11 @@
 
 package com.datastax.spark.connector.rdd.partitioner.dht
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory.{Murmur3TokenFactory, RandomPartitionerTokenFactory}
 
-class TokenRangeSpec extends FlatSpec with Matchers  {
+class TokenRangeSpec extends AnyFlatSpec with Matchers  {
 
   type LongRange = TokenRange[Long, LongToken]
   type BigRange = TokenRange[BigInt, BigIntToken]

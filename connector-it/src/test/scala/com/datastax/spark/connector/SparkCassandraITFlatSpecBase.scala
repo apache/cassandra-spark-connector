@@ -41,6 +41,9 @@ import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.sql.execution.datasources.v2.BatchScanExec
 import org.apache.spark.sql.internal.SQLConf
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.time.{Seconds, Span}
 
@@ -50,10 +53,10 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
 
-trait SparkCassandraITFlatSpecBase extends FlatSpec with SparkCassandraITSpecBase {
+trait SparkCassandraITFlatSpecBase extends AnyFlatSpec with SparkCassandraITSpecBase {
 }
 
-trait SparkCassandraITWordSpecBase extends WordSpec with SparkCassandraITSpecBase {
+trait SparkCassandraITWordSpecBase extends AnyWordSpec with SparkCassandraITSpecBase {
 }
 
 trait SparkCassandraITAbstractSpecBase extends AbstractSpec with SparkCassandraITSpecBase {

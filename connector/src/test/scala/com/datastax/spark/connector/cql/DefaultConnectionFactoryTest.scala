@@ -24,10 +24,10 @@ import org.apache.spark.SparkEnv
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.mockito.MockitoSugar
 
-class DefaultConnectionFactoryTest extends FlatSpec with MockitoSugar {
+class DefaultConnectionFactoryTest extends AnyFlatSpec with MockitoSugar {
 
   /** DefaultConnectionFactory relies on a non-null SparkEnv */
   private def mockedSparkEnv[T](code: => T): T = {

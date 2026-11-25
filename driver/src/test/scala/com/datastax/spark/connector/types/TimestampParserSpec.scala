@@ -18,9 +18,9 @@
 
 package com.datastax.spark.connector.types
 
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
-class TimestampParserSpec extends FlatSpec {
+class TimestampParserSpec extends AnyFlatSpec {
 
   it should "parse fast all supported date[time[zone]] formats" in {
     /* look in [[DateTimeFormatter]] for 'X' definition*/

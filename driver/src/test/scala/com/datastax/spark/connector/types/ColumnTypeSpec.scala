@@ -25,9 +25,11 @@ import java.util.{Date, UUID}
 import com.datastax.oss.driver.api.core.{DefaultProtocolVersion, ProtocolVersion}
 
 import scala.reflect.runtime.universe._
-import org.scalatest.{GivenWhenThen, Matchers, WordSpec}
+import org.scalatest.GivenWhenThen
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ColumnTypeSpec extends WordSpec with Matchers with GivenWhenThen {
+class ColumnTypeSpec extends AnyWordSpec with Matchers with GivenWhenThen {
 
   "A ColumnType companion object" should {
 
