@@ -24,7 +24,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.classic.{SparkSession => ClassicSparkSession, Strategy}
 import org.apache.spark.sql.cassandra.{AlwaysOff, AlwaysOn, Automatic, CassandraSourceRelation}
 import org.apache.spark.sql.cassandra.CassandraSourceRelation._
-import org.apache.spark.sql.catalyst.expressions.{Alias, Attribute, AttributeReference, ExprId, Expression, NamedExpression}
+import org.apache.spark.sql.catalyst.expressions.{Alias, And, Attribute, AttributeReference, DynamicPruning, ExprId, Expression, NamedExpression}
 import org.apache.spark.sql.catalyst.planning.{ExtractEquiJoinKeys, PhysicalOperation}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.plans._
@@ -50,13 +50,16 @@ case class CassandraDirectJoinStrategy(spark: SparkSession) extends Strategy wit
     case ExtractEquiJoinKeys(joinType, leftKeys, rightKeys, condition, _, left, right, _)
       if hasValidDirectJoin(joinType, leftKeys, rightKeys, condition, left, right) =>
 
-      val (otherBranch, joinTargetBranch, buildType) = {
+      val (otherBranch, cassandraBranch, buildType) = {
         if (leftValid(joinType, leftKeys, rightKeys, condition, left, right)) {
           (right, left, BuildLeft)
         } else {
           (left, right, BuildRight)
         }
       }
+      // A direct join reads only the joined keys, so a runtime (dynamic pruning) filter Spark added for this
+      // join has nothing left to prune. Left in, it would end up unplanned inside CassandraDirectJoinExec.
+      val joinTargetBranch = withoutDynamicPruning(cassandraBranch)
 
       /* We want to take advantage of all of our pushed filter code which happens in
          full table scans. Unfortunately the pushdown code itself is private within the
@@ -162,6 +165,19 @@ case class CassandraDirectJoinStrategy(spark: SparkSession) extends Strategy wit
 }
 
 object CassandraDirectJoinStrategy extends Logging {
+
+  /** Removes the dynamic pruning (runtime filter) conjuncts from the filters of the plan. */
+  def withoutDynamicPruning(plan: LogicalPlan): LogicalPlan = plan.transformUp {
+    case Filter(condition, child) if condition.exists(_.isInstanceOf[DynamicPruning]) =>
+      def conjuncts(e: Expression): Seq[Expression] = e match {
+        case And(l, r) => conjuncts(l) ++ conjuncts(r)
+        case other => Seq(other)
+      }
+      conjuncts(condition).filterNot(_.isInstanceOf[DynamicPruning]).reduceOption(And) match {
+        case Some(remaining) => Filter(remaining, child)
+        case None => child
+      }
+  }
 
   /**
     * Returns the single DataSourceScanExec for the branch if there is one and

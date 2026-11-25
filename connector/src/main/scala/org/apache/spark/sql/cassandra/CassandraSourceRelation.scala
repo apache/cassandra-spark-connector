@@ -207,6 +207,30 @@ object CassandraSourceRelation extends Logging {
       """.stripMargin
   )
 
+  val RuntimeFilteringEnabledParam = ConfigParameter[Boolean](
+    name = "spark.cassandra.sql.runtimeFiltering.enabled",
+    section = ReferenceSection,
+    default = true,
+    description =
+      s"""Lets Spark prune Cassandra scans at runtime (dynamic partition pruning). When a scan is joined on all
+         |of its partition key columns with a selective side that Spark broadcasts (for example
+         |`WHERE k IN (SELECT k FROM dim WHERE ...)`), the scan reads only the matching keys, or only the token
+         |ranges holding them, instead of the whole table. Set to false to always scan every token range.
+         |Spark's own switch is `spark.sql.optimizer.dynamicPartitionPruning.enabled`.
+         """.stripMargin
+  )
+
+  val RuntimeFilteringMaxKeyLookupsParam = ConfigParameter[Int](
+    name = "spark.cassandra.sql.runtimeFiltering.maxKeyLookups",
+    section = ReferenceSection,
+    default = 10000,
+    description =
+      s"""With runtime filtering, read the matching partition keys with one query per key if there are at most
+         |this many of them (the cross product of the key values for a composite partition key). With more keys
+         |only the token ranges holding at least one key are scanned. Set to 0 to never use key lookups.
+         """.stripMargin
+  )
+
   private val proxyPerSourceRelationEnabled = sys.env.getOrElse("DSE_ENABLE_PROXY_PER_SRC_RELATION", "false").toBoolean
 
   private def getProxyUser(sqlContext: SQLContext): Option[String] = {

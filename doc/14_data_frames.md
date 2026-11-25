@@ -266,6 +266,28 @@ range.join(joinTarget, joinTarget("k") === range("key")).explain()
       +- *(1) Range (1, 1000, step=1, splits=12)
 ```
 
+#### Runtime Filtering
+
+Joins on the partition key that are not converted to a Direct Join, most often semi joins such as
+`WHERE k IN (SELECT k FROM ...)` or `EXISTS (...)`, and joins with `directJoinSetting=off`, can still avoid a
+full table scan. When Spark broadcasts the other side of the join, it passes the join key values to the Cassandra
+scan at runtime (Spark's dynamic partition pruning), and the scan reads only what can match:
+
+ - with at most `spark.cassandra.sql.runtimeFiltering.maxKeyLookups` keys (10000 by default) it reads each key
+   with one query, the way a Direct Join does, in Spark partitions placed on the keys' replicas;
+ - with more keys it scans only the token ranges holding at least one key, unless nearly all of them do;
+ - otherwise, and if a key cannot be converted to the column type, it scans the whole table as before.
+
+The filter only reduces what is read: Spark still evaluates the join, so results do not change.
+Runtime filtering applies when:
+ - the join restricts every partition key column, and the read does not already restrict the partition key;
+ - the partition key types are not `decimal`, `float` or `double`, collections, tuples or UDTs (Cassandra
+   treats values Spark considers equal, such as `1.5` and `1.50`, as different keys);
+ - Spark's `spark.sql.optimizer.dynamicPartitionPruning.enabled` (true by default) is on and pushdown is enabled.
+
+`EXPLAIN` shows the runtime filter in `RuntimeFilters: [dynamicpruningexpression(...)]` of the `BatchScan`.
+Set `spark.cassandra.sql.runtimeFiltering.enabled=false` to always scan every token range.
+
 #### TTL and WRITETIME
 
 Through Cassandra Spark Extensions special functions are added to SparkSQL.

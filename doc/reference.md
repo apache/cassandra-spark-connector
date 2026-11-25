@@ -169,6 +169,24 @@ Cross product of these values has size of 24.
       </td>
 </tr>
 <tr>
+  <td><code>spark.cassandra.sql.runtimeFiltering.enabled</code></td>
+  <td>true</td>
+  <td>Lets Spark prune Cassandra scans at runtime (dynamic partition pruning). When a scan is joined on all
+of its partition key columns with a selective side that Spark broadcasts (for example
+`WHERE k IN (SELECT k FROM dim WHERE ...)`), the scan reads only the matching keys, or only the token
+ranges holding them, instead of the whole table. Set to false to always scan every token range.
+Spark's own switch is `spark.sql.optimizer.dynamicPartitionPruning.enabled`.
+         </td>
+</tr>
+<tr>
+  <td><code>spark.cassandra.sql.runtimeFiltering.maxKeyLookups</code></td>
+  <td>10000</td>
+  <td>With runtime filtering, read the matching partition keys with one query per key if there are at most
+this many of them (the cross product of the key values for a composite partition key). With more keys
+only the token ranges holding at least one key are scanned. Set to 0 to never use key lookups.
+         </td>
+</tr>
+<tr>
   <td><code>spark.cassandra.table.size.in.bytes</code></td>
   <td>None</td>
   <td>Used by DataFrames Internally, will be updated in a future release to

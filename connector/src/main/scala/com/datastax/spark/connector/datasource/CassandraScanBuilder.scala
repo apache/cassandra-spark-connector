@@ -30,8 +30,9 @@ import com.datastax.spark.connector.util.{Logging, ReflectionUtil}
 import com.datastax.spark.connector.{ColumnRef, RowCountRef, TTL, WriteTime}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.cassandra.CassandraSourceRelation.{AdditionalCassandraPushDownRulesParam, InClauseToJoinWithTableConversionThreshold}
-import org.apache.spark.sql.cassandra.{AnalyzedPredicates, Auto, BasicCassandraPredicatePushDown, CassandraPredicateRules, CassandraSourceRelation, DsePredicateRules, DseSearchOptimizationSetting, InClausePredicateRules, Off, On, SolrConstants, SolrPredicateRules, TimeUUIDPredicateRules}
-import org.apache.spark.sql.connector.expressions.{Expression, Expressions}
+import org.apache.spark.sql.cassandra.{AnalyzedPredicates, ColumnReferences, Auto, BasicCassandraPredicatePushDown, CassandraPredicateRules, CassandraSourceRelation, DsePredicateRules, DseSearchOptimizationSetting, InClausePredicateRules, Off, On, SolrConstants, SolrPredicateRules, TimeUUIDPredicateRules}
+import org.apache.spark.sql.connector.expressions.filter.Predicate
+import org.apache.spark.sql.connector.expressions.{Expression, Expressions, NamedReference}
 import org.apache.spark.sql.connector.read._
 import org.apache.spark.sql.connector.read.partitioning.{KeyGroupedPartitioning, Partitioning}
 import org.apache.spark.sql.sources.{EqualTo, Filter, In}
@@ -304,7 +305,9 @@ case class CassandraScan(
   readConf: ReadConf,
   consolidatedConf: SparkConf) extends Scan
   with Batch
-  with SupportsReportPartitioning {
+  with SupportsReportPartitioning
+  with SupportsRuntimeFiltering
+  with Logging {
 
 
   private lazy val inputPartitions = partitionGenerator.getInputPartitions()
@@ -316,10 +319,25 @@ case class CassandraScan(
     readConf.splitCount,
     readConf.splitSizeInMB * 1024L * 1024L)
 
+  /* Runtime filtering state. Kept out of the case class fields on purpose: Spark compares scans with `equals`
+     (BatchScanExec equality, exchange reuse), and that must not change when a runtime filter arrives. */
+  @volatile private var runtimeKeyValues: Option[Map[String, Seq[Any]]] = None
+  @volatile private var runtimeFilters: Array[Filter] = Array.empty
+  @volatile private var runtimeFilteredPartitions: Option[Array[InputPartition]] = None
+
   override def toBatch: Batch = this
 
   override def planInputPartitions(): Array[InputPartition] = {
-    inputPartitions
+    if (runtimeKeyValues.isEmpty) {
+      inputPartitions
+    } else {
+      synchronized {
+        if (runtimeFilteredPartitions.isEmpty) {
+          runtimeFilteredPartitions = Some(RuntimeFilterPlanner.plan(this, inputPartitions, runtimeKeyValues.get))
+        }
+        runtimeFilteredPartitions.get
+      }
+    }
   }
 
   override def createReaderFactory(): PartitionReaderFactory = {
@@ -329,6 +347,42 @@ case class CassandraScan(
   override def outputPartitioning(): Partitioning = {
    new CassandraPartitioning(tableDef.partitionKey.map(_.columnName).map(Expressions.identity).toArray, inputPartitions.length)
   }
+
+  /** Partition key columns Spark may filter this scan by at runtime; empty if runtime filtering does not apply. */
+  private[connector] lazy val runtimeFilterColumns: Seq[String] =
+    RuntimeFilterPlanner.runtimeFilterColumns(tableDef, cqlQueryParts, readSchema, consolidatedConf)
+
+  // Each reference is a single name part, so a column name with dots or quotes is not parsed.
+  override def filterAttributes(): Array[NamedReference] =
+    runtimeFilterColumns.map(ColumnReferences.column).toArray
+
+  override def filter(filters: Array[Filter]): Unit = if (runtimeFilterColumns.nonEmpty) {
+    // Spark names the attribute of a runtime filter with the quoted form of the reference (V2 `describe`)
+    val columnsByAttribute = runtimeFilterColumns.flatMap(c => Seq(c -> c, ColumnReferences.filterAttributeName(c) -> c)).toMap
+    val accepted = filters.filter {
+      case In(attribute, _) => columnsByAttribute.contains(attribute)
+      case EqualTo(attribute, _) => columnsByAttribute.contains(attribute)
+      case _ => false
+    }
+    if (accepted.nonEmpty) {
+      val newValues = accepted.toSeq.map {
+        case In(attribute, values) => columnsByAttribute(attribute) -> values.toSeq
+        case EqualTo(attribute, value) => columnsByAttribute(attribute) -> Seq(value)
+        case other => throw new IllegalStateException(s"Unexpected runtime filter $other")
+      }
+      synchronized {
+        // Several filters, or several calls, on one column are ANDed: keep the values present in all of them
+        runtimeKeyValues = Some((runtimeKeyValues.getOrElse(Map.empty).toSeq ++ newValues)
+          .groupMapReduce(_._1)(_._2)(RuntimeFilterPlanner.intersect))
+        runtimeFilters = runtimeFilters ++ accepted
+        runtimeFilteredPartitions = None
+      }
+      logDebug(s"Runtime filters for ${tableDef.keyspaceName}.${tableDef.tableName}: ${accepted.mkString(", ")}")
+    }
+  }
+
+  override def pushedPredicates(): Array[Predicate] =
+    runtimeFilters.flatMap(f => Option(ColumnReferences.toV2(f)))
 
   override def description(): String = {
     s"""Cassandra Scan: ${tableDef.keyspaceName}.${tableDef.tableName}
