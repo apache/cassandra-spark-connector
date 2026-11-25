@@ -135,7 +135,7 @@ class CassandraConnector(val conf: CassandraConnectorConf)
 
   /** Automatically closes resource after use. Handy for closing streams, files, sessions etc.
     * Similar to try-with-resources in Java 7. */
-  def closeResourceAfterUse[T, C <: { def close() }](closeable: C)(code: C => T): T =
+  def closeResourceAfterUse[T, C <: { def close(): Unit }](closeable: C)(code: C => T): T =
     try code(closeable) finally {
       closeable.close()
     }
@@ -192,7 +192,7 @@ object CassandraConnector extends Logging {
     }
   }
 
-  private def destroySession(session: CqlSession) {
+  private def destroySession(session: CqlSession): Unit = {
     session.close()
     logInfo(s"Disconnected from Cassandra cluster.")
   }
@@ -276,7 +276,7 @@ object CassandraConnector extends Logging {
     new CassandraConnector(config)
   }
 
-  def evictCache() {
+  def evictCache(): Unit = {
     sessionCache.evict()
   }
 

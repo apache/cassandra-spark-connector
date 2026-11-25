@@ -35,6 +35,8 @@ import com.datastax.spark.connector.{CassandraRow, CassandraRowMetadata, Gettabl
 import org.apache.spark.sql.types.Decimal
 import org.apache.spark.sql.{Row => SparkRow}
 
+import scala.collection.immutable.ArraySeq
+
 final class CassandraSQLRow(val metaData: CassandraRowMetadata, val columnValues: IndexedSeq[AnyRef])
   extends GettableData with SparkRow with Serializable {
 
@@ -71,7 +73,7 @@ object CassandraSQLRow {
 
   def fromJavaDriverRow(row: Row, metaData:CassandraRowMetadata): CassandraSQLRow = {
     val data = CassandraRow.dataFromJavaDriverRow(row, metaData)
-    new CassandraSQLRow(metaData, data.map(toSparkSqlType))
+    new CassandraSQLRow(metaData, ArraySeq.unsafeWrapArray(data.map(toSparkSqlType)))
   }
 
   implicit object CassandraSQLRowReader extends RowReader[CassandraSQLRow] with ThisRowReaderAsFactory[CassandraSQLRow] {

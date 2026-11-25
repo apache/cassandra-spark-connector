@@ -162,7 +162,7 @@ case class CassandraInJoinCountReader(
 
 object InClauseKeyGenerator {
   def getIterator(index: Int, totalPartitions: Int, inClauses: Seq[In]): Iterator[CassandraRow] = {
-    val values = cross(inClauses.map(_.values.toStream)) //We need to enumerate our cross product lazily
+    val values = cross(inClauses.map(_.values.to(LazyList))) //We need to enumerate our cross product lazily
     val columns = inClauses.map(_.attribute)
     val rowMetadata = CassandraRowMetadata.fromColumnNames(columns.toIndexedSeq)
     values
@@ -170,7 +170,7 @@ object InClauseKeyGenerator {
       .zipWithIndex
       .filter { case (_, dataIndex) => dataIndex % totalPartitions == index }
       .map { case (data, _) => new CassandraRow(rowMetadata, data) }
-      .toIterator
+      .iterator
   }
 
   def cross(iter: Iterable[Iterable[_]]): Iterable[List[_]] = {

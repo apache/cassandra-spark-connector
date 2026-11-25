@@ -90,7 +90,7 @@ class AnyObjectFactory[T: TypeTag] extends Serializable {
   @transient
   private lazy val outerInstanceArg: Seq[AnyRef] = {
     if (isRealMemberClass(javaClass)) {
-      Seq(resolveDirectOuterInstance)
+      Seq(resolveDirectOuterInstance())
     } else {
       Seq.empty
     }

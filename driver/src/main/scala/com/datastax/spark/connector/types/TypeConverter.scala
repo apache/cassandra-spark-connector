@@ -1110,14 +1110,14 @@ object TypeConverter {
   }
 
   /** Registers a custom converter */
-  def registerConverter(c: TypeConverter[_]) {
+  def registerConverter(c: TypeConverter[_]): Unit = {
     synchronized {
       converters = c +: converters
     }
   }
 
   /** Remove a custom converter */
-  def unregisterConverter(c: TypeConverter[_]) {
+  def unregisterConverter(c: TypeConverter[_]): Unit = {
     synchronized {
       require(!originalConverters.contains(c), "Cannot unregister built-in converter")
       converters = converters.filterNot(_ == c)

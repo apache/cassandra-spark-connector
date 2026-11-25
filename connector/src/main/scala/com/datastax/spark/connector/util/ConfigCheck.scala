@@ -84,7 +84,7 @@ object ConfigCheck {
   def unknownProperties(conf: SparkConf, extraProps: Set[String] = Set.empty): Seq[String] = {
     val validProps = validStaticPropertyNames ++ extraProps
     val scEnv = for ((key, value) <- conf.getAll if key.startsWith(Prefix)) yield key
-    for (key <- scEnv if !validProps.contains(key)) yield key
+    for (key <- scEnv.toIndexedSeq if !validProps.contains(key)) yield key
   }
 
   /**

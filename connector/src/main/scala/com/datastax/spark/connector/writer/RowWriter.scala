@@ -30,6 +30,6 @@ trait RowWriter[T] extends Serializable {
 
   /** Extracts column values from `data` object and writes them into the given buffer
     * in the same order as they are listed in the columnNames sequence. */
-  def readColumnValues(data: T, buffer: Array[Any])
+  def readColumnValues(data: T, buffer: Array[Any]): Unit
 
 }

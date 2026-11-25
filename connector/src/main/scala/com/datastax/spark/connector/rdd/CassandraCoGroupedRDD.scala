@@ -198,7 +198,7 @@ class CassandraCoGroupedRDD[T](
          if (connector == rdd.connector) {
            connector.openSession()
         } else {
-          rdd.connector.openSession
+          rdd.connector.openSession()
         }
     }
 
@@ -258,7 +258,7 @@ class CassandraCoGroupedRDD[T](
   }
 
   override def getPreferredLocations(split: Partition): Seq[String] =
-    split.asInstanceOf[CassandraPartition[_, _]].endpoints
+    split.asInstanceOf[CassandraPartition[_, _]].endpoints.toIndexedSeq
 
 }
 
