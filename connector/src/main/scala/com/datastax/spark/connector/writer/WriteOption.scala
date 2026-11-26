@@ -20,9 +20,9 @@ package com.datastax.spark.connector.writer
 
 import java.util.Date
 
-import scala.concurrent.duration.{Duration ⇒ ScalaDuration}
+import scala.concurrent.duration.{Duration => ScalaDuration}
 
-import org.joda.time.{DateTime, Duration ⇒ JodaDuration}
+import org.joda.time.{DateTime, Duration => JodaDuration}
 
 sealed trait WriteOptionValue[+T]
 

@@ -31,8 +31,10 @@ import com.datastax.oss.driver.internal.core.context.InternalDriverContext
 import com.datastax.oss.driver.internal.core.metadata.MetadataManager
 import com.datastax.spark.connector.util.DriverUtil
 import org.mockito.Mockito._
-import org.mockito.{Matchers => m}
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.mockito.{ArgumentMatchers => m}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.jdk.CollectionConverters._
@@ -43,7 +45,7 @@ class NodeFilter(context: DriverContext, profileName: String) extends Predicate[
   override def test(t: Node): Boolean = DriverUtil.toAddress(t).get.getHostString.equals("192.168.123.2")
 }
 
-class LocalNodeFirstLoadBalancingPolicySpec extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+class LocalNodeFirstLoadBalancingPolicySpec extends AnyFlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   private val dc = "superDC"
   private val localNode0 = nodeMock("127.0.0.1")

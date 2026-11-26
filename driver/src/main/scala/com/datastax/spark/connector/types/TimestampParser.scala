@@ -65,10 +65,11 @@ object TimestampParser {
   private val converterMatrix = {
     val booleans = Seq(true, false)
     val result = for (addT <- booleans; addZone <- booleans) yield {
-      val patterns = formatsWithoutZoneByLength
+      val patterns = formatsWithoutZoneByLength.view
         .mapValues(p => if (addT) p.replace(" ", "'T'") else p)
         .mapValues(p => if (addZone) p + "[XXXXX][XXXX][XXX][XX][X]" else p)
         .mapValues(DateTimeFormatter.ofPattern)
+        .toMap
       (addT, addZone) -> patterns
     }
     result.toMap

@@ -19,6 +19,7 @@
 package com.datastax.spark.connector.util
 
 import scala.annotation.tailrec
+import scala.collection.immutable.ArraySeq
 
 /**
  * A HashMap and a PriorityQueue hybrid.
@@ -397,11 +398,11 @@ final class PriorityHashMap[K, V : Ordering](_capacity: Int) {
 
   /** Useful for iterating the map. */
   def keys: IndexedSeq[K] =
-    _keys.take(size)
+    ArraySeq.unsafeWrapArray(_keys.take(size))
 
   /** Useful for iterating the map */
   def values: IndexedSeq[V] =
-    _values.take(size)
+    ArraySeq.unsafeWrapArray(_values.take(size))
 
   /** Removes the entry and returns its value */
   def dequeue(): V = {

@@ -20,14 +20,15 @@ package com.datastax.spark.connector.rdd.partitioner
 
 import java.net.InetAddress
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory.Murmur3TokenFactory
 import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory.Murmur3TokenFactory._
 import com.datastax.spark.connector.rdd.partitioner.dht.{LongToken, TokenRange}
 
 class Murmur3PartitionerTokenRangeSplitterSpec
-  extends FlatSpec
+  extends AnyFlatSpec
   with SplitterBehaviors[Long, LongToken]
   with Matchers {
 

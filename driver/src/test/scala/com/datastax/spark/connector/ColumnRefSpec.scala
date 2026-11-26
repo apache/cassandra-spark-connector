@@ -17,10 +17,11 @@
  */
 
 package com.datastax.spark.connector
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 
-class ColumnRefSpec extends WordSpec with Matchers {
+class ColumnRefSpec extends AnyWordSpec with Matchers {
 
   "A FunctionCallRef should" should {
 

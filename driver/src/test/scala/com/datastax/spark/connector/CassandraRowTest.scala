@@ -22,9 +22,10 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, 
 import java.text.SimpleDateFormat
 
 import org.junit.Assert._
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class CassandraRowTest extends FunSuite with Matchers {
+class CassandraRowTest extends AnyFunSuite with Matchers {
 
   test("basicAccessTest") {
     val row = new CassandraRow(CassandraRowMetadata(Array("value")), Array("1"))

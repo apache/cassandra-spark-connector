@@ -21,14 +21,16 @@ package com.datastax.spark.connector.cql
 import com.datastax.oss.driver.api.core.`type`.UserDefinedType
 import com.datastax.oss.driver.api.core.metadata.schema.{AggregateMetadata, FunctionMetadata, KeyspaceMetadata, SchemaChangeListener, TableMetadata, ViewMetadata}
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.Random
 
-class MultiplexingSchemaListenerTest extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach with Eventually {
+class MultiplexingSchemaListenerTest extends AnyFlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach with Eventually {
   val r = new Random()
 
   import scala.concurrent.ExecutionContext.Implicits.global

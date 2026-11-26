@@ -19,14 +19,13 @@
 package com.datastax.spark.connector.ccm
 
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 import com.datastax.oss.driver.api.core.Version
 import org.apache.commons.exec.{CommandLine, ExecuteWatchdog, LogOutputStream, _}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 class CcmBridge(config: CcmConfig) extends AutoCloseable {
@@ -98,7 +97,7 @@ object CcmBridge {
   def execute(cli: CommandLine): Seq[String] = {
     logger.info("Executing: " + cli)
 
-    val watchDog: ExecuteWatchdog = new ExecuteWatchdog(TimeUnit.MINUTES.toMillis(10))
+    val watchDog: ExecuteWatchdog = ExecuteWatchdog.builder().setTimeout(java.time.Duration.ofMinutes(10)).get()
 
     val outStream = new LogOutputStream() {
       val lines: mutable.Buffer[String] = mutable.Buffer[String]()
@@ -112,7 +111,7 @@ object CcmBridge {
     }
 
     try {
-      val executor = new DefaultExecutor()
+      val executor = DefaultExecutor.builder().get()
       val streamHandler = new PumpStreamHandler(outStream, errStream)
       executor.setStreamHandler(streamHandler)
       executor.setWatchdog(watchDog)

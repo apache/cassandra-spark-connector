@@ -19,11 +19,12 @@
 package org.apache.spark.sql.cassandra
 
 import com.datastax.oss.driver.api.core.{DefaultProtocolVersion, ProtocolVersion}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import com.datastax.spark.connector.cql._
 import com.datastax.spark.connector.types.{IntType, TimeUUIDType}
 
-class PredicatePushDownSpec extends FlatSpec with Matchers {
+class PredicatePushDownSpec extends AnyFlatSpec with Matchers {
 
   // We don't want this test to rely on any Spark code,
   // so we're using our own Filters

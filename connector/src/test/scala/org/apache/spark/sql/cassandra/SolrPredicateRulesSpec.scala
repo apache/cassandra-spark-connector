@@ -23,9 +23,10 @@ import com.datastax.spark.connector.types._
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.cassandra.SolrConstants._
 import org.apache.spark.sql.sources._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SolrPredicateRulesSpec extends FlatSpec with Matchers {
+class SolrPredicateRulesSpec extends AnyFlatSpec with Matchers {
 
   val fullyIndexedTableDef = TableDef(
     "fake",

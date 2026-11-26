@@ -151,7 +151,7 @@ class DseGraphPartitioner[V, T <: Token[V]](
         TokenRangeWithPartitionIndex(tr.range, p.index)
       }
 
-      (label, new BucketingRangeIndex[ITR, T](indexedTokenRanges))
+      (label, new BucketingRangeIndex[ITR, T](indexedTokenRanges.toIndexedSeq))
     }.toMap
   }
 

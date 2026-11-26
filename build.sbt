@@ -1,45 +1,45 @@
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport.dependencyUpdatesFilter
 import sbt.Keys.parallelExecution
 import sbt.{Compile, moduleFilter, _}
+import sbt.protocol.testing.TestResult
 import sbtassembly.AssemblyPlugin.autoImport.assembly
 
 lazy val scala213 = "2.13.18"
 lazy val supportedScalaVersions = List(scala213)
 
-// factor out common settings
-ThisBuild / scalaVersion := scala213
-ThisBuild / scalacOptions ++= Seq("-release", "17")
+// factor out common settings (in sbt 2 bare settings apply to all subprojects)
+scalaVersion := scala213
+scalacOptions ++= Seq("-release", "17")
 
 // Publishing Info
-ThisBuild / credentials ++= Publishing.Creds
-ThisBuild / homepage := Some(url("https://github.com/datastax/spark-cassandra-connector"))
-ThisBuild / licenses := List("Apache 2" -> java.net.URI.create("http://www.apache.org/licenses/LICENSE-2.0.txt").toURL )
-ThisBuild / organization := "com.datastax.spark"
-ThisBuild / organizationName := "DataStax"
-ThisBuild / organizationHomepage := Some(url("https://www.datastax.com"))
-ThisBuild / pomExtra := Publishing.OurDevelopers
-ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild / publishMavenStyle := true
-ThisBuild / publishTo := Publishing.Repository
-ThisBuild / scmInfo := Publishing.OurScmInfo
-ThisBuild / version := Publishing.Version
+credentials ++= Publishing.Creds
+homepage := Some(uri("https://github.com/datastax/spark-cassandra-connector"))
+licenses := List(License("Apache 2", uri("http://www.apache.org/licenses/LICENSE-2.0.txt")))
+organization := "com.datastax.spark"
+organizationName := "DataStax"
+organizationHomepage := Some(uri("https://www.datastax.com"))
+pomExtra := Publishing.OurDevelopers
+pomIncludeRepository := { _ => false }
+publishMavenStyle := true
+publishTo := Publishing.Repository
+scmInfo := Publishing.OurScmInfo
+version := Publishing.Version
 
 Global / resolvers ++= Seq(
-  DefaultMavenRepository,
-  Resolver.sonatypeRepo("public")
+  DefaultMavenRepository
 )
-
-lazy val IntegrationTest = config("it") extend Test
 
 lazy val integrationTestsWithFixtures = taskKey[Map[TestDefinition, Seq[String]]]("Evaluates names of all " +
   "Fixtures sub-traits for each test. Sets of fixture sub-traits names are used to form group tests.")
 
 lazy val assemblySettings = Seq(
+  // sbt 2 defaults to true; sbt-assembly needs class directories for the shading rules to work
+  exportJars := false,
   assembly / parallelExecution := false,
-  assembly / test := {},
+  assembly / test := TestResult.Passed,
   assembly / assemblyMergeStrategy := {
     case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-    case PathList("META-INF", xs @ _*) => MergeStrategy.last
+    case PathList("META-INF", xs*) => MergeStrategy.last
     case "module-info.class" => MergeStrategy.discard
     case x =>
       val oldStrategy = (assembly / assemblyMergeStrategy).value
@@ -53,34 +53,14 @@ lazy val assemblySettings = Seq(
   },
 )
 
-// Spark 4.x runs on Java 17, which requires these module open directives for the forked
-// (test) JVMs so Spark's use of internal JDK classes (unsafe, nio, etc.) keeps working.
-lazy val jdk17Options = Seq(
-  "--add-opens=java.base/java.lang=ALL-UNNAMED",
-  "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-  "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
-  "--add-opens=java.base/java.io=ALL-UNNAMED",
-  "--add-opens=java.base/java.net=ALL-UNNAMED",
-  "--add-opens=java.base/java.nio=ALL-UNNAMED",
-  "--add-opens=java.base/java.util=ALL-UNNAMED",
-  "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
-  "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
-  "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
-  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
-  "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
-  "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
-  "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
-  "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED"
-)
-
 lazy val commonSettings = Seq(
   // dependency updates check
   dependencyUpdatesFailBuild := true,
-  dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang" | "org.eclipse.jetty"),
+  dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang"),
   fork := true,
   parallelExecution := true,
   testForkedParallel := false,
-  javaOptions ++= jdk17Options,
+  javaOptions ++= JdkOptions.addOpens, // see project/JdkOptions.scala
   testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
 )
 
@@ -105,8 +85,6 @@ lazy val root = (project in file("."))
 
 
 lazy val connector = (project in file("connector"))
-  .configs(IntegrationTest)
-  .settings(Defaults.itSettings: _*) //This and above enables the "it" suite
   .settings(commonSettings)
   .settings(assemblySettings)
   .settings(
@@ -115,26 +93,54 @@ lazy val connector = (project in file("connector"))
 
     javacOptions ++= Seq("-source", "17", "-target", "17"),
 
+    Test / javacOptions ++= annotationProcessor ++ Seq("-d", (Test / classDirectory).value.toString),
+
+    libraryDependencies ++= Dependencies.Spark.dependencies
+      ++ Dependencies.Compatibility.dependencies(scalaVersion.value)
+      ++ Dependencies.TestConnector.dependencies,
+
+    Compile / doc / scalacOptions ++= scalacVersionDependantOptions(scalaBinaryVersion.value)
+  )
+  .dependsOn(
+    testSupport % "test",
+    driver
+  )
+
+/** Integration tests (they need a Cassandra cluster started by CCM). sbt 2 removed the built-in `IntegrationTest`
+  * configuration, so the tests live in their own subproject as regular tests (`connector-it/src/test`). Run them with
+  * `connectorIt/test` or `connectorIt/testOnly <suite>`. */
+lazy val connectorIt = (project in file("connector-it"))
+  .disablePlugins(AssemblyPlugin)
+  .settings(commonSettings)
+  .settings(
+    crossScalaVersions := supportedScalaVersions,
+    name := "spark-cassandra-connector-it",
+    publish / skip := true,
+
+    // integration tests talk to external Cassandra clusters: never serve results from the test cache
+    Test / test / cacheStores := Nil,
+
+    // sbt 2.1 splits the test classes of a subproject over two worker JVMs by default. The suites of a fixture group
+    // share one Cassandra cluster and must run one after another in one JVM, like they did with sbt 1 (e.g.
+    // ThrottlingSpec starves the driver connection pool and breaks suites running at the same time).
+    Test / testTopology := TestTopology.subprojectExclusive,
+
     // test grouping
-    integrationTestsWithFixtures := {
-      Testing.testsWithFixtures((IntegrationTest / testLoader).value, (IntegrationTest / definedTests).value)
+    integrationTestsWithFixtures := Def.uncached {
+      Testing.testsWithFixtures((Test / testLoader).value, (Test / definedTests).value)
     },
 
-    IntegrationTest / testGrouping := Testing.makeTestGroups(integrationTestsWithFixtures.value),
-    IntegrationTest / testOptions += Tests.Argument("-oF"),  // show full stack traces
-
-    Test / javacOptions ++= annotationProcessor ++ Seq("-d", (Test / classDirectory).value.toString),
+    Test / testGrouping := Def.uncached(Testing.makeTestGroups(integrationTestsWithFixtures.value)),
+    Test / testOptions += Tests.Argument("-oF"),  // show full stack traces
 
     Global / concurrentRestrictions := Seq(Tags.limitAll(Testing.parallelTasks)),
 
     libraryDependencies ++= Dependencies.Spark.dependencies
       ++ Dependencies.Compatibility.dependencies(scalaVersion.value)
       ++ Dependencies.TestConnector.dependencies
-      ++ Dependencies.Jetty.dependencies,
-
-    Compile / doc / scalacOptions ++= scalacVersionDependantOptions(scalaBinaryVersion.value)
   )
   .dependsOn(
+    connector % "compile->compile;test->test",
     testSupport % "test",
     driver
   )
@@ -155,7 +161,7 @@ lazy val driver = (project in file("driver"))
   .settings(
     crossScalaVersions := supportedScalaVersions,
     name := "spark-cassandra-connector-driver",
-    assembly /test := {},
+    assembly / test := TestResult.Passed,
     libraryDependencies ++= Dependencies.Compatibility.dependencies(scalaVersion.value)
       ++ Dependencies.Driver.dependencies
       ++ Dependencies.TestDriver.dependencies

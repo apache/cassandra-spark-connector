@@ -156,7 +156,7 @@ class CassandraCatalog extends CatalogPlugin
           throw new CassandraCatalogException(s"Need a $ReplicationFactor option with SimpleStrategy"))
         createStmt.withSimpleStrategy(replicationFactor.toInt)
       case NetworkTopologyStrategy =>
-        val datacenters = (ksMeta -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
+        val datacenters = (ksMeta.toMap -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
         createStmt.withNetworkTopologyStrategy(datacenters.asJava)
       case other => throw new CassandraCatalogException(s"Unknown keyspace replication strategy $other")
     }
@@ -175,7 +175,7 @@ class CassandraCatalog extends CatalogPlugin
       case (metadata: mutable.Map[String, String], setProperty: SetProperty) =>
         metadata.clone() += (setProperty.property() -> setProperty.value)
       case (metadata: mutable.Map[String, String], removeProperty: RemoveProperty) =>
-        metadata - removeProperty.property()
+        metadata.clone() -= removeProperty.property()
       case (_, other) => throw new CassandraCatalogException(s"Unable to handle alter namespace operation: ${other.getClass.getSimpleName}")
     }
 
@@ -191,7 +191,7 @@ class CassandraCatalog extends CatalogPlugin
           throw new CassandraCatalogException(s"Need a $ReplicationFactor option with SimpleStrategy"))
         alterWithDurable.withSimpleStrategy(replicationFactor.toInt)
       case NetworkTopologyStrategy =>
-        val datacenters = (ksMeta -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
+        val datacenters = (ksMeta.toMap -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
         alterWithDurable.withNetworkTopologyStrategy(datacenters.asJava)
       case other => throw new CassandraCatalogException(s"Unknown replication strategy $other")
     }

@@ -266,6 +266,52 @@ range.join(joinTarget, joinTarget("k") === range("key")).explain()
       +- *(1) Range (1, 1000, step=1, splits=12)
 ```
 
+#### Runtime Filtering
+
+Joins on the partition key that are not converted to a Direct Join, most often semi joins such as
+`WHERE k IN (SELECT k FROM ...)` or `EXISTS (...)`, and joins with `directJoinSetting=off`, can still avoid a
+full table scan. When Spark broadcasts the other side of the join, it passes the join key values to the Cassandra
+scan at runtime (Spark's dynamic partition pruning), and the scan reads only what can match:
+
+ - with at most `spark.cassandra.sql.runtimeFiltering.maxKeyLookups` keys (10000 by default) it reads each key
+   with one query, the way a Direct Join does, in Spark partitions placed on the keys' replicas;
+ - with more keys it scans only the token ranges holding at least one key, unless nearly all of them do;
+ - otherwise, and if a key cannot be converted to the column type, it scans the whole table as before.
+
+The filter only reduces what is read: Spark still evaluates the join, so results do not change.
+Runtime filtering applies when:
+ - the join restricts every partition key column, and the read does not already restrict the partition key;
+ - the partition key types are not `decimal`, `float` or `double`, collections, tuples or UDTs (Cassandra
+   treats values Spark considers equal, such as `1.5` and `1.50`, as different keys);
+ - Spark's `spark.sql.optimizer.dynamicPartitionPruning.enabled` (true by default) is on and pushdown is enabled.
+
+`EXPLAIN` shows the runtime filter in `RuntimeFilters: [dynamicpruningexpression(...)]` of the `BatchScan`.
+Set `spark.cassandra.sql.runtimeFiltering.enabled=false` to always scan every token range.
+
+#### Write Clustering
+
+The connector writes rows in single-partition unlogged batches: it keeps up to
+`spark.cassandra.output.batch.grouping.buffer.size` (1000) open batches per Spark task, one per partition key,
+and sends a batch when it is full. When a task sees many more partition keys than that in random order, rows of
+the same partition rarely meet in the buffer and most of them are sent one by one.
+
+`spark.cassandra.sql.writeClustering` (default `off`) makes DataFrame and SQL writes, including streaming
+micro-batches, ask Spark to cluster the rows by partition key (a shuffle) and sort them by primary key within
+each task, so each partition's rows arrive together and go out in full batches:
+ - `on` clusters every write;
+ - `auto` clusters writes to tables with clustering columns when rows are batched by partition
+   (`spark.cassandra.output.batch.grouping.key=partition` and `spark.cassandra.output.batch.size.rows` not 1),
+   except counter tables;
+ - `off` writes the rows in the order Spark produces them, as before.
+
+It pays off for tables with clustering columns written from unsorted data with many partition keys per task (in
+the connector benchmark, 500k rows in random order into 25k partitions: about 30% faster). It slows writes down
+when the data is already grouped by partition key (the shuffle is wasted) and when many rows go to few partition
+keys (each task then writes to only a few partitions, and concurrent writes to one partition contend in
+Cassandra): about 2x slower in the benchmark. `on` also clusters writes to tables without clustering columns,
+where it only adds cost (about 10% in the benchmark), so prefer `auto`. Set it per write with
+`.option("spark.cassandra.sql.writeClustering", "auto")`.
+
 #### TTL and WRITETIME
 
 Through Cassandra Spark Extensions special functions are added to SparkSQL.

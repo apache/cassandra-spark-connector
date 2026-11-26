@@ -44,57 +44,54 @@ object Dependencies
 
   implicit class Exclude(module: ModuleID) {
     def logbackExclude(): ModuleID = module
-      .exclude("ch.qos.logback", "logback-classic")
-      .exclude("ch.qos.logback", "logback-core")
-      .exclude("org.slf4j", "log4j-over-slf4j")
+      .exclude("ch.qos.logback" % "logback-classic")
+      .exclude("ch.qos.logback" % "logback-core")
+      .exclude("org.slf4j" % "log4j-over-slf4j")
 
     def driverCoreExclude(): ModuleID = module
-      .exclude("org.apache.cassandra", "java-driver-core") // doesn't shade guava
-      .exclude("org.apache.tinkerpop", "*")
+      .exclude("org.apache.cassandra" % "java-driver-core") // doesn't shade guava
+      .exclude("org.apache.tinkerpop" % "*")
       // until SPARK-20075 is fixed we fallback to java workarounds for native calls
-      .exclude("com.github.jnr", "jnr-posix")
+      .exclude("com.github.jnr" % "jnr-posix")
   }
 
   object TestCommon {
-    val mockito = "org.mockito" % "mockito-all" % Mockito
+    val mockito = "org.mockito" % "mockito-core" % Mockito
     val junit = "junit" % "junit" % JUnit
-    val junitInterface = "com.novocode" % "junit-interface" % JUnitInterface
+    val junitInterface = "com.github.sbt" % "junit-interface" % JUnitInterface
     val scalaTest = "org.scalatest" %% "scalatest" % ScalaTest
+    // ScalaTest 3.2 moved its Mockito and ScalaCheck integration (MockitoSugar, ScalaCheckPropertyChecks) out
+    val scalaTestPlusMockito = "org.scalatestplus" %% "mockito-5-18" % ScalaTestPlusMockito
+    val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-20" % ScalaTestPlusScalaCheck
     val driverMapperProcessor = "org.apache.cassandra" % "java-driver-mapper-processor" % CassandraJavaDriver
     val esriGeometry = "com.esri.geometry" % "esri-geometry-api" % EsriGeometry
   }
 
   object TestConnector {
-    val commonsIO         = "commons-io"              %  "commons-io"                   % CommonsIO    % "test,it"       // ApacheV2
-    val scalaCheck        = "org.scalacheck"          %% "scalacheck"                   % ScalaCheck   % "test,it"      // BSD
-    val sparkCoreT        = "org.apache.spark"        %% "spark-core"                   % ApacheSpark  % "test,it" classifier "tests"
-    val sparkStreamingT   = "org.apache.spark"        %% "spark-streaming"              % ApacheSpark  % "test,it" classifier "tests"
-    val solrj             = "org.apache.solr"         %  "solr-solrj"                   % SolrJ      % "test,it"
+    val commonsIO         = "commons-io"              %  "commons-io"                   % CommonsIO    % "test"       // ApacheV2
+    val scalaCheck        = "org.scalacheck"          %% "scalacheck"                   % ScalaCheck   % "test"      // BSD
+    val sparkCoreT        = ("org.apache.spark"        %% "spark-core"                   % ApacheSpark  % "test").classifier("tests")
+    val sparkStreamingT   = ("org.apache.spark"        %% "spark-streaming"              % ApacheSpark  % "test").classifier("tests")
+    val solrj             = "org.apache.solr"         %  "solr-solrj"                   % SolrJ      % "test"
 
     val dependencies = Seq(
       scalaCheck,
       sparkCoreT,
       sparkStreamingT,
       solrj,
-      TestCommon.driverMapperProcessor % "test,it" driverCoreExclude(),
-      TestCommon.scalaTest % "test,it",
-      TestCommon.mockito % "test,it",
-      TestCommon.junit % "test,it",
-      TestCommon.junitInterface % "test,it",
-      TestCommon.esriGeometry % "test,it").map(_.logbackExclude())
-  }
-
-  // Required for metrics
-  object Jetty {
-    val jettyServer       = "org.eclipse.jetty"       % "jetty-server"            % SparkJetty % "provided"
-    val jettyServlet      = "org.eclipse.jetty"       % "jetty-servlet"           % SparkJetty % "provided"
-
-    val dependencies = Seq(jettyServer, jettyServlet)
+      (TestCommon.driverMapperProcessor % "test").driverCoreExclude(),
+      TestCommon.scalaTest % "test",
+      TestCommon.scalaTestPlusMockito % "test",
+      TestCommon.scalaTestPlusScalaCheck % "test",
+      TestCommon.mockito % "test",
+      TestCommon.junit % "test",
+      TestCommon.junitInterface % "test",
+      TestCommon.esriGeometry % "test").map(_.logbackExclude())
   }
 
   object Driver {
-    val driverCore = "org.apache.cassandra" % "java-driver-core-shaded" % CassandraJavaDriver driverCoreExclude()
-    val driverMapper = "org.apache.cassandra" % "java-driver-mapper-runtime" % CassandraJavaDriver driverCoreExclude()
+    val driverCore = ("org.apache.cassandra" % "java-driver-core-shaded" % CassandraJavaDriver).driverCoreExclude()
+    val driverMapper = ("org.apache.cassandra" % "java-driver-mapper-runtime" % CassandraJavaDriver).driverCoreExclude()
 
     val commonsLang3 = "org.apache.commons" % "commons-lang3" % Versions.CommonsLang3
     val paranamer = "com.thoughtworks.paranamer" % "paranamer" % Versions.Paranamer
@@ -104,13 +101,12 @@ object Dependencies
   }
 
   object Compatibility {
-    val scalaCompat = "org.scala-lang.modules" %% "scala-collection-compat" % Versions.ScalaCompat
     val parallelCollections = "org.scala-lang.modules" %% "scala-parallel-collections" % Versions.ParallelCollections
 
     def dependencies(version: String): Seq[ModuleID] = {
       CrossVersion.partialVersion(version) match {
-        case Some((2, scalaMajor)) if scalaMajor == 13 => Seq(scalaCompat, parallelCollections)
-        case _ => Seq(scalaCompat)
+        case Some((2, scalaMajor)) if scalaMajor == 13 => Seq(parallelCollections)
+        case _ => Seq()
       }
     }
   }
@@ -118,10 +114,11 @@ object Dependencies
   object TestDriver {
     val dependencies = Seq(
       TestCommon.scalaTest % "test",
+      TestCommon.scalaTestPlusMockito % "test",
       TestCommon.mockito % "test",
       TestCommon.junit % "test",
       TestCommon.junitInterface % "test",
-      TestCommon.driverMapperProcessor % "test" driverCoreExclude()
+      (TestCommon.driverMapperProcessor % "test").driverCoreExclude()
     )
   }
 

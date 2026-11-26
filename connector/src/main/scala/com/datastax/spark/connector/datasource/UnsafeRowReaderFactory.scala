@@ -28,6 +28,8 @@ import org.apache.spark.sql.catalyst.{CatalystTypeConverters, InternalRow}
 import org.apache.spark.sql.types.{ArrayType, DataType, MapType, StructField, StructType}
 import org.apache.spark.sql.{Row => SparkRow}
 
+import scala.collection.immutable.ArraySeq
+
 class UnsafeRowReaderFactory(schema: StructType) extends RowReaderFactory[UnsafeRow] {
 
   override def rowReader(table: TableDef, selectedColumns: IndexedSeq[ColumnRef]):
@@ -50,7 +52,7 @@ class UnsafeRowReader(schema: StructType)
     * @param rowMetaData column names and codec available in the `row`*/
   override def read(row: Row, rowMetaData: CassandraRowMetadata): UnsafeRow = {
     val data = CassandraRow.dataFromJavaDriverRow(row, rowMetaData)
-    val sparkRow = SparkRow(data.map(toUnsafeSqlType): _*)
+    val sparkRow = SparkRow(ArraySeq.unsafeWrapArray(data.map(toUnsafeSqlType)): _*)
     val projectionDecoded = projectionDecoder(sparkRow)
     val converterOutput = converter
       .apply(projectionDecoded)
@@ -89,7 +91,7 @@ object UdtProjectionDecoder {
       val updated = Array.tabulate[Any](childEncoders.length) { idx =>
         childEncoders(idx)(row.get(idx))
       }
-      SparkRow(updated: _*)
+      SparkRow(ArraySeq.unsafeWrapArray(updated): _*)
     }
   }
 

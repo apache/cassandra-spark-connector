@@ -18,7 +18,7 @@
 
 package com.datastax.spark.connector.rdd.partitioner
 
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 
 import com.datastax.spark.connector.rdd.partitioner.dht.{Token, TokenRange}
 

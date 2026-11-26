@@ -19,7 +19,8 @@
 package com.datastax.spark.connector.util
 
 import org.apache.spark.SparkConf
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import com.datastax.spark.connector.cql.{AuthConfFactory, CassandraConnectionFactory, CassandraConnectorConf}
 import com.datastax.spark.connector.util.ConfigCheck.ConnectorConfigurationException
 
@@ -35,7 +36,7 @@ object CustomAuthConfFactory extends AuthConfFactory {
   override def authConf(conf: SparkConf) = ???
 }
 
-class ConfigCheckSpec extends FlatSpec with Matchers  {
+class ConfigCheckSpec extends AnyFlatSpec with Matchers  {
 
   "ConfigCheck" should "throw an exception when the configuration contains a invalid spark.cassandra prop" in {
     val sparkConf = new SparkConf().set("spark.cassandra.foo.bar", "foobar")

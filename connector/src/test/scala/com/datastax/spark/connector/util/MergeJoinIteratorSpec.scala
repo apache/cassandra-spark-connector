@@ -18,9 +18,10 @@
 
 package com.datastax.spark.connector.util
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class MergeJoinIteratorSpec  extends FlatSpec with Matchers {
+class MergeJoinIteratorSpec  extends AnyFlatSpec with Matchers {
 
   "MergeJoinIterator" should "group an empty collection" in {
     new MergeJoinIterator[Int, Int, Int](Iterator.empty, Iterator.empty, identity, identity)

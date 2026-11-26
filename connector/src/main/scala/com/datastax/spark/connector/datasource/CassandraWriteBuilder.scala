@@ -22,10 +22,14 @@ import com.datastax.oss.driver.api.core.CqlIdentifier
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder
 import com.datastax.spark.connector.cql.{CassandraConnector, TableDef}
 import com.datastax.spark.connector.datasource.CassandraSourceUtil.consolidateConfs
-import com.datastax.spark.connector.writer.{TTLOption, TimestampOption, WriteConf}
+import com.datastax.spark.connector.RowsInBatch
+import com.datastax.spark.connector.writer.{BatchGroupingKey, TTLOption, TimestampOption, WriteConf}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.cassandra.CassandraSourceRelation.{TTLParam, WriteTimeParam}
+import org.apache.spark.sql.cassandra.ColumnReferences
+import org.apache.spark.sql.cassandra.CassandraSourceRelation.{TTLParam, WriteClusteringParam, WriteTimeParam}
+import org.apache.spark.sql.connector.distributions.{Distribution, Distributions}
+import org.apache.spark.sql.connector.expressions.{Expression, Expressions, SortDirection, SortOrder}
 import org.apache.spark.sql.connector.write._
 import org.apache.spark.sql.connector.write.streaming.{StreamingDataWriterFactory, StreamingWrite}
 import org.apache.spark.sql.types.StructType
@@ -81,6 +85,14 @@ case class CassandraWriteBuilder(
   private val connector = CassandraConnector(consolidatedConf)
   private val writeConf = initialWriteConf.copy(ttl = ttlWriteOption, timestamp = timestampWriteOption)
 
+  override def build(): Write = {
+    val bulkWrite = getWrite()
+    CassandraWriteClustering.clustering(tableDef, writeConf, consolidatedConf) match {
+      case Some(clustering) => ClusteredCassandraWrite(bulkWrite, clustering)
+      case None => CassandraWrite(bulkWrite)
+    }
+  }
+
   override def buildForBatch(): BatchWrite = getWrite()
 
   private def getWrite(): CassandraBulkWrite = {
@@ -108,6 +120,78 @@ case class CassandraWriteBuilder(
           |To actually truncate please pass in true value to the option
           |"confirm.truncate" or set that value to true in the session.conf
           | when saving. """.stripMargin)
+    }
+  }
+}
+
+/** A write Spark plans as it comes. */
+case class CassandraWrite(bulkWrite: CassandraBulkWrite) extends Write {
+  override def toBatch: BatchWrite = bulkWrite
+  override def toStreaming: StreamingWrite = bulkWrite
+}
+
+/** A write for which Spark clusters the rows by partition key and sorts them by primary key (per Spark task), so
+  * the rows of each Cassandra partition reach the writer together and are sent in full single-partition batches. */
+case class ClusteredCassandraWrite(bulkWrite: CassandraBulkWrite, clustering: CassandraWriteClustering)
+  extends Write with RequiresDistributionAndOrdering {
+
+  override def toBatch: BatchWrite = bulkWrite
+  override def toStreaming: StreamingWrite = bulkWrite
+
+  override def requiredDistribution(): Distribution =
+    Distributions.clustered(clustering.distributionColumns.map(ColumnReferences.column).toArray[Expression])
+
+  // Best effort: Spark (AQE) may split a hot Cassandra partition over several tasks, or coalesce small tasks.
+  // Batching only needs the rows of a partition to be contiguous within a task.
+  override def distributionStrictlyRequired(): Boolean = false
+
+  override def requiredOrdering(): Array[SortOrder] =
+    clustering.orderingColumns.map(c => Expressions.sort(ColumnReferences.column(c), SortDirection.ASCENDING)).toArray
+
+  override def description(): String = s"${super.description()} clustered by " +
+    s"${clustering.distributionColumns.mkString("[", ", ", "]")}, sorted by ${clustering.orderingColumns.mkString("[", ", ", "]")}"
+}
+
+/** Columns to cluster a write by (the partition key) and to sort it by (the primary key). */
+case class CassandraWriteClustering(distributionColumns: Seq[String], orderingColumns: Seq[String])
+
+object CassandraWriteClustering {
+
+  sealed trait Setting
+  case object Auto extends Setting
+  case object On extends Setting
+  case object Off extends Setting
+
+  def setting(conf: SparkConf): Setting =
+    conf.get(WriteClusteringParam.name, WriteClusteringParam.default).trim.toLowerCase match {
+      case "auto" => Auto
+      case "on" | "true" => On
+      case "off" | "false" => Off
+      case invalid => throw new IllegalArgumentException(
+        s"""$invalid is not a valid ${WriteClusteringParam.name} value.
+           |${WriteClusteringParam.description}""".stripMargin)
+    }
+
+  /** Whether clustering the rows can fill batches: only if a partition can hold several rows and rows are
+    * batched by partition. Not for counters, whose updates are not idempotent: no reason to add a shuffle to them. */
+  def batchingProfits(tableDef: TableDef, writeConf: WriteConf): Boolean =
+    tableDef.clusteringColumns.nonEmpty &&
+      writeConf.batchGroupingKey == BatchGroupingKey.Partition &&
+      writeConf.batchSize != RowsInBatch(1) &&
+      !tableDef.columns.exists(_.isCounterColumn)
+
+  def clustering(tableDef: TableDef, writeConf: WriteConf, conf: SparkConf): Option[CassandraWriteClustering] = {
+    val enabled = setting(conf) match {
+      case On => true
+      case Off => false
+      case Auto => batchingProfits(tableDef, writeConf)
+    }
+    if (enabled) {
+      Some(CassandraWriteClustering(
+        tableDef.partitionKey.map(_.columnName),
+        tableDef.primaryKey.map(_.columnName)))
+    } else {
+      None
     }
   }
 }

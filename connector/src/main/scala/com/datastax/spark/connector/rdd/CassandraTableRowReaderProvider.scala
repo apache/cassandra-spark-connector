@@ -103,7 +103,7 @@ trait CassandraTableRowReaderProvider[R] {
   /** Throws IllegalArgumentException if columns sequence contains unavailable columns */
   private def checkColumnsAvailable(
       columns: Seq[ColumnRef],
-      availableColumns: Seq[ColumnRef]) {
+      availableColumns: Seq[ColumnRef]): Unit = {
 
     val availableColumnsSet = availableColumns.collect {
       case ColumnName(columnName, _) => columnName

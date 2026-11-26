@@ -21,13 +21,14 @@ package com.datastax.bdp.spark
 TODO:
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.spark.SparkConf
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import com.datastax.bdp.config.{ClientConfigurationFactory, YamlClientConfiguration}
 import com.datastax.bdp.spark.DseAuthConfFactory.DsePasswordAuthConf
 import com.datastax.bdp.test.ng.{DataGenerator, DseScalaTestBase, ToString, YamlProvider}
 
-class DseAuthConfFactorySpec extends FlatSpec with Matchers with DseScalaTestBase {
+class DseAuthConfFactorySpec extends AnyFlatSpec with Matchers with DseScalaTestBase {
   
   beforeClass {
     YamlProvider.provideDefaultYamls()

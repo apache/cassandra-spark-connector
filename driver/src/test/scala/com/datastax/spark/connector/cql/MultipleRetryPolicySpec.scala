@@ -25,12 +25,13 @@ import com.datastax.oss.driver.api.core.metadata.Node
 import com.datastax.oss.driver.api.core.retry.RetryDecision
 import com.datastax.oss.driver.api.core.servererrors._
 import com.datastax.oss.driver.api.core.{DefaultConsistencyLevel, DriverException}
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 
-class MultipleRetryPolicySpec extends FlatSpec with Matchers with MockitoSugar {
+class MultipleRetryPolicySpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   private val statement = SimpleStatement.newInstance("foobuzz")
   private val cl = DefaultConsistencyLevel.THREE
@@ -83,8 +84,9 @@ class MultipleRetryPolicySpec extends FlatSpec with Matchers with MockitoSugar {
     val driverContext = mock[DriverContext]
     val driverConfig = mock[DriverConfig]
     val profile = mock[DriverExecutionProfile]
-    when(profile.getInt(org.mockito.Matchers.eq(MultipleRetryPolicy.MaxRetryCount), anyInt())).thenReturn(retries)
-    when(driverConfig.getProfile(anyString)).thenReturn(profile)
+    when(profile.getInt(org.mockito.ArgumentMatchers.eq(MultipleRetryPolicy.MaxRetryCount), anyInt())).thenReturn(retries)
+    // the policy is created with a null profile name below; since Mockito 2 anyString() does not match null
+    when(driverConfig.getProfile(any[String]())).thenReturn(profile)
     when(driverContext.getConfig).thenReturn(driverConfig)
     new MultipleRetryPolicy(driverContext, null)
   }

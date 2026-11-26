@@ -18,9 +18,10 @@
 
 package com.datastax.spark.connector.rdd.partitioner.dht
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class RandomPartitionerTokenFactorySpec extends FlatSpec with Matchers {
+class RandomPartitionerTokenFactorySpec extends AnyFlatSpec with Matchers {
 
   val factory = TokenFactory.RandomPartitionerTokenFactory
 

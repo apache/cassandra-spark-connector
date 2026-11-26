@@ -25,13 +25,14 @@ import org.apache.spark.metrics.source.Source
 import org.apache.spark.{SparkConf, TaskContext}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import com.datastax.driver.core.RowMock
 import com.datastax.spark.connector.rdd.ReadConf
 import com.datastax.spark.connector.util.RuntimeUtil.toParallelIterable
 import org.scalatestplus.mockito.MockitoSugar
 
-class InputMetricsUpdaterSpec extends FlatSpec with Matchers with MockitoSugar {
+class InputMetricsUpdaterSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   implicit val defaultPatienceConfig = Eventually.PatienceConfig(
     Eventually.scaled(20.seconds), Eventually.scaled(500.milliseconds))

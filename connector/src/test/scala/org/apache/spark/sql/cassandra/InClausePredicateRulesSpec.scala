@@ -24,9 +24,10 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.cassandra.CassandraSourceRelation.InClauseToFullTableScanConversionThreshold
 import org.apache.spark.sql.cassandra.PredicateOps.FilterOps.columnName
 import org.apache.spark.sql.sources._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class InClausePredicateRulesSpec extends FlatSpec with Matchers {
+class InClausePredicateRulesSpec extends AnyFlatSpec with Matchers {
 
   val fakeTableDef = TableDef(
     "fake",

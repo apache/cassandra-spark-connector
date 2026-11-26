@@ -24,7 +24,7 @@ For Cassandra 5.0 the tests start the nodes on Java 11, so also set `JAVA11_HOME
 to a JDK 11. For example:
 
 ```shell
-JAVA_HOME=/path/to/jdk17 JAVA11_HOME=/path/to/jdk11 CCM_CASSANDRA_VERSION=5.0.9 ./sbt/sbt it:test
+JAVA_HOME=/path/to/jdk17 JAVA11_HOME=/path/to/jdk11 CCM_CASSANDRA_VERSION=5.0.9 ./sbt/sbt connectorIt/test
 ```
 
 Each parallel test group starts its nodes on its own loopback range
@@ -38,21 +38,29 @@ for g in $(seq 0 12); do for c in 0 1; do for n in 1 2 3 4; do
 done; done; done
 ```
 
-The SSL and authentication integration tests use the connector's default `TLS_RSA_*`
-cipher suites, which [recent JDK 17 updates disable in `jdk.tls.disabledAlgorithms`](https://www.oracle.com/java/technologies/javase/17all-relnotes.html).
-They fail on such JDKs regardless of the connector code.
+The SSL and authentication integration tests use the connector's default cipher suites (TLS 1.3 and
+TLS 1.2 ECDHE GCM suites). The former default `TLS_RSA_*` suites are disabled by
+[current JDK 17 updates in `jdk.tls.disabledAlgorithms`](https://www.oracle.com/java/technologies/javase/17all-relnotes.html), which is why
+they are no longer the default.
  
 The most common commands to use when developing the connector are
 
 1. `test` - Runs the the unit tests for the project.
-2. `it:test` - Runs the integration tests with Cassandra (started by CCM) and Spark
+2. `connectorIt/test` - Runs the integration tests with Cassandra (started by CCM) and Spark
 3. `package` - Builds the project and produces a runtime jar
 4. `publishM2` - Publishes a snapshot of the project to your local maven repository allowing for usage with `--packages` in the spark-shell
 
-The integration tests located in `connector/src/it` should
+The integration tests located in `connector-it/src/test` should
 probably be the first place to look for anyone considering adding code.
 There are many examples of executing a feature of the connector with
 Cassandra and Spark nodes and are the core of our test coverage.
+
+### Benchmark
+
+`testing/benchmark/` holds an end-to-end benchmark (writes, scans, pushdown, joins, cache and shuffle of
+Cassandra rows) that runs in `spark-shell` against one local Cassandra node. Use it to compare two builds,
+Spark versions, JDKs or settings on the same machine before and after a performance-related change; see
+`testing/benchmark/README.md` for how to run it and how to read the results.
 
 ### Merge Path
 
@@ -130,7 +138,7 @@ run and the parallelization used while running tests.
 ### Test Parallelization
 
 In order to limit the number of test groups running simultaneously use the
-`TEST_PARALLEL_TASKS` environment variable. Only applies to `sbt test` & `sbt it:test` tasks.
+`TEST_PARALLEL_TASKS` environment variable. Only applies to `sbt test` & `sbt connectorIt/test` tasks.
 
 ### Set Cassandra Test Target
 Our CI Build runs through the GitHub Actions Infrastructure and tests on all the builds
@@ -158,7 +166,7 @@ in a loop on code change. Sbt provides a method for this by using the
 change in the source code is detected. This is often useful to use in
 conjunction with `testOnly` which runs a single test. So if a new feature
 were being added to the integration suite `foo` you may want to run
-`~ it:testOnly foo`. Which would only run the suite you are interested in
+`~ connectorIt/testOnly foo`. Which would only run the suite you are interested in
 on a loop while you are modifying the connector code. Use this in conjunction
 with "Developer" CCM Mode for the fastest test iteration.
 
@@ -180,7 +188,7 @@ This same method should work with `publishLocal`
 after the merging of [SPARK-12666](https://issues.apache.org/jira/browse/SPARK-12666)
 
 > [!NOTE]
-> Jars produced (each under its module's `target/scala-2.13/`):
+> Jars produced (with sbt 2 each under `target/out/jvm/scala-2.13.18/<sbt project name>/`, e.g. `spark-cassandra-connector/`):
 > | Module | JAR Name Example (having suffix as `<last tag>-<commits since>-g<sha>`) |
 > | --- | ---: |
 > | connector | `spark-cassandra-connector_2.13-3.5.1-19-g37de9b97.jar` |

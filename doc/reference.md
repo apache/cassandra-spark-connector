@@ -169,6 +169,38 @@ Cross product of these values has size of 24.
       </td>
 </tr>
 <tr>
+  <td><code>spark.cassandra.sql.runtimeFiltering.enabled</code></td>
+  <td>true</td>
+  <td>Lets Spark prune Cassandra scans at runtime (dynamic partition pruning). When a scan is joined on all
+of its partition key columns with a selective side that Spark broadcasts (for example
+`WHERE k IN (SELECT k FROM dim WHERE ...)`), the scan reads only the matching keys, or only the token
+ranges holding them, instead of the whole table. Set to false to always scan every token range.
+Spark's own switch is `spark.sql.optimizer.dynamicPartitionPruning.enabled`.
+         </td>
+</tr>
+<tr>
+  <td><code>spark.cassandra.sql.runtimeFiltering.maxKeyLookups</code></td>
+  <td>10000</td>
+  <td>With runtime filtering, read the matching partition keys with one query per key if there are at most
+this many of them (the cross product of the key values for a composite partition key). With more keys
+only the token ranges holding at least one key are scanned. Set to 0 to never use key lookups.
+         </td>
+</tr>
+<tr>
+  <td><code>spark.cassandra.sql.writeClustering</code></td>
+  <td>off</td>
+  <td>Whether DataFrame writes ask Spark to cluster rows by partition key and sort them by primary key, so
+that the rows of one Cassandra partition reach the writer together and go out in full single-partition
+batches. It costs a shuffle and a sort, and pays off for tables with clustering columns written from
+unsorted data that spans many more partition keys per Spark task than
+`spark.cassandra.output.batch.grouping.buffer.size`. It slows down writes of data already grouped by
+partition key and writes of many rows to few partition keys. Acceptable values: "off", "auto", "on".
+"auto" clusters writes to tables with clustering columns when rows are batched by partition
+(`spark.cassandra.output.batch.grouping.key` = partition and `spark.cassandra.output.batch.size.rows`
+not 1), except counter tables. "on" always clusters.
+         </td>
+</tr>
+<tr>
   <td><code>spark.cassandra.table.size.in.bytes</code></td>
   <td>None</td>
   <td>Used by DataFrames Internally, will be updated in a future release to
@@ -253,8 +285,8 @@ columname will be used to set the writetime for that row.</td>
 </tr>
 <tr>
   <td><code>spark.cassandra.connection.ssl.enabledAlgorithms</code></td>
-  <td>Set(TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_256_CBC_SHA)</td>
-  <td>SSL cipher suites</td>
+  <td>ListSet(TLS_AES_256_GCM_SHA384, TLS_AES_128_GCM_SHA256, TLS_CHACHA20_POLY1305_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)</td>
+  <td>SSL cipher suites, comma separated, in order of preference. The default covers TLS 1.3 and TLS 1.2 (ECDHE with ECDSA or RSA certificates)</td>
 </tr>
 <tr>
   <td><code>spark.cassandra.connection.ssl.keyStore.password</code></td>
