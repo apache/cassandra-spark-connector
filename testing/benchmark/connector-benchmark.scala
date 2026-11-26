@@ -69,6 +69,8 @@ connector.withSessionDo { s =>
   s.execute(s"CREATE KEYSPACE $ks WITH replication = {'class':'SimpleStrategy','replication_factor':1}")
   s.execute(s"CREATE TABLE $ks.kv (k int PRIMARY KEY, v text, n int)")
   s.execute(s"CREATE TABLE $ks.kv2 (k int PRIMARY KEY, v text, n int)")
+  for (t <- Seq("wide_high", "wide_low", "wide_sorted"))
+    s.execute(s"CREATE TABLE $ks.$t (p int, c int, v text, PRIMARY KEY (p, c))")
 }
 
 // Writes
@@ -77,6 +79,28 @@ timeOnce("rdd_write") { rddData.saveToCassandra(ks, "kv", SomeColumns("k", "v", 
 val dfData = spark.range(1, rows + 1L)
   .selectExpr("cast(id as int) as k", "concat('w', id) as v", "cast(id % 100 as int) as n")
 timeOnce("df_write") { dfData.write.cassandraFormat("kv2", ks).mode("append").save() }
+
+// Writes to a table with clustering columns (write clustering, spark.cassandra.sql.writeClustering): the input is
+// prepared and cached first, so only the write is timed. Random order with many partition keys per task is the
+// case where the writer's grouping buffer cannot fill batches.
+def wideRows(partitions: Int) = spark.range(rows)
+  .selectExpr(s"cast(id % $partitions as int) as p", s"cast(id div $partitions as int) as c", "concat('w', id) as v")
+def timeWideWrite(name: String, table: String, input: org.apache.spark.sql.DataFrame): Unit = {
+  val cached = input.cache()
+  cached.count()
+  val tasks = new java.util.concurrent.atomic.AtomicInteger()
+  val listener = new org.apache.spark.scheduler.SparkListener {
+    override def onTaskEnd(e: org.apache.spark.scheduler.SparkListenerTaskEnd): Unit = tasks.incrementAndGet()
+  }
+  sc.addSparkListener(listener)
+  timeOnce(name) { cached.write.cassandraFormat(table, ks).mode("append").save() }
+  sc.removeSparkListener(listener)
+  println(s"BENCH-INFO: $name tasks=${tasks.get}")
+  cached.unpersist(blocking = true)
+}
+timeWideWrite("df_write_wide_random_25k_keys", "wide_high", wideRows(25000).orderBy(org.apache.spark.sql.functions.rand(1)))
+timeWideWrite("df_write_wide_random_500_keys", "wide_low", wideRows(500).orderBy(org.apache.spark.sql.functions.rand(2)))
+timeWideWrite("df_write_wide_sorted", "wide_sorted", wideRows(25000).orderBy("p", "c"))
 
 val kv = spark.read.cassandraFormat("kv", ks).load()
 

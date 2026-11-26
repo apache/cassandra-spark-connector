@@ -9,6 +9,7 @@ everything runs on one host, so only relative differences between runs mean some
 | Workload | What is timed |
 |---|---|
 | `rdd_write`, `df_write` | writing `BENCH_ROWS` rows with `saveToCassandra` and with the DataFrame writer (one run each) |
+| `df_write_wide_random_25k_keys`, `df_write_wide_random_500_keys`, `df_write_wide_sorted` | DataFrame writes of `BENCH_ROWS` rows into a table with a clustering column: random order over 25k or 500 partition keys, and sorted by key (one run each, input cached first; compare `--conf spark.cassandra.sql.writeClustering=on`) |
 | `rdd_full_scan_count`, `df_full_scan_count` | full table scan, count only |
 | `rdd_full_scan_rows` | full table scan that reads a column of every row |
 | `df_full_scan_agg` | `sum(n)` over the table |
