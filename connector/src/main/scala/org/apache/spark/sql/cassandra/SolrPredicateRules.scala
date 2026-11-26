@@ -440,7 +440,7 @@ class SolrPredicateRules(searchOptimizationEnabled: DseSearchOptimizationSetting
 
   def escapeSolrCondition(condition: String): String = {
     val matcher = escapables.matcher(condition)
-    val escaped = StringBuilder.newBuilder
+    val escaped = new StringBuilder
     var firstUnprocessedCharPosition = 0
     while (matcher.find) {
       escaped.append(condition.substring(firstUnprocessedCharPosition, matcher.start))

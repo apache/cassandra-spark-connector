@@ -21,11 +21,12 @@ package org.apache.spark.sql.cassandra
 import com.datastax.spark.connector.TableRef
 import org.apache.spark.SparkConf
 import com.datastax.spark.connector.datasource.CassandraSourceUtil.consolidateConfs
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import com.datastax.spark.connector.rdd.ReadConf
 import org.apache.spark.sql.catalyst.util.CaseInsensitiveMap
 
-class ConsolidateSettingsSpec extends FlatSpec with Matchers {
+class ConsolidateSettingsSpec extends AnyFlatSpec with Matchers {
 
   val param = ReadConf.FetchSizeInRowsParam
   val sparkConf = new SparkConf(loadDefaults = false)

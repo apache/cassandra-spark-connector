@@ -20,14 +20,15 @@ package com.datastax.spark.connector.util
 
 import com.datastax.spark.connector.ColumnName
 import org.scalatest.concurrent.Conductors
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.runtime.universe._
 
 trait ReflectionUtilSpecDummyTrait
 object ReflectionUtilSpecDummyObject extends ReflectionUtilSpecDummyTrait
 
-class ReflectionUtilSpec extends FlatSpec with Matchers with Conductors {
+class ReflectionUtilSpec extends AnyFlatSpec with Matchers with Conductors {
 
   "ReflectionUtil.findGlobalObject" should "be able to find a global object" in {
     val obj = ReflectionUtil.findGlobalObject[ReflectionUtilSpecDummyTrait](

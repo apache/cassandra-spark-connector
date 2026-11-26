@@ -20,9 +20,10 @@
 # This script launches sbt for this project. If present it uses the system
 # version of sbt. If there is no system version of sbt it attempts to download
 # sbt locally.
-SBT_VERSION=1.10.0
-URL=https://repo1.maven.org/maven2/org/scala-sbt/sbt-launch/${SBT_VERSION}/sbt-launch-${SBT_VERSION}.jar
+SBT_VERSION=2.1.1
 JAR=sbt/sbt-launch-${SBT_VERSION}.jar
+# Maven Central sometimes answers 429 (rate limit) to CI runners, so try a few hosts that serve the same artifact.
+REPOS="https://repo1.maven.org/maven2 https://repo.maven.apache.org/maven2 https://repo.scala-sbt.org/scalasbt/maven-releases"
 
 # Download sbt launch jar if it hasn't been downloaded yet
 if [ ! -f ${JAR} ]; then
@@ -30,13 +31,20 @@ if [ ! -f ${JAR} ]; then
   printf "Attempting to fetch sbt\n"
   JAR_DL=${JAR}.part
   if hash curl 2>/dev/null; then
-    curl -f -L --progress-bar  ${URL} -o ${JAR_DL} && mv ${JAR_DL} ${JAR}
+    DL="curl -f -L --retry 3 --retry-delay 10 --progress-bar"
+    OUT="-o"
   elif hash wget 2>/dev/null; then
-    wget --progress=bar ${URL} -O ${JAR_DL} && mv ${JAR_DL} ${JAR}
+    DL="wget --tries=3 --waitretry=10 --progress=bar"
+    OUT="-O"
   else
     printf "You do not have curl or wget installed, please install sbt manually from http://www.scala-sbt.org/\n"
     exit -1
   fi
+  for REPO in ${REPOS}; do
+    URL=${REPO}/org/scala-sbt/sbt-launch/${SBT_VERSION}/sbt-launch-${SBT_VERSION}.jar
+    ${DL} ${URL} ${OUT} ${JAR_DL} && mv ${JAR_DL} ${JAR} && break
+    printf "Fetching sbt from ${REPO} failed, trying the next repository\n"
+  done
 fi
 if [ ! -f ${JAR} ]; then
   # We failed to download
@@ -45,6 +53,6 @@ if [ ! -f ${JAR} ]; then
 fi
 printf "Launching sbt from ${JAR}\n"
 java \
-  -Xmx1200m -XX:MaxPermSize=350m -XX:ReservedCodeCacheSize=256m \
+  -Xmx1200m -XX:ReservedCodeCacheSize=256m \
   -jar ${JAR} \
   "$@"

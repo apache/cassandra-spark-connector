@@ -18,9 +18,10 @@
 
 package com.datastax.spark.connector.types
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CollectionColumnTypeSpec extends FlatSpec with Matchers {
+class CollectionColumnTypeSpec extends AnyFlatSpec with Matchers {
 
   val udt = UserDefinedType(
     name = "address",

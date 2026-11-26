@@ -26,7 +26,7 @@ import com.datastax.oss.driver.shaded.guava.common.primitives.Primitives
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
 import org.apache.commons.lang3.reflect.ConstructorUtils
-import com.thoughtworks.paranamer.AdaptiveParanamer
+import com.thoughtworks.paranamer.{AdaptiveParanamer, ParameterNamesNotFoundException}
 
 /** Factory for creating objects of any type by invoking their primary constructor.
   * Unlike Java reflection Methods or Scala reflection Mirrors, this factory is serializable
@@ -90,7 +90,7 @@ class AnyObjectFactory[T: TypeTag] extends Serializable {
   @transient
   private lazy val outerInstanceArg: Seq[AnyRef] = {
     if (isRealMemberClass(javaClass)) {
-      Seq(resolveDirectOuterInstance)
+      Seq(resolveDirectOuterInstance())
     } else {
       Seq.empty
     }
@@ -127,7 +127,13 @@ object AnyObjectFactory extends Logging {
 
   private[connector] def getDefaultConstructor[T](clazz: Class[T]): Constructor[T] = {
     val ctor = clazz.getConstructors.maxBy(_.getParameterTypes.length)
-    paranamer.lookupParameterNames(ctor)
+    // paranamer 2.8 throws when parameter names are unavailable, but 2.8.3+ (pulled in by Spark 4)
+    // returns an empty array instead. Treat a name count mismatch as missing names in both cases,
+    // so that callers can fall back to the no-args constructor.
+    val paramNames = paranamer.lookupParameterNames(ctor)
+    if (paramNames.length != ctor.getParameterTypes.length)
+      throw new ParameterNamesNotFoundException(
+        s"Unable to resolve parameter names of constructor ${ctor.toGenericString}")
     ctor.asInstanceOf[Constructor[T]]
   }
 

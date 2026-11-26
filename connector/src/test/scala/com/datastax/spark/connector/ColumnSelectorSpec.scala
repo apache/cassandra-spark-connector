@@ -18,12 +18,13 @@
 
 package com.datastax.spark.connector
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 import com.datastax.spark.connector.cql._
 import com.datastax.spark.connector.types.{TimestampType, VarCharType, IntType}
 
-class ColumnSelectorSpec extends WordSpec with Matchers {
+class ColumnSelectorSpec extends AnyWordSpec with Matchers {
   "A ColumnSelector#selectFrom method" should {
     val column1 = ColumnDef("c1", PartitionKeyColumn, IntType)
     val column2 = ColumnDef("c2", PartitionKeyColumn, VarCharType)

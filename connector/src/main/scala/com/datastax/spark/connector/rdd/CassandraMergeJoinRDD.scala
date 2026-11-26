@@ -72,7 +72,7 @@ class CassandraMergeJoinRDD[L,R](
     }
   }
 
-  def checkValidMergeJoin() {
+  def checkValidMergeJoin(): Unit = {
     val leftPartitionKeyTypes = getPartitionKey(
       leftScanRDD.connector,
       leftScanRDD.keyspaceName,
@@ -192,7 +192,7 @@ class CassandraMergeJoinRDD[L,R](
         val session = leftScanRDD.connector.openSession()
         (session, session)
       } else {
-        (leftScanRDD.connector.openSession, rightScanRDD.connector.openSession)
+        (leftScanRDD.connector.openSession(), rightScanRDD.connector.openSession())
       }
     }
 
@@ -252,5 +252,5 @@ class CassandraMergeJoinRDD[L,R](
   }
 
   override def getPreferredLocations(split: Partition): Seq[String] =
-    split.asInstanceOf[CassandraPartition[_, _]].endpoints
+    split.asInstanceOf[CassandraPartition[_, _]].endpoints.toIndexedSeq
 }

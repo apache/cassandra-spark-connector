@@ -43,33 +43,53 @@ case class CassandraInJoinReaderFactory(
   cqlQueryParts: ScanHelper.CqlQueryParts)
   extends PartitionReaderFactory {
 
-  override def createReader(partition: InputPartition): PartitionReader[InternalRow] =
+  override def createReader(partition: InputPartition): PartitionReader[InternalRow] = {
+    val numbered = partition.asInstanceOf[NumberedInputPartition]
+    CassandraKeyLookupReader(
+      connector,
+      tableDef,
+      inClauses.map(_.attribute).toIndexedSeq,
+      InClauseKeyGenerator.getIterator(numbered.index, numbered.total, inClauses),
+      readConf,
+      schema,
+      cqlQueryParts)
+  }
+}
+
+object CassandraKeyLookupReader {
+
+  /** Reads the rows of the given keys with one query per key. `keyColumns` are the columns bound by each key row:
+    * all partition key columns, optionally followed by clustering columns. */
+  def apply(
+    connector: CassandraConnector,
+    tableDef: TableDef,
+    keyColumns: IndexedSeq[String],
+    keys: Iterator[CassandraRow],
+    readConf: ReadConf,
+    schema: StructType,
+    cqlQueryParts: ScanHelper.CqlQueryParts): PartitionReader[InternalRow] =
     if (cqlQueryParts.selectedColumnRefs.contains(RowCountRef)) {
-      CassandraInJoinCountReader(connector, tableDef, inClauses, readConf, schema, cqlQueryParts, partition)
+      new CassandraKeyLookupCountReader(connector, tableDef, keyColumns, keys, readConf, schema, cqlQueryParts)
     } else {
-      CassandraInJoinReader(connector, tableDef, inClauses, readConf, schema, cqlQueryParts, partition)
+      new CassandraKeyLookupRowReader(connector, tableDef, keyColumns, keys, readConf, schema, cqlQueryParts)
     }
 }
 
-
-abstract class CassandraBaseInJoinReader(
+abstract class CassandraBaseKeyLookupReader(
   connector: CassandraConnector,
   tableDef: TableDef,
-  inClauses: Seq[In],
+  keyColumns: IndexedSeq[String],
+  keyIterator: Iterator[CassandraRow],
   readConf: ReadConf,
   schema: StructType,
-  cqlQueryParts: ScanHelper.CqlQueryParts,
-  partition: InputPartition)
+  cqlQueryParts: ScanHelper.CqlQueryParts)
   extends PartitionReader[InternalRow]
     with Logging {
 
-  protected val numberedInputPartition = partition.asInstanceOf[NumberedInputPartition]
-  protected val joinColumnNames = inClauses.map(in => ColumnName(in.attribute)).toIndexedSeq
+  protected val joinColumnNames = keyColumns.map(ColumnName(_))
   protected val session = connector.openSession()
   protected val rowWriter = CassandraRowWriter.Factory.rowWriter(tableDef, joinColumnNames)
   protected val rowReader = new UnsafeRowReaderFactory(schema).rowReader(tableDef, cqlQueryParts.selectedColumnRefs)
-
-  protected val keyIterator: Iterator[CassandraRow] = InClauseKeyGenerator.getIterator(numberedInputPartition.index, numberedInputPartition.total, inClauses) //Generate Iterators for this partition here
 
   protected val stmt = JoinHelper.getJoinQueryString(tableDef, joinColumnNames, cqlQueryParts)
   protected val preparedStatement = JoinHelper.getJoinPreparedStatement(session, stmt, readConf.consistencyLevel)
@@ -125,25 +145,25 @@ abstract class CassandraBaseInJoinReader(
   }
 }
 
-case class CassandraInJoinReader(
+class CassandraKeyLookupRowReader(
   connector: CassandraConnector,
   tableDef: TableDef,
-  inClauses: Seq[In],
+  keyColumns: IndexedSeq[String],
+  keyIterator: Iterator[CassandraRow],
   readConf: ReadConf,
   schema: StructType,
-  cqlQueryParts: ScanHelper.CqlQueryParts,
-  partition: InputPartition)
-  extends CassandraBaseInJoinReader(connector, tableDef, inClauses, readConf, schema, cqlQueryParts, partition)
+  cqlQueryParts: ScanHelper.CqlQueryParts)
+  extends CassandraBaseKeyLookupReader(connector, tableDef, keyColumns, keyIterator, readConf, schema, cqlQueryParts)
 
-case class CassandraInJoinCountReader(
+class CassandraKeyLookupCountReader(
   connector: CassandraConnector,
   tableDef: TableDef,
-  inClauses: Seq[In],
+  keyColumns: IndexedSeq[String],
+  keyIterator: Iterator[CassandraRow],
   readConf: ReadConf,
   schema: StructType,
-  cqlQueryParts: ScanHelper.CqlQueryParts,
-  partition: InputPartition)
-  extends CassandraBaseInJoinReader(connector, tableDef, inClauses, readConf, schema, cqlQueryParts, partition) {
+  cqlQueryParts: ScanHelper.CqlQueryParts)
+  extends CassandraBaseKeyLookupReader(connector, tableDef, keyColumns, keyIterator, readConf, schema, cqlQueryParts) {
 
   //Our read is not based on the structure of the table we are reading from
   override val rowReader =
@@ -162,7 +182,7 @@ case class CassandraInJoinCountReader(
 
 object InClauseKeyGenerator {
   def getIterator(index: Int, totalPartitions: Int, inClauses: Seq[In]): Iterator[CassandraRow] = {
-    val values = cross(inClauses.map(_.values.toStream)) //We need to enumerate our cross product lazily
+    val values = cross(inClauses.map(_.values.to(LazyList))) //We need to enumerate our cross product lazily
     val columns = inClauses.map(_.attribute)
     val rowMetadata = CassandraRowMetadata.fromColumnNames(columns.toIndexedSeq)
     values
@@ -170,7 +190,7 @@ object InClauseKeyGenerator {
       .zipWithIndex
       .filter { case (_, dataIndex) => dataIndex % totalPartitions == index }
       .map { case (data, _) => new CassandraRow(rowMetadata, data) }
-      .toIterator
+      .iterator
   }
 
   def cross(iter: Iterable[Iterable[_]]): Iterable[List[_]] = {

@@ -24,7 +24,6 @@ import com.datastax.spark.connector.util.Logging
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.cassandra.PredicateOps.FilterOps
 import org.apache.spark.sql.sources.{EqualTo, Filter, IsNotNull}
-import scala.collection.compat._
 
 
 /**

@@ -92,7 +92,7 @@ object JavaApiHelper {
   def toScalaMap[K, V](map: JMap[K, V]): Map[K, V] = Map(map.asScala.toSeq: _*)
 
   /** Converts an array to a Scala `Seq`. */
-  def toScalaSeq[T](array: Array[T]): Seq[T] = array
+  def toScalaSeq[T](array: Array[T]): Seq[T] = array.toIndexedSeq
 
   /** Converts an array to a Scala `Seq`. */
   def toScalaImmutableSeq[T](array: Array[T]): scala.collection.immutable.Seq[T] = array.toIndexedSeq

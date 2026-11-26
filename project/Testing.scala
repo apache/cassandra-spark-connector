@@ -25,7 +25,7 @@ import scala.util.Try
 
 object Testing {
 
-  private def interfacesImplementingFixture(c: Class[_], fixture: Class[_]): Seq[Class[_]] = {
+  private def interfacesImplementingFixture(c: Class[?], fixture: Class[?]): Seq[Class[?]] = {
     c.getInterfaces.toSeq.filter(i => i != fixture && fixture.isAssignableFrom(i)) ++
       c.getInterfaces.flatMap(interfacesImplementingFixture(_, fixture)) ++
       Option(c.getSuperclass).map(x => interfacesImplementingFixture(x, fixture)).getOrElse(Seq())
@@ -57,7 +57,7 @@ object Testing {
         Group(groupName, tests.toSeq, SubProcess(
           ForkOptions()
             .withEnvVars(envVars)
-            .withRunJVMOptions(getCCMJvmOptions.flatten.toVector)))
+            .withRunJVMOptions((getCCMJvmOptions.flatten ++ JdkOptions.addOpens).toVector)))
       }
   }
 
@@ -88,7 +88,7 @@ object Testing {
   lazy val parallelTasks: Int = {
     val parallelTasks = sys.env.get("TEST_PARALLEL_TASKS").map(_.toInt).getOrElse {
       val osmxBean = ManagementFactory.getOperatingSystemMXBean.asInstanceOf[OperatingSystemMXBean]
-      val sysMemoryInMB = osmxBean.getTotalPhysicalMemorySize >> 20
+      val sysMemoryInMB = osmxBean.getTotalMemorySize >> 20
       val singleRunRequiredMem = 1024 + 1536 // ForkMain + DseModule
       val sbt = 1550
       Math.min(Math.max(1, ((sysMemoryInMB - sbt) / singleRunRequiredMem).toInt), MaxParallel)

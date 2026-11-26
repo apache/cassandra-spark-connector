@@ -18,9 +18,10 @@
 
 package com.datastax.spark.connector.rdd
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CqlWhereClauseSpec extends FlatSpec with Matchers {
+class CqlWhereClauseSpec extends AnyFlatSpec with Matchers {
 
   it should "produce a string for each predicate" in {
     val clause = CqlWhereClause(Seq("x < ?", "y = ?"), Seq(1, "aaa"))

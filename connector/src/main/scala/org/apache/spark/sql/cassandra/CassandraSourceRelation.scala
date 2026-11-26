@@ -25,6 +25,7 @@ import org.apache.hadoop.hive.conf.HiveConf
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.SparkConf
 import org.apache.spark.sql._
+import org.apache.spark.sql.classic.{Dataset => ClassicDataset, SparkSession => ClassicSparkSession}
 import org.apache.spark.sql.execution.datasources.v2.{DataSourceV2Relation, DataSourceV2ScanRelation}
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.util.CaseInsensitiveStringMap
@@ -206,6 +207,47 @@ object CassandraSourceRelation extends Logging {
       """.stripMargin
   )
 
+  val RuntimeFilteringEnabledParam = ConfigParameter[Boolean](
+    name = "spark.cassandra.sql.runtimeFiltering.enabled",
+    section = ReferenceSection,
+    default = true,
+    description =
+      s"""Lets Spark prune Cassandra scans at runtime (dynamic partition pruning). When a scan is joined on all
+         |of its partition key columns with a selective side that Spark broadcasts (for example
+         |`WHERE k IN (SELECT k FROM dim WHERE ...)`), the scan reads only the matching keys, or only the token
+         |ranges holding them, instead of the whole table. Set to false to always scan every token range.
+         |Spark's own switch is `spark.sql.optimizer.dynamicPartitionPruning.enabled`.
+         """.stripMargin
+  )
+
+  val RuntimeFilteringMaxKeyLookupsParam = ConfigParameter[Int](
+    name = "spark.cassandra.sql.runtimeFiltering.maxKeyLookups",
+    section = ReferenceSection,
+    default = 10000,
+    description =
+      s"""With runtime filtering, read the matching partition keys with one query per key if there are at most
+         |this many of them (the cross product of the key values for a composite partition key). With more keys
+         |only the token ranges holding at least one key are scanned. Set to 0 to never use key lookups.
+         """.stripMargin
+  )
+
+  val WriteClusteringParam = ConfigParameter[String](
+    name = "spark.cassandra.sql.writeClustering",
+    section = ReferenceSection,
+    default = "off",
+    description =
+      s"""Whether DataFrame writes ask Spark to cluster rows by partition key and sort them by primary key, so
+         |that the rows of one Cassandra partition reach the writer together and go out in full single-partition
+         |batches. It costs a shuffle and a sort, and pays off for tables with clustering columns written from
+         |unsorted data that spans many more partition keys per Spark task than
+         |`spark.cassandra.output.batch.grouping.buffer.size`. It slows down writes of data already grouped by
+         |partition key and writes of many rows to few partition keys. Acceptable values: "off", "auto", "on".
+         |"auto" clusters writes to tables with clustering columns when rows are batched by partition
+         |(`spark.cassandra.output.batch.grouping.key` = partition and `spark.cassandra.output.batch.size.rows`
+         |not 1), except counter tables. "on" always clusters.
+         """.stripMargin
+  )
+
   private val proxyPerSourceRelationEnabled = sys.env.getOrElse("DSE_ENABLE_PROXY_PER_SRC_RELATION", "false").toBoolean
 
   private def getProxyUser(sqlContext: SQLContext): Option[String] = {
@@ -224,15 +266,17 @@ object CassandraSourceRelation extends Logging {
   }
 
   def setDirectJoin[K: Encoder](ds: Dataset[K], directJoinSetting: DirectJoinSetting = AlwaysOn): Dataset[K] = {
-    val oldPlan = ds.queryExecution.logical
-    Dataset[K](ds.sparkSession,
-      oldPlan.transform {
-        case ds@DataSourceV2Relation(_: CassandraTable, _, _, _, options) =>
+    // Spark 4's `.load()` yields a lazy UnresolvedDataSource as the parsed logical plan; the
+    // DataSourceV2Relation only exists after analysis. Transform the analyzed plan so the
+    // direct-join option is actually injected into the relation/scan.
+    val oldPlan = ds.queryExecution.analyzed
+    val newPlan = oldPlan.transform {
+        case ds@DataSourceV2Relation(_: CassandraTable, _, _, _, options, _) =>
           ds.copy(options = applyDirectJoinSetting(options, directJoinSetting))
-        case ds@DataSourceV2ScanRelation(_: CassandraTable, scan: CassandraScan, _, _, _) =>
+        case ds@DataSourceV2ScanRelation(DataSourceV2Relation(_: CassandraTable, _, _, _, _, _), scan: CassandraScan, _, _, _, _, _) =>
           ds.copy(scan = scan.copy(consolidatedConf = applyDirectJoinSetting(scan.consolidatedConf, directJoinSetting)))
       }
-    )
+    ClassicDataset[K](ds.sparkSession.asInstanceOf[ClassicSparkSession], newPlan)
   }
 
   val defaultClusterName = "default"

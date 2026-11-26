@@ -20,7 +20,7 @@ package com.datastax.spark.connector.datasource
 
 import java.util.OptionalLong
 
-import com.datastax.spark.connector.RowCountRef
+import com.datastax.spark.connector.{CassandraRow, CassandraRowMetadata, RowCountRef}
 import com.datastax.spark.connector.cql.{CassandraConnector, TableDef}
 import com.datastax.spark.connector.datasource.ScanHelper.CqlQueryParts
 import com.datastax.spark.connector.rdd.ReadConf
@@ -38,7 +38,22 @@ case class CassandraScanPartitionReaderFactory(
   readConf: ReadConf,
   queryParts: CqlQueryParts) extends PartitionReaderFactory {
 
-  override def createReader(partition: InputPartition): PartitionReader[InternalRow] = {
+  override def createReader(partition: InputPartition): PartitionReader[InternalRow] = partition match {
+    case keys: CassandraKeyLookupPartition =>
+      // Planned by runtime filtering: read the matching partition keys only
+      val metadata = CassandraRowMetadata.fromColumnNames(tableDef.partitionKey.map(_.columnName).toIndexedSeq)
+      CassandraKeyLookupReader(
+        connector,
+        tableDef,
+        tableDef.partitionKey.map(_.columnName).toIndexedSeq,
+        keys.keys.iterator.map(values => new CassandraRow(metadata, values.toIndexedSeq)),
+        readConf,
+        schema,
+        queryParts)
+    case _ => createScanReader(partition)
+  }
+
+  private def createScanReader(partition: InputPartition): PartitionReader[InternalRow] = {
 
     val cassandraPartition = partition.asInstanceOf[CassandraPartition[Any, _ <: Token[Any]]]
     if (queryParts.selectedColumnRefs.contains(RowCountRef)) {

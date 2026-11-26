@@ -18,9 +18,10 @@
 
 package com.datastax.spark.connector.util
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SpanningIteratorSpec extends FlatSpec with Matchers {
+class SpanningIteratorSpec extends AnyFlatSpec with Matchers {
 
   "SpanningIterator" should "group an empty collection" in {
     new SpanningIterator[Int, Int](Iterator.empty, identity).isEmpty shouldBe true

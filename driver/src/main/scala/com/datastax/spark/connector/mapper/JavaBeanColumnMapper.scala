@@ -33,7 +33,7 @@ class JavaBeanColumnMapper[T : ClassTag](columnNameOverride: Map[String, String]
 
   private def propertyName(accessorName: String) = {
     val AccessorRegex(_, strippedName) = accessorName
-    val fieldName = strippedName(0).toLower + strippedName.substring(1)
+    val fieldName = s"${strippedName(0).toLower}${strippedName.substring(1)}"
     // For Java Beans, we need to figure out if there is
     // an equivalent name on the annotation if it has one
     annotationForFieldName(fieldName) getOrElse fieldName

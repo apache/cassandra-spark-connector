@@ -176,7 +176,7 @@ case class CassandraDirectJoinExec(
 
       val joinRow = new JoinedRow
       joinRDD.mapPartitions { it =>
-        val resultProjection = createResultProjection
+        val resultProjection = createResultProjection()
         it.map { case (unsafeKeyRow, cassandraRow) =>
           numOutputRows.add(1)
           joinRow.withLeft(unsafeKeyRow)
@@ -201,7 +201,7 @@ case class CassandraDirectJoinExec(
 
       val joinRow = new JoinedRow
       joinRDD.mapPartitions { it =>
-        val resultProjection = createResultProjection
+        val resultProjection = createResultProjection()
         val nullRow = new GenericInternalRow(cassandraPlan.output.length)
         it.map { case (unsafeKeyRow, cassandraRow) =>
           numOutputRows.add(1)

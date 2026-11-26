@@ -27,9 +27,10 @@ import org.apache.spark.metrics.source.Source
 import org.apache.spark.{SparkConf, TaskContext}
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class OutputMetricsUpdaterSpec extends FlatSpec with Matchers with MockitoSugar {
+class OutputMetricsUpdaterSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   val ts = System.currentTimeMillis()
 

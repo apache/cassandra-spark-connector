@@ -19,14 +19,15 @@
 package com.datastax.spark.connector.mapper
 
 import org.apache.commons.lang3.SerializationUtils
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.{CassandraRow, UDTValue}
 import com.datastax.spark.connector.cql.{ColumnDef, PartitionKeyColumn, RegularColumn, TableDef}
 import com.datastax.spark.connector.types._
 
 
-class GettableDataToMappedTypeConverterSpec extends FlatSpec with Matchers {
+class GettableDataToMappedTypeConverterSpec extends AnyFlatSpec with Matchers {
 
   val streetColumn = UDTFieldDef("street", VarCharType)
   val numberColumn = UDTFieldDef("number", IntType)

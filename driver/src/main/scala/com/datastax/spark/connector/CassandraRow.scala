@@ -24,6 +24,8 @@ import com.datastax.oss.driver.api.core.`type`.codec.registry.CodecRegistry
 import com.datastax.oss.driver.api.core.cql.{AsyncResultSet, ColumnDefinitions, PreparedStatement, ResultSet, Row}
 import com.datastax.spark.connector.util.DriverUtil.toName
 
+import scala.collection.immutable.ArraySeq
+
 /** Represents a single row fetched from Cassandra.
   * Offers getters to read individual fields by column name or column index.
   * The getters try to convert value to desired type, whenever possible.
@@ -194,7 +196,7 @@ object CassandraRow {
     * the input `Row` in order to improve performance. Fetching column values by name is much
     * slower than fetching by index. */
   def fromJavaDriverRow(row: Row, metaData: CassandraRowMetadata): CassandraRow = {
-    new CassandraRow(metaData, CassandraRow.dataFromJavaDriverRow(row, metaData))
+    new CassandraRow(metaData, ArraySeq.unsafeWrapArray(CassandraRow.dataFromJavaDriverRow(row, metaData)))
   }
 
   def dataFromJavaDriverRow(row: Row, metaData: CassandraRowMetadata): Array[Object] = {

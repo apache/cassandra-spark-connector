@@ -19,11 +19,12 @@
 package com.datastax.spark.connector.cql
 
 import com.datastax.spark.connector.types._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.collection.SortedMap
 
-class TableDefSpec extends WordSpec with Matchers {
+class TableDefSpec extends AnyWordSpec with Matchers {
 
   "A TableDef#cql method" should {
     "produce valid CQL" when {

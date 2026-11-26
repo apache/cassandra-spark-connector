@@ -23,6 +23,8 @@ import com.datastax.spark.connector.types._
 import com.datastax.spark.connector.util.{Logging, ReflectionUtil, Symbols}
 import com.datastax.spark.connector.{ColumnRef, GettableByIndexData}
 
+import scala.collection.immutable.ArraySeq
+
 import scala.language.existentials
 import scala.reflect.runtime.universe._
 import scala.util.control.NonFatal
@@ -221,14 +223,14 @@ object MappedToGettableDataConverter extends Logging {
           val columnValues = extractor.extract(obj.asInstanceOf[T])
           for (i <- columnValues.indices)
             columnValues(i) = converters(i).convert(columnValues(i))
-          struct.newInstance(columnValues: _*)
+          struct.newInstance(ArraySeq.unsafeWrapArray(columnValues): _*)
         case obj if obj == null =>
           null.asInstanceOf[struct.ValueRepr]
         case Some(obj) if cls.isInstance(obj) =>
           val columnValues = extractor.extract(obj.asInstanceOf[T])
           for (i <- columnValues.indices)
             columnValues(i) = converters(i).convert(columnValues(i))
-          struct.newInstance(columnValues: _*)
+          struct.newInstance(ArraySeq.unsafeWrapArray(columnValues): _*)
         case None =>
           null.asInstanceOf[struct.ValueRepr]
       }

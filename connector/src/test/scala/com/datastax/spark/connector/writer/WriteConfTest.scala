@@ -21,9 +21,10 @@ package com.datastax.spark.connector.writer
 import com.datastax.oss.driver.api.core.DefaultConsistencyLevel
 import com.datastax.spark.connector.{BytesInBatch, RowsInBatch}
 import org.apache.spark.SparkConf
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class WriteConfTest extends FlatSpec with Matchers {
+class WriteConfTest extends AnyFlatSpec with Matchers {
 
   "WriteConf" should "be configured with proper defaults" in {
     val conf = new SparkConf(false)

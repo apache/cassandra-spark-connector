@@ -26,9 +26,11 @@ import com.datastax.spark.connector.types.ColumnTypeConf
 import com.datastax.spark.connector.writer.WriteConf
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.cassandra.CassandraSourceRelation
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DeprecationSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
+class DeprecationSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   val conf = new SparkConf()
 
   //Cassandra Connector Conf

@@ -22,10 +22,12 @@ import java.util.UUID
 
 import com.datastax.spark.connector.util.CqlWhereParser._
 
-import org.scalatest.{Inside, FlatSpec, Matchers}
+import org.scalatest.Inside
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class CqlWhereParserTest extends FlatSpec with Matchers with Inside {
+class CqlWhereParserTest extends AnyFlatSpec with Matchers with Inside {
   var parser = CqlWhereParser
 
   "CqlWhereParser" should "parse 'and' operations" in {

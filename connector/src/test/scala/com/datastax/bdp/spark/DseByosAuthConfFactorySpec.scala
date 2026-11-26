@@ -23,14 +23,15 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.runtime.universe._
 
 import org.apache.spark.SparkConf
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import com.datastax.bdp.config.ClientConfiguration
 import com.datastax.bdp.spark.DseByosAuthConfFactory.ByosAuthConf
 import com.datastax.bdp.test.ng.{DataGenerator, DseScalaTestBase, ToString}
 import com.datastax.bdp.transport.client.MapBasedClientConfiguration
 
-class DseByosAuthConfFactorySpec extends FlatSpec with Matchers with DseScalaTestBase {
+class DseByosAuthConfFactorySpec extends AnyFlatSpec with Matchers with DseScalaTestBase {
 
   "DseByosAuthConfFactory" should "provide same result instance for identical input" in {
     val first = DseByosAuthConfFactory.authConf(new SparkConf())

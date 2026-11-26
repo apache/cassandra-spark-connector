@@ -143,7 +143,7 @@ object CcmConfig {
   val DSE_V5_0_0: Version = Version.parse("5.0.0")
 
   // C* versions
-  val V5_0_0: Version = Version.parse("5.0-alpha1")
+  val V5_0_0: Version = Version.parse("5.0.0")
   val V4_1_0: Version = Version.parse("4.1.0")
   val V3_6_0: Version = Version.parse("3.6.0")
   val V3_10: Version = Version.parse("3.10")

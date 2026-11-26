@@ -22,9 +22,10 @@ import com.datastax.spark.connector.{ColumnName, UDTValue}
 import com.datastax.spark.connector.cql.{ColumnDef, PartitionKeyColumn, RegularColumn, TableDef}
 import com.datastax.spark.connector.types._
 import org.apache.commons.lang3.{SerializationUtils, tuple}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class MappedToGettableDataConverterSpec extends FlatSpec with Matchers {
+class MappedToGettableDataConverterSpec extends AnyFlatSpec with Matchers {
 
   val streetColumn = UDTFieldDef("street", VarCharType)
   val numberColumn = UDTFieldDef("number", IntType)

@@ -24,7 +24,7 @@ import com.datastax.spark.connector.util.{ConfigCheck, RefBuilder}
 
 object DocUtil {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     val DefaultReferenceFile = Paths.get("..").resolve("doc").resolve("reference.md")
 

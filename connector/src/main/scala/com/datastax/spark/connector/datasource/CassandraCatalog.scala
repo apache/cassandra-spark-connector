@@ -147,7 +147,7 @@ class CassandraCatalog extends CatalogPlugin
     val ksMeta = metadata.asScala
     checkNamespace(namespace)
 
-    if (getMetadata(connector).getKeyspace(fromInternal(namespace.head)).isPresent) throw new NamespaceAlreadyExistsException(s"${namespace.head} already exists")
+    if (getMetadata(connector).getKeyspace(fromInternal(namespace.head)).isPresent) throw new NamespaceAlreadyExistsException(namespace)
     val createStmt = SchemaBuilder.createKeyspace(namespace.head)
     val replicationClass = ksMeta.getOrElse(ReplicationClass, throw new CassandraCatalogException(s"Creating a keyspace requires a $ReplicationClass DBOption for the replication strategy class"))
     val createWithReplication = replicationClass.toLowerCase(Locale.ROOT) match {
@@ -156,7 +156,7 @@ class CassandraCatalog extends CatalogPlugin
           throw new CassandraCatalogException(s"Need a $ReplicationFactor option with SimpleStrategy"))
         createStmt.withSimpleStrategy(replicationFactor.toInt)
       case NetworkTopologyStrategy =>
-        val datacenters = (ksMeta -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
+        val datacenters = (ksMeta.toMap -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
         createStmt.withNetworkTopologyStrategy(datacenters.asJava)
       case other => throw new CassandraCatalogException(s"Unknown keyspace replication strategy $other")
     }
@@ -175,7 +175,7 @@ class CassandraCatalog extends CatalogPlugin
       case (metadata: mutable.Map[String, String], setProperty: SetProperty) =>
         metadata.clone() += (setProperty.property() -> setProperty.value)
       case (metadata: mutable.Map[String, String], removeProperty: RemoveProperty) =>
-        metadata - removeProperty.property()
+        metadata.clone() -= removeProperty.property()
       case (_, other) => throw new CassandraCatalogException(s"Unable to handle alter namespace operation: ${other.getClass.getSimpleName}")
     }
 
@@ -191,7 +191,7 @@ class CassandraCatalog extends CatalogPlugin
           throw new CassandraCatalogException(s"Need a $ReplicationFactor option with SimpleStrategy"))
         alterWithDurable.withSimpleStrategy(replicationFactor.toInt)
       case NetworkTopologyStrategy =>
-        val datacenters = (ksMeta -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
+        val datacenters = (ksMeta.toMap -- IgnoredReplicationOptions).map(pair => (pair._1, pair._2.toInt: java.lang.Integer))
         alterWithDurable.withNetworkTopologyStrategy(datacenters.asJava)
       case other => throw new CassandraCatalogException(s"Unknown replication strategy $other")
     }
@@ -479,14 +479,18 @@ object CassandraCatalog {
     * is used to quickly bail out if the namespace is not compatible with Cassandra
     */
   def checkNamespace(namespace: Array[String]): Unit = {
-    if (namespace.length != 1) throw new NoSuchNamespaceException(s"""$OnlyOneNamespace: ${namespace.mkString(".")}""")
+    if (namespace.length != 1) throw new NoSuchNamespaceException(namespace)
   }
 
   //Currently these exceptions are not always propagated to the user so Suggestions will not appear for all executions
   def namespaceMissing(metadata: Metadata, namespace: Array[String]): NoSuchNamespaceException = {
     val suggestions = NameTools.getSuggestions(metadata, namespace.head)
     val error = NameTools.getErrorString(namespace.head, None, suggestions)
-    new NoSuchNamespaceException(error)
+    // Spark 4's NoSuchNamespaceException no longer accepts a free-form message; override getMessage so
+    // the suggestion-rich error is still surfaced to the user while keeping the typed exception.
+    new NoSuchNamespaceException(namespace) {
+      override def getMessage: String = error
+    }
   }
 
   private def getMetadata(connector: CassandraConnector): Metadata = {
@@ -498,7 +502,10 @@ object CassandraCatalog {
   def tableMissing(metadata: Metadata, namespace: Array[String], name: String): Throwable = {
     val suggestions = NameTools.getSuggestions(metadata, namespace.head, name)
     val error = NameTools.getErrorString(namespace.head, Some(name), suggestions)
-    new NoSuchTableException(error)
+    // See namespaceMissing: Spark 4 dropped the free-form message constructor.
+    new NoSuchTableException(Identifier.of(namespace, name)) {
+      override def getMessage: String = error
+    }
   }
 
 }

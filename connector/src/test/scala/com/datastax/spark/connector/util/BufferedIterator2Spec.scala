@@ -18,11 +18,12 @@
 
 package com.datastax.spark.connector.util
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.collection.mutable.ArrayBuffer
 
-class BufferedIterator2Spec extends FlatSpec with Matchers {
+class BufferedIterator2Spec extends AnyFlatSpec with Matchers {
 
   "BufferedIterator" should "return the same items as the standard Iterator" in {
     val iterator = new BufferedIterator2(Seq(1, 2, 3, 4, 5).iterator)

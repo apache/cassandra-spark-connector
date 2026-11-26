@@ -28,7 +28,7 @@ import org.apache.spark.sql.cassandra.{AlwaysOn, CassandraSourceRelation, Direct
 /** Provides Cassandra-specific methods on [[org.apache.spark.sql.DataFrame]] */
 class DatasetFunctions[K: Encoder](dataset: Dataset[K]) extends Serializable {
 
-  val sparkContext: SparkContext = (dataset.sqlContext.sparkContext)
+  val sparkContext: SparkContext = (dataset.sparkSession.sparkContext)
 
   def directJoin(directJoinSetting: DirectJoinSetting= AlwaysOn): Dataset[K] = {
     CassandraSourceRelation.setDirectJoin(dataset, directJoinSetting)

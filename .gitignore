@@ -23,5 +23,8 @@ metastore_db
 *.ipr
 *.iws
 *.iml
+*.bsp
 
 checkpoint
+ccm-logs/
+benchmark-results/

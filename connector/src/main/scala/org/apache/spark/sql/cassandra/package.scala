@@ -21,6 +21,10 @@ package org.apache.spark.sql
 import scala.language.implicitConversions
 import com.datastax.spark.connector.util.{ConfigParameter, DeprecatedConfigParameter}
 import org.apache.spark.sql.streaming.DataStreamWriter
+// Spark 4 split Column/Expression interop into the classic package. ClassicConversions provides the
+// Column(expression) constructor; ColumnConversions.expression extracts the Catalyst expression.
+import org.apache.spark.sql.classic.ClassicConversions._
+import org.apache.spark.sql.classic.ColumnConversions
 
 package object cassandra {
 
@@ -197,7 +201,7 @@ package object cassandra {
   }
 
   def ttl(column: Column): Column = {
-      Column(CassandraTTL(column.expr))
+      Column(CassandraTTL(ColumnConversions.expression(column)))
   }
 
   def ttl(column: String): Column = {
@@ -205,7 +209,7 @@ package object cassandra {
   }
 
   def writeTime(column: Column): Column = {
-      Column(CassandraWriteTime(column.expr))
+      Column(CassandraWriteTime(ColumnConversions.expression(column)))
   }
 
   def writeTime(column: String): Column = {

@@ -93,10 +93,10 @@ class LocalNodeFirstLoadBalancingPolicy(context: DriverContext, profileName: Str
     val (localReplica, otherReplicas) = replicas.partition(isLocalHost)
     lazy val maybeShuffledOtherReplicas = if (shuffleReplicas) random.shuffle(otherReplicas.toIndexedSeq) else otherReplicas
 
-    lazy val otherNodes = tokenUnawareQueryPlan(statement).toIterator
+    lazy val otherNodes = tokenUnawareQueryPlan(statement).iterator
       .filter(node => !replicas.contains(node) && distance(node) != NodeDistance.IGNORED)
 
-    (localReplica.iterator #:: maybeShuffledOtherReplicas.iterator #:: otherNodes #:: Stream.empty).flatten
+    (localReplica.iterator #:: maybeShuffledOtherReplicas.iterator #:: otherNodes #:: LazyList.empty).flatten
   }
 
   def tokenMap =
@@ -140,7 +140,7 @@ class LocalNodeFirstLoadBalancingPolicy(context: DriverContext, profileName: Str
     new SimpleQueryPlan(nodes: _*)
   }
 
-  override def onAdd(node: Node) {
+  override def onAdd(node: Node): Unit = {
     // The added host might be a "better" version of a host already in the set.
     // The nodes added in the init call don't have DC and rack set.
     // Therefore we want to really replace the object now, to get full information on DC:
@@ -149,7 +149,7 @@ class LocalNodeFirstLoadBalancingPolicy(context: DriverContext, profileName: Str
     distanceReporter.setDistance(node, distance(node))
   }
 
-  override def onRemove(node: Node) {
+  override def onRemove(node: Node): Unit = {
     nodes -= node
   }
 

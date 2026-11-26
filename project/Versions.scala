@@ -18,24 +18,24 @@
 
 object Versions {
 
-  val CommonsExec     = "1.3"
-  val CommonsIO       = "2.8.0"
-  val CommonsLang3    = "3.10"
-  val Paranamer       = "2.8"
+  val CommonsExec     = "1.6.0"
+  val CommonsIO       = "2.22.0"
+  val CommonsLang3    = "3.22.0"
+  val Paranamer       = "2.8.3"
 
-  val CassandraJavaDriver = "4.18.1"
+  val CassandraJavaDriver = "4.19.4"
   val EsriGeometry        = "2.2.4"
 
-  val ScalaCheck      = "1.14.0"
-  val ScalaTest       = "3.0.8"
-  val JUnit           = "4.12"
-  val JUnitInterface  = "0.11"
-  val Mockito         = "1.10.19"
+  val ScalaCheck      = "1.20.0"
+  val ScalaTest       = "3.2.20"
+  val ScalaTestPlusScalaCheck = "3.2.20.0" // scalatestplus scalacheck-1-20
+  val ScalaTestPlusMockito    = "3.2.19.0" // scalatestplus mockito-5-18 (latest)
+  val JUnit           = "4.13.2"
+  val JUnitInterface  = "0.13.3"
+  val Mockito         = "5.24.0"
 
-  val ApacheSpark     = "3.5.0"
-  val SparkJetty      = "9.4.51.v20230217"
+  val ApacheSpark     = "4.3.0"
   val SolrJ           = "8.3.0"
 
-  val ScalaCompat         = "2.11.0"
-  val ParallelCollections = "1.0.4"
+  val ParallelCollections = "1.3.0"
 }

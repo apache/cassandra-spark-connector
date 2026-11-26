@@ -19,10 +19,11 @@
 package com.datastax.spark.connector.writer
 
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class RateLimiterSpec extends FlatSpec with Matchers with Eventually {
+class RateLimiterSpec extends AnyFlatSpec with Matchers with Eventually {
 
  val TestRates = Seq(1L, 2L, 4L, 6L, 8L, 16L, 32L)
 

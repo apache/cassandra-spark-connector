@@ -27,7 +27,6 @@ import scala.annotation.tailrec
 
 import com.datastax.spark.connector.rdd.partitioner.TokenRangeClusterer.WholeRing
 
-import scala.collection.compat.immutable.LazyList
 
 /** Groups a set of token ranges into `groupCount` groups containing not more than `maxGroupSize` token
   * ranges.

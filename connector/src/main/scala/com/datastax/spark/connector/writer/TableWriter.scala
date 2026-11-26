@@ -237,7 +237,7 @@ class TableWriter[T] private (
     }
   }
 
-  private def writeInternal(asyncStatementWriter: AsyncStatementWriter[T], taskContext: TaskContext, data: Iterator[T]) {
+  private def writeInternal(asyncStatementWriter: AsyncStatementWriter[T], taskContext: TaskContext, data: Iterator[T]): Unit = {
     val updater = OutputMetricsUpdater(taskContext, writeConf)
 
     val metricMonitoringWriter = asyncStatementWriter.copy(
@@ -309,7 +309,7 @@ case class AsyncStatementWriter[T](
 
 object TableWriter {
 
-  private def checkMissingColumns(table: TableDef, columnNames: Seq[String]) {
+  private def checkMissingColumns(table: TableDef, columnNames: Seq[String]): Unit = {
     val allColumnNames = table.columns.map(_.columnName)
     val missingColumns = columnNames.toSet -- allColumnNames
     if (missingColumns.nonEmpty)
@@ -317,7 +317,7 @@ object TableWriter {
         s"Column(s) not found: ${missingColumns.mkString(", ")}")
   }
 
-  private def checkMissingPrimaryKeyColumns(table: TableDef, columnNames: Seq[String]) {
+  private def checkMissingPrimaryKeyColumns(table: TableDef, columnNames: Seq[String]): Unit = {
     val primaryKeyColumnNames = table.primaryKey.map(_.columnName)
     val missingPrimaryKeyColumns = primaryKeyColumnNames.toSet -- columnNames
     if (missingPrimaryKeyColumns.nonEmpty)
@@ -325,7 +325,7 @@ object TableWriter {
         s"Some primary key columns are missing in RDD or have not been selected: ${missingPrimaryKeyColumns.mkString(", ")}")
   }
 
-  private def checkMissingPartitionKeyColumns(table: TableDef, columnNames: Seq[String]) {
+  private def checkMissingPartitionKeyColumns(table: TableDef, columnNames: Seq[String]): Unit = {
     val partitionKeyColumnNames = table.partitionKey.map(_.columnName)
     val missingPartitionKeyColumns = partitionKeyColumnNames.toSet -- columnNames
     if (missingPartitionKeyColumns.nonEmpty)
@@ -346,7 +346,7 @@ object TableWriter {
    * Check whether prepend is used on any Sets or Maps
    * Check whether remove is used on Maps
    */
-  private def checkCollectionBehaviors(table: TableDef, columnRefs: IndexedSeq[ColumnRef]) {
+  private def checkCollectionBehaviors(table: TableDef, columnRefs: IndexedSeq[ColumnRef]): Unit = {
     val tableCollectionColumns = table.columns.filter(cd => cd.isCollection)
     val tableCollectionColumnNames = tableCollectionColumns.map(_.columnName)
     val tableListColumnNames = tableCollectionColumns

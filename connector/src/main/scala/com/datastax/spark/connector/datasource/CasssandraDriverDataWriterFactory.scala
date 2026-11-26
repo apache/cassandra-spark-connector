@@ -52,7 +52,7 @@ case class CassandraDriverDataWriter(
 
   private val unsafeRowWriterFactory = new InternalRowWriterFactory(inputSchema)
 
-  private val columns = SomeColumns(inputSchema.fieldNames.map(name => ColumnName(name)): _*)
+  private val columns = SomeColumns(inputSchema.fieldNames.map(name => ColumnName(name)).toIndexedSeq: _*)
 
   private val writer =
     TableWriter(connector, tableDef, columns, writeConf, false)(unsafeRowWriterFactory)
