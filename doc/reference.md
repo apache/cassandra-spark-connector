@@ -187,6 +187,20 @@ only the token ranges holding at least one key are scanned. Set to 0 to never us
          </td>
 </tr>
 <tr>
+  <td><code>spark.cassandra.sql.writeClustering</code></td>
+  <td>off</td>
+  <td>Whether DataFrame writes ask Spark to cluster rows by partition key and sort them by primary key, so
+that the rows of one Cassandra partition reach the writer together and go out in full single-partition
+batches. It costs a shuffle and a sort, and pays off for tables with clustering columns written from
+unsorted data that spans many more partition keys per Spark task than
+`spark.cassandra.output.batch.grouping.buffer.size`. It slows down writes of data already grouped by
+partition key and writes of many rows to few partition keys. Acceptable values: "off", "auto", "on".
+"auto" clusters writes to tables with clustering columns when rows are batched by partition
+(`spark.cassandra.output.batch.grouping.key` = partition and `spark.cassandra.output.batch.size.rows`
+not 1), except counter tables. "on" always clusters.
+         </td>
+</tr>
+<tr>
   <td><code>spark.cassandra.table.size.in.bytes</code></td>
   <td>None</td>
   <td>Used by DataFrames Internally, will be updated in a future release to

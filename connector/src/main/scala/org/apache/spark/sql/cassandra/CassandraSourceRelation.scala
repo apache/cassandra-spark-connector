@@ -231,6 +231,23 @@ object CassandraSourceRelation extends Logging {
          """.stripMargin
   )
 
+  val WriteClusteringParam = ConfigParameter[String](
+    name = "spark.cassandra.sql.writeClustering",
+    section = ReferenceSection,
+    default = "off",
+    description =
+      s"""Whether DataFrame writes ask Spark to cluster rows by partition key and sort them by primary key, so
+         |that the rows of one Cassandra partition reach the writer together and go out in full single-partition
+         |batches. It costs a shuffle and a sort, and pays off for tables with clustering columns written from
+         |unsorted data that spans many more partition keys per Spark task than
+         |`spark.cassandra.output.batch.grouping.buffer.size`. It slows down writes of data already grouped by
+         |partition key and writes of many rows to few partition keys. Acceptable values: "off", "auto", "on".
+         |"auto" clusters writes to tables with clustering columns when rows are batched by partition
+         |(`spark.cassandra.output.batch.grouping.key` = partition and `spark.cassandra.output.batch.size.rows`
+         |not 1), except counter tables. "on" always clusters.
+         """.stripMargin
+  )
+
   private val proxyPerSourceRelationEnabled = sys.env.getOrElse("DSE_ENABLE_PROXY_PER_SRC_RELATION", "false").toBoolean
 
   private def getProxyUser(sqlContext: SQLContext): Option[String] = {

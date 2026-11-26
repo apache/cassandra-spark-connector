@@ -288,6 +288,30 @@ Runtime filtering applies when:
 `EXPLAIN` shows the runtime filter in `RuntimeFilters: [dynamicpruningexpression(...)]` of the `BatchScan`.
 Set `spark.cassandra.sql.runtimeFiltering.enabled=false` to always scan every token range.
 
+#### Write Clustering
+
+The connector writes rows in single-partition unlogged batches: it keeps up to
+`spark.cassandra.output.batch.grouping.buffer.size` (1000) open batches per Spark task, one per partition key,
+and sends a batch when it is full. When a task sees many more partition keys than that in random order, rows of
+the same partition rarely meet in the buffer and most of them are sent one by one.
+
+`spark.cassandra.sql.writeClustering` (default `off`) makes DataFrame and SQL writes, including streaming
+micro-batches, ask Spark to cluster the rows by partition key (a shuffle) and sort them by primary key within
+each task, so each partition's rows arrive together and go out in full batches:
+ - `on` clusters every write;
+ - `auto` clusters writes to tables with clustering columns when rows are batched by partition
+   (`spark.cassandra.output.batch.grouping.key=partition` and `spark.cassandra.output.batch.size.rows` not 1),
+   except counter tables;
+ - `off` writes the rows in the order Spark produces them, as before.
+
+It pays off for tables with clustering columns written from unsorted data with many partition keys per task (in
+the connector benchmark, 500k rows in random order into 25k partitions: about 30% faster). It slows writes down
+when the data is already grouped by partition key (the shuffle is wasted) and when many rows go to few partition
+keys (each task then writes to only a few partitions, and concurrent writes to one partition contend in
+Cassandra): about 2x slower in the benchmark. `on` also clusters writes to tables without clustering columns,
+where it only adds cost (about 10% in the benchmark), so prefer `auto`. Set it per write with
+`.option("spark.cassandra.sql.writeClustering", "auto")`.
+
 #### TTL and WRITETIME
 
 Through Cassandra Spark Extensions special functions are added to SparkSQL.
